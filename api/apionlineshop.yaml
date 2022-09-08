@@ -27,8 +27,6 @@ components:
           type: string
         email:
           type: string
-        cellphone:
-          type: string
         address:
           type: object
           properties:
@@ -44,7 +42,7 @@ components:
     Cart:
       type: object
       properties:
-        usreID:
+        userID:
           type: integer
           format: int64
         date:
