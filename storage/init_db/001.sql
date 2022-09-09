@@ -1,10 +1,19 @@
 CREATE EXTENSION pgcrypto;
 
+CREATE TABLE rights (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name VARCHAR(256),
+    rules text[]
+);
+
 CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(256) NOT NULL,
     password TEXT NOT NULL,
-    email VARCHAR(256) NOT NULL UNIQUE
+    email VARCHAR(256) NOT NULL UNIQUE,
+    rights UUID,
+    CONSTRAINT fk_rights 
+        FOREIGN KEY(rights) REFERENCES rights(id)
 );
 
 
@@ -14,11 +23,6 @@ CREATE TABLE categories (
     description TEXT NOT NULL
 );
 
-CREATE TABLE Rights (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name VARCHAR(256),
-    rules text[]
-);
 
 CREATE TABLE items (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
