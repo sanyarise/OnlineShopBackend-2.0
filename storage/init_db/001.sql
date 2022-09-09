@@ -21,6 +21,7 @@ CREATE TABLE items (
     description TEXT NOT NULL,
     price INTEGER NOT NULL,
     vendor TEXT NOT NULL,
+    pictures text[],
     CONSTRAINT fk_category
         FOREIGN KEY(category) REFERENCES categories(id)
 );
