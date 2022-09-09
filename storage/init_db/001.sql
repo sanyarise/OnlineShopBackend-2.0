@@ -14,6 +14,12 @@ CREATE TABLE categories (
     description TEXT NOT NULL
 );
 
+CREATE TABLE Rights (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name VARCHAR(256),
+    rules text[]
+);
+
 CREATE TABLE items (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(256) NOT NULL,
