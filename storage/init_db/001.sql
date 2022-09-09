@@ -38,10 +38,10 @@ CREATE TABLE items (
 
 CREATE TABLE carts (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    expire_at timestamp with timezone not NULL SET DEFAULT now() + interval '1 hour';
+    expire_at timestamp NOT NULL DEFAULT now() + interval '1 hour',
     user_id UUID,
     CONSTRAINT fk_user_id
-        FOREIGN KEY(user_id) REFERENCES users(id);
+        FOREIGN KEY(user_id) REFERENCES users(id)
 );
 
 CREATE TABLE cart_items (
@@ -52,15 +52,20 @@ CREATE TABLE cart_items (
 
 CREATE TABLE orders (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    shipment_time timestamp with timezone not NULL,
+    shipment_time timestamp not NULL,
     user_id UUID,
     address TEXT,
     CONSTRAINT fk_user_id
-        FOREIGN KEY(user_id) REFERENCES users(id);
+        FOREIGN KEY(user_id) REFERENCES users(id)
 );
+
 
 CREATE TABLE order_items (
     order_id UUID,
     item_id UUID,
-    PRIMARY KEY(order_id, item_id)
+    PRIMARY KEY(order_id, item_id),
+    CONSTRAINT fk_order_id
+        FOREIGN KEY(order_id) REFERENCES orders(id),
+    CONSTRAINT fk_item_id
+        FOREIGN KEY(item_id) REFERENCES items(id)
 );
