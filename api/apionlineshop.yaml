@@ -59,14 +59,18 @@ components:
   securitySchemes:
     OAuthAdmin:
       type: oauth2
-      scheme: bearer
+      description: This API uses OAuth 2
       flows:
         implicit:
           authorizationUrl: ""
           tokenUrl: " "
           scopes:
             item: create and change an item
-            write:something: Write allthe data
+
+security:
+  - OAuthAdmin:
+    - item
+
 tags:
   - name: User
   - name: Item
