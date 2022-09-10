@@ -1,0 +1,424 @@
+openapi: 3.0.3
+info:
+  title: Backend for Online Shop
+  version: 1.0.0
+components:
+  schemas:
+    Item:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        price:
+          type: integer
+          format: float64
+        category:
+          type: string
+        image:
+          type: string
+    User:
+      type: object
+      properties:
+        firstname:
+          type: string
+        lastname:
+          type: string
+        email:
+          type: string
+        address:
+          type: object
+          properties:
+            zipcode:
+              type: integer
+              format: int64
+            country:
+              type: string
+            city:
+              type: string
+            street:
+              type: string
+    Cart:
+      type: object
+      properties:
+        userID:
+          type: integer
+          format: int64
+        date:
+          type: string
+        products:
+          type: array
+          properties:
+                item:
+                  type: integer
+                  format: int64
+                qty:
+                   type: integer
+                   format: int64
+  securitySchemes:
+    OAuthAdmin:
+      type: oauth2
+      description: This API uses OAuth 2
+      flows:
+        implicit:
+          authorizationUrl: ""
+          tokenUrl: " "
+          scopes:
+            item: create and change an item
+
+security:
+  - OAuthAdmin:
+    - item
+
+tags:
+  - name: User
+  - name: Item
+  - name: Admin
+paths:
+  /items:
+    post:
+      tags:
+        - Admin
+      summary: Create a new item
+      security:
+        - OAuthAdmin:
+            - item
+      operationId: CreateItem
+      requestBody:
+        description: ""
+        content:
+          'application/json':
+            schema:
+              $ref: "#/components/schemas/Item"
+        required: true
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Item'
+        405:
+          description: "invalid output"
+    get:
+      tags:
+        - Item
+      summary: List of Items with filters
+      description: "List of items with filters: lower and highest price and a category"
+      operationId: ItemsList
+      parameters:
+        - name: price_min
+          in: query
+          description: Lower price limit
+          required: false
+          schema:
+            type: integer
+            format: int64
+        - name: price_max
+          in: query
+          description: Highest price limit
+          required: false
+          schema:
+            type: integer
+            format: int64
+        - name: category
+          in: query
+          description: sort by special category
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Item'
+        400:
+          description: Invalid price range
+          content: { }
+  /search/{searchRequest}:
+    get:
+      tags:
+        - Item
+      description: "Find an item in the search line"
+      operationId: searchLine
+      parameters:
+        - name: searchRequest
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Item'
+        404:
+          description: not found
+  /items/{itemID}:
+    get:
+      tags:
+        - Admin
+      description: "Find an item by ID"
+      security:
+        - OAuthAdmin:
+            - item
+      operationId: GetItem
+      parameters:
+        - name: itemID
+          in: path
+          description: ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Item'
+        400:
+          description: Invalid ID
+          content:
+            { }
+    put:
+      tags:
+        - Admin
+      summary: Update an item
+      security:
+        - OAuthAdmin:
+            - item
+      operationId: UpdateItem
+      parameters:
+        - name: itemID
+          in: path
+          description: item by id which needs to be updated
+          required: false
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        description: ""
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/Item'
+        required: false
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Item'
+        400:
+          description: Bad request
+          content:
+            { }
+  /items/{itemID}/upload:
+    post:
+      tags:
+        - Admin
+      summary: "upload an image"
+      security:
+        - OAuthAdmin:
+            - item
+      operationId: uploadFile
+      requestBody:
+        description: ""
+        content:
+          'image/jpeg':
+            schema:
+              type: string
+              format: binary
+          'image/png':
+            schema:
+              type: string
+              format: binary
+      responses:
+        200:
+          description: ""
+          content:
+            'text/plain':
+              schema:
+                type: string
+  /categories/{category}:
+    post:
+      tags:
+        - Admin
+      description: "create a new category"
+      security:
+        - OAuthAdmin:
+            - item
+      operationId: createCategory
+      parameters:
+        - name: category
+          in: path
+          description: category
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: string
+  /items/categories/{category}:
+    get:
+      tags:
+        - Item
+      summary: "get a specific category"
+      operationId: getCategoryList
+      parameters:
+        - name: category
+          in: path
+          description: category
+          required: true
+          schema:
+            type: string
+      responses:
+          200:
+            description: successful operation
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Item'
+          400:
+            description: Invalid ID
+            content:
+              { }
+  /cart/{userID}:
+    get:
+      tags:
+        - Item
+      summary: "get user cart"
+      operationId: getCart
+      parameters:
+        - name: userID
+          in: path
+          description: ""
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+        400:
+          description: Id not found
+          content:
+            { }
+  /user/create:
+    post:
+      tags:
+        - User
+      operationId: createUser
+      description: "Create a new user"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - login
+                - password
+              properties:
+                login:
+                  type: string
+                password:
+                  type: string
+      responses:
+        200:
+          description: successful operation
+          headers:
+            X-Expires-After:
+              description: UTC
+              schema:
+                type: string
+                format: date-time
+          content:
+            application/json:
+              schema:
+                type: string
+        400:
+          description: Invalid login/password
+          content:
+            { }
+  /user/login:
+    post:
+      tags:
+        - User
+      operationId: loginUser
+      description: "Login"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - login
+                - password
+              properties:
+                login:
+                  type: string
+                password:
+                  type: string
+      responses:
+        200:
+          description: successful operation
+          headers:
+            X-Expires-After:
+              description: UTC
+              schema:
+                type: string
+                format: date-time
+          content:
+            application/json:
+              schema:
+                type: string
+        400:
+          description: Invalid login/password
+          content:
+            { }
+
+  /user/logout:
+    post:
+      tags:
+        - User
+      operationId: logoutUser
+      description: "Logout"
+      responses:
+        200:
+          description: successful operation
+          headers:
+            X-Expires-After:
+              description: UTC
+              schema:
+                type: string
+                format: date-time
+          content:
+            application/json:
+              schema:
+                type: string
+        400:
+          description: Invalid login/password
+          content:
+            { }
+
