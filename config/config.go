@@ -6,33 +6,39 @@ import (
 	"os"
 
 	"github.com/BurntSushi/toml"
+	"github.com/caarlos0/env/v6"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
 type Config struct {
-	DSN        string `toml:"dsn"`
-	Port       string `toml:"port"`
-	Server_URL string `toml:"server_url"`
+	DSN        string `toml:"dsn" env:"DSN" envDefault:"postgres://shopteam:123@localhost:5432/shop?sslmode=disable"`
+	Port       string `toml:"port" env:"PORT" envDefault:":8000"`
+	Server_URL string `toml:"server_url" env:"SERVER_URL" envDefault:"http://localhost:8000"`
 	Logger     *zap.Logger
-	LogLevel   string `toml:"log_level"`
+	LogLevel   string `toml:"log_level" env:"LOG_LEVEL" envDefault:"debug"`
 }
 
 // InitConfig() initializes the configuration
 func InitConfig() (*Config, error) {
 	var configPath string
 
-	// The flag allows to specify the path to the folder with the configuration file.
-	// When running without a flag, the default path is used
-	flag.StringVar(&configPath, "config-path", "./config/config.toml", "path to file in .toml format")
+	// The flag allows to specify the path to the folder with the configuration file in .toml format.
+	flag.StringVar(&configPath, "config-path", "", "path to file in .toml format")
 	flag.Parse()
 
 	var cfg = Config{}
 
-	_, err := toml.DecodeFile(configPath, &cfg)
-	if err != nil {
-		log.Fatalf("can't load configuration file: %s", err)
+	if err := env.Parse(&cfg); err != nil {
+		log.Fatalf("can't load environment variables: %s", err)
 	}
+	if configPath != "" {
+		_, err := toml.DecodeFile(configPath, &cfg)
+		if err != nil {
+			log.Fatalf("can't load configuration file: %s", err)
+		}
+	}
+
 	// Logger settings
 	atomicLevel := zap.NewAtomicLevel()
 
@@ -75,5 +81,5 @@ func InitConfig() (*Config, error) {
 		atomicLevel,
 	), zap.AddCaller())
 	cfg.Logger = logger
-	return &cfg, err
+	return &cfg, nil
 }
