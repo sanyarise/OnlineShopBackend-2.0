@@ -20,8 +20,8 @@ all: help
 
 ## Generate api
 genapi:
-	openapi-generator-cli generate -g go-gin-server -o . -i ./api/apionlineshop.yaml --skip-validate-spec -c ./openapi-generator.yaml
-	rm ./main.go ./cmd/OnlineShopBackend/OnlineShopBackend.go
+	openapi-generator-cli generate -g go-gin-server -o $(CMD_SOURCE) -i ./api/apionlineshop.yaml --skip-validate-spec -c ./openapi-generator.yaml
+	mv -f $(CMD_SOURCE)/main.go $(CMD_SOURCE)/OnlineShopBackend.go
 
 ## Build:
 build: ## Build your project and put the output binary in out/bin/
