@@ -1,3 +1,3 @@
 apiPath: api
-packageName: OnlineShopBackend
+packageName: onlineShopBackend
 serverPort: "8000"

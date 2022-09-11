@@ -1,8 +1,8 @@
 GOCMD=go
 GOTEST=$(GOCMD) test
 GOVET=$(GOCMD) vet
-BINARY_NAME=OnlineShopBackend
-CMD_SOURCE=./cmd/OnlineShopBackend/.
+BINARY_NAME=onlineShopBackend
+CMD_SOURCE=./cmd/onlineShopBackend/.
 VERSION?=0.0.1
 SERVICE_PORT?=8000
 DOCKER_REGISTRY?= #if set it should finished by /
@@ -18,10 +18,10 @@ RESET  := $(shell tput -Txterm sgr0)
 
 all: help
 
-## Generate api
-genapi:
+## Generate openapi
+generate:
 	openapi-generator-cli generate -g go-gin-server -o $(CMD_SOURCE) -i ./api/apionlineshop.yaml --skip-validate-spec -c ./openapi-generator.yaml
-	mv -f $(CMD_SOURCE)/main.go $(CMD_SOURCE)/OnlineShopBackend.go
+	mv -f $(CMD_SOURCE)/main.go $(CMD_SOURCE)/onlineShopBackend.go
 
 ## Build:
 build: ## Build your project and put the output binary in out/bin/
