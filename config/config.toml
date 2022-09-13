@@ -1,0 +1,7 @@
+# dsn - parameter for connecting to the database
+dsn = "postgres://shopteam:123@localhost:5432/shop?sslmode=disable"
+port = ":8000"
+server_url = "https://104.248.44.156"
+# log_level - sets the logging level (info, warning, debug, error, panic, fatal )
+log_level = "debug"
+
