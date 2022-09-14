@@ -10,22 +10,17 @@
 package main
 
 import (
-	"log"
-
-	// WARNING!
-	// Change this to a fully-qualified import path
-	// once you place this file into your project.
-	// For example,
-	//
-	//sw "github.com/GIT_USER_ID/GIT_REPO_ID/api"
-	//
 	sw "OnlineShopBackend/cmd/onlineShopBackend/api"
+	"OnlineShopBackend/pkg/app"
+	"log"
 )
 
 func main() {
-	log.Printf("Server started")
-
 	router := sw.NewRouter()
 
-	log.Fatal(router.Run(":8000"))
+	go log.Fatal(router.Run(":8000"))
+
+	a := app.NewApp(nil)
+	log.Printf("Server started")
+	a.Start()
 }
