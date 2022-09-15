@@ -13,9 +13,16 @@ import (
 	sw "OnlineShopBackend/cmd/onlineShopBackend/api"
 	"OnlineShopBackend/pkg/app"
 	"log"
+	"os"
 )
 
 func main() {
+	defer func() {
+		if r := recover(); r != nil {
+			os.Exit(1)
+		}
+	}()
+
 	router := sw.NewRouter()
 
 	go log.Fatal(router.Run(":8000"))
