@@ -9,7 +9,7 @@ CREATE TABLE rights (
 CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(256) NOT NULL,
-    password TEXT NOT NULL,
+    password TEXT,
     email VARCHAR(256) NOT NULL UNIQUE,
     rights UUID,
     CONSTRAINT fk_rights 

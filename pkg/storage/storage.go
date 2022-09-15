@@ -6,11 +6,17 @@ import (
 	"net"
 	"time"
 
+	"online_shop_backend/pkg/config"
+
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Storage struct {
 	Pool *pgxpool.Pool
+}
+
+func New() *Storage {
+	return &Storage{}
 }
 
 func configurePool(conf *pgxpool.Config) (err error) {
@@ -29,24 +35,38 @@ func configurePool(conf *pgxpool.Config) (err error) {
 	return nil
 }
 
-func New(ctx context.Context) (*Storage, error) {
-	pg := Storage{}
-	conf, err := pgxpool.ParseConfig(config.GetURI())
-	if err != nil {
-		z.Errorf("can't init storage: %s", err)
-		return nil, fmt.Errorf("can't init storage: %s", err)
-	}
-	err = configurePool(conf)
-	if err != nil {
-		z.Errorf("can't configure pool %s", err)
-		return nil, fmt.Errorf("can't configure pool %s", err)
-	}
+func (pg *Storage) Start(ctx context.Context, config config.Config) error {
+	select {
+	case <-ctx.Done():
+		return fmt.Errorf("done with context")
+	default:
+		conf, err := pgxpool.ParseConfig(config.DSN)
+		if err != nil {
+			// z.Errorf("can't init storage: %s", err)
+			return fmt.Errorf("can't init storage: %w", err)
+		}
+		err = configurePool(conf)
+		if err != nil {
+			// z.Errorf("can't configure pool %s", err)
+			return fmt.Errorf("can't configure pool %w", err)
+		}
 
-	dbPool, err := pgxpool.NewWithConfig(ctx, conf)
-	if err != nil {
-		z.Errorf("can't create pool %s", err)
-		return nil, fmt.Errorf("can't create pool %s", err)
+		dbPool, err := pgxpool.NewWithConfig(ctx, conf)
+		if err != nil {
+			// z.Errorf("can't create pool %s", err)
+			return fmt.Errorf("can't create pool %w", err)
+		}
+		pg.Pool = dbPool
+		return nil
 	}
-	pg.Pool = dbPool
-	return pg, nil
+}
+
+func (pg *Storage) ShutDown(ctx context.Context) error {
+	select {
+	case <-ctx.Done():
+		return fmt.Errorf("done with context")
+	default:
+		pg.Pool.Close()
+		return nil
+	}
 }
