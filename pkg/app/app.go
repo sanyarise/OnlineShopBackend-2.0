@@ -33,7 +33,7 @@ func (a *App) Start() {
 		// TODO correct logger
 		log.Println("Error load config. set default values")
 	}
-	ctx = context.WithValue(ctx, "config", cfg)
+	ctx = context.WithValue(ctx, "config", *cfg)
 
 	for _, service := range a.services {
 		service := service

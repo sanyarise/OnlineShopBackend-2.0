@@ -3,6 +3,8 @@ package httpServer
 import (
 	sw "OnlineShopBackend/cmd/onlineShopBackend/api"
 	"context"
+	"fmt"
+	"reflect"
 )
 
 type HttpServer struct {
@@ -22,7 +24,11 @@ func (h *HttpServer) Start(ctx context.Context) error {
 
 	router := sw.NewRouter()
 
-	err := router.Run(":8000")
+	cfg := h.ctx.Value("config")
+	port := reflect.ValueOf(cfg).FieldByName("Port").String()
+	fmt.Println(port)
+
+	err := router.Run(port)
 
 	return err
 }
