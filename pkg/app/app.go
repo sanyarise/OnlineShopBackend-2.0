@@ -1,6 +1,7 @@
 package app
 
 import (
+	"OnlineShopBackend/pkg/config"
 	"context"
 	"log"
 	"os"
@@ -9,43 +10,58 @@ import (
 	"time"
 )
 
-type HttpServer interface {
-	Start() error
-	ShutDown(ctx context.Context) error
+type Service interface {
+	GetName() string
+	Start(ctx context.Context) error
+	ShutDown() error
 }
 
 type App struct {
-	httpServer HttpServer
+	services []Service
 }
 
-func NewApp(httpServer HttpServer) *App {
-	return &App{httpServer: httpServer}
+func NewApp(serviceList []Service) *App {
+	var s []Service
+	s = append(s, serviceList...)
+	return &App{services: s}
 }
 
 func (a *App) Start() {
-	go func() {
-		err := a.httpServer.Start()
-		if err != nil {
+	ctx := context.Background()
+	cfg, err := config.New()
+	if err != nil {
+		// TODO correct logger
+		log.Println("Error load config. set default values")
+	}
+	ctx = context.WithValue(ctx, "config", cfg)
 
-			panic(err)
-		}
-	}()
+	for _, service := range a.services {
+		service := service
+		go func() {
+			err := service.Start(ctx)
+			if err != nil {
+				// TODO correct logger
+				log.Panicln("Error start service ", service.GetName(), err)
+			}
+		}()
+	}
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, syscall.SIGINT)
 	<-c
+	// TODO correct logger
 	log.Println("App shutdown...")
 
-	// TODO вынести в конфиг настройку таймаута
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	a.ShutDown(ctx)
-}
-
-func (a *App) ShutDown(ctx context.Context) {
-	err := a.httpServer.ShutDown(ctx)
-	if err != nil {
-		log.Println("Error shutdown http server", err)
+	for _, service := range a.services {
+		service := service
+		go func() {
+			err := service.ShutDown()
+			if err != nil {
+				// TODO correct logger
+				log.Println("Error Shutdown service ", service.GetName(), err)
+			}
+		}()
 	}
+
+	time.Sleep(time.Duration(cfg.ShutDownTimeout) * time.Second)
 }

@@ -26,4 +26,4 @@ services:
       POSTGRES_USER: shopteam
       POSTGRES_PASSWORD: 123
     volumes:
-      - "storage/init_db:/docker-entrypoint-initdb.d"
+      - "./storage/init_db:/docker-entrypoint-initdb.d"
