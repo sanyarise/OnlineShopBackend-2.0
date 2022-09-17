@@ -40,3 +40,9 @@ services:
       POSTGRES_PASSWORD: 123
     volumes:
       - "./storage/init_db:/docker-entrypoint-initdb.d"
+
+networks:
+  default:
+    name: shop
+    driver: bridge
+

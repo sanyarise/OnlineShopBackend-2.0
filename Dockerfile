@@ -1,6 +1,6 @@
 FROM golang:1.19-alpine as builder
 
-WORKDIR .
+WORKDIR ./shop/
 
 COPY . .
 
@@ -10,7 +10,7 @@ RUN go build -o /bin/shop ./cmd/onlineShopBackend/.
 
 FROM alpine:latest
 
-COPY --from=builder /bin/url /bin
+COPY --from=builder /bin/shop /bin
 
 #COPY website /app/website/
 
