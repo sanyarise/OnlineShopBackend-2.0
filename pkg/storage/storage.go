@@ -70,3 +70,7 @@ func (pg *Storage) ShutDown(ctx context.Context) error {
 		return nil
 	}
 }
+
+func (pg *Storage) GetName() string {
+	return "storage"
+}

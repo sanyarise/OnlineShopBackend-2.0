@@ -6,7 +6,10 @@ CREATE TABLE rights (
     rules text[]
 );
 
--- TODO: insert rights to rgihts
+INSERT INTO rights (name, rules) 
+    VALUES 
+        ('user', ARRAY['place orders']),
+        ('admin', ARRAY['delete users', 'add items']);
 
 CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

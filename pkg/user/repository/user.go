@@ -7,6 +7,7 @@ import (
 	"online_shop_backend/pkg/storage"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type userRepo struct {
@@ -25,9 +26,13 @@ func (ur *userRepo) Get(ctx context.Context, email string) (models.User, error) 
 		return models.User{}, fmt.Errorf("done with context")
 	default:
 		pool := ur.storage.Pool
-		row := pool.QueryRow(ctx, `SELECT FROM users WHERE email=$1`, email)
+		row := pool.QueryRow(ctx, `SELECT id, name, password FROM users WHERE email=$1`, email)
 		res := models.User{}
-		err := row.Scan(&res)
+		var password pgtype.Text
+		err := row.Scan(&res.ID, &res.Name, &password)
+		if password.Valid {
+			res.Password = password.String
+		}
 		if err != nil {
 			return models.User{}, fmt.Errorf("ca't get data from db: %w", err)
 		}
@@ -43,9 +48,9 @@ func (ur *userRepo) Create(ctx context.Context, user models.User) (uuid.UUID, er
 	default:
 		pool := ur.storage.Pool
 		row := pool.QueryRow(ctx,
-			`INSERT INTO users (name, email, password, address, rights)
-			VALUES ($1, $2, $3, $4, $5) RETURNING id`,
-			user.Name, user.Email, user.Password, user.Address, user.Rights.ID)
+			`INSERT INTO users (name, email, password, rights)
+			VALUES ($1, $2, $3, (SELECT id FROM rights WHERE name='user')) RETURNING id`,
+			user.Name, user.Email, user.Password)
 		// TODO: think about rights
 		var id uuid.UUID
 		err := row.Scan(&id)
