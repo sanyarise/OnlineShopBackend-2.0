@@ -6,6 +6,8 @@ CREATE TABLE rights (
     rules text[]
 );
 
+-- TODO: insert rights to rgihts
+
 CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(256) NOT NULL,
