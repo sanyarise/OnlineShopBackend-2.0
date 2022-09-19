@@ -10,8 +10,8 @@
 package main
 
 import (
-	sw "OnlineShopBackend/cmd/onlineShopBackend/api"
 	"OnlineShopBackend/pkg/app"
+	"OnlineShopBackend/pkg/httpServer"
 	"log"
 	"os"
 )
@@ -23,11 +23,10 @@ func main() {
 		}
 	}()
 
-	router := sw.NewRouter()
-
-	go log.Fatal(router.Run(":8000"))
-
-	a := app.NewApp(nil)
+	h := httpServer.New()
+	var services []app.Service
+	services = append(services, h)
+	a := app.NewApp(services)
 	log.Printf("Server started")
 	a.Start()
 }

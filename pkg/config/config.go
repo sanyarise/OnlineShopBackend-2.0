@@ -12,15 +12,16 @@ import (
 )
 
 type Config struct {
-	DSN        string `toml:"dsn" env:"DSN" envDefault:"postgres://shopteam:123@localhost:5432/shop?sslmode=disable"`
-	Port       string `toml:"port" env:"PORT" envDefault:":8000"`
-	Server_URL string `toml:"server_url" env:"SERVER_URL" envDefault:"http://localhost:8000"`
-	Logger     *zap.Logger
-	LogLevel   string `toml:"log_level" env:"LOG_LEVEL" envDefault:"debug"`
+	DSN             string      `toml:"dsn" env:"DSN" envDefault:"postgres://shopteam:123@localhost:5432/shop?sslmode=disable" json:"dsn,omitempty"`
+	Port            string      `toml:"port" env:"PORT" envDefault:":8000" json:"port,omitempty"`
+	ServerUrl       string      `toml:"server_url" env:"SERVER_URL" envDefault:"http://localhost:8000" json:"server___url,omitempty"`
+	Logger          *zap.Logger `json:"logger,omitempty"`
+	LogLevel        string      `toml:"log_level" env:"LOG_LEVEL" envDefault:"debug" json:"log_level,omitempty"`
+	ShutDownTimeout int         `toml:"ShutDownTimeout" env:"ShutDownTimeout" envDefault:"5" json:"ShutDownTimeout"`
 }
 
-// InitConfig() initializes the configuration
-func InitConfig() (*Config, error) {
+// New initializes the configuration
+func New() (*Config, error) {
 	var configPath string
 
 	// The flag allows to specify the path to the folder with the configuration file in .toml format.
