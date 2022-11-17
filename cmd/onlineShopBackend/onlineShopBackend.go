@@ -26,7 +26,7 @@ func main() {
 	h := httpServer.New()
 	var services []app.Service
 	services = append(services, h)
-	a := app.NewApp(services)
+	app.GlobalApp = app.NewApp(services)
 	log.Printf("Server started")
-	a.Start()
+	app.GlobalApp.Start()
 }
