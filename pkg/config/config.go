@@ -9,12 +9,13 @@ import (
 )
 
 type Config struct {
-	IsProd    bool   `toml:"is_prod" env:"IS_PROD" envDefault:"false"`
-	DSN       string `toml:"dsn" env:"DSN" envDefault:"postgres://shopteam:123@localhost:5432/shop?sslmode=disable"`
-	Port      string `toml:"port" env:"PORT" envDefault:":8000"`
-	ServerURL string `toml:"server_url" env:"SERVER_URL" envDefault:"http://localhost:8000"`
-	Timeout   int    `toml:"timeout" env:"TIMEOUT" envDefault:"5"`
-	LogLevel  string `toml:"log_level" env:"LOG_LEVEL" envDefault:"debug"`
+	IsProd              bool   `toml:"is_prod" env:"IS_PROD" envDefault:"false"`
+	DSN                 string `toml:"dsn" env:"DSN" envDefault:"postgres://shopteam:123@localhost:5432/shop?sslmode=disable"`
+	Port                string `toml:"port" env:"PORT" envDefault:":8000"`
+	ServerURL           string `toml:"server_url" env:"SERVER_URL" envDefault:"http://localhost:8000"`
+	Timeout             int    `toml:"timeout" env:"TIMEOUT" envDefault:"5"`
+	LogLevel            string `toml:"log_level" env:"LOG_LEVEL" envDefault:"debug"`
+	DiskFileStoragePath string `toml:"diskFileStoragePath" env:"FILES_PATH" envDefault:"./"`
 }
 
 // NewConfig initializes the configuration

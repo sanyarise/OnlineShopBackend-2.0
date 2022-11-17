@@ -43,8 +43,8 @@ func (a *App) Start() {
 
 	ctx = context.WithValue(ctx, "config", *cfg)
 
-	im := filestorage.ImMemoryLocalStorage{}
-	a.Fs = &im
+	im := filestorage.NewOnDiskLocalStorage(cfg.DiskFileStoragePath)
+	a.Fs = im
 
 	for _, service := range a.services {
 		service := service

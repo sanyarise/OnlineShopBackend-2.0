@@ -19,9 +19,16 @@ type FileStorager interface {
 	PutFile(id string, filename string, file []byte) error
 }
 
-type ImMemoryLocalStorage struct {
+type InMemoryLocalStorage struct {
+	path  string
 	files []FileInStorageInfo
 }
+
+func NewInMemoryStorage(path string) *InMemoryLocalStorage {
+	s := InMemoryLocalStorage{path: path}
+	return &s
+}
+
 type FileNotFoundError struct{}
 
 func (f FileNotFoundError) Error() string {
@@ -34,7 +41,7 @@ func (f WriteFileError) Error() string {
 	return "WriteFileError"
 }
 
-func (i *ImMemoryLocalStorage) PutFile(id string, filename string, file []byte) error {
+func (i *InMemoryLocalStorage) PutFile(id string, filename string, file []byte) error {
 	if i.files == nil {
 		i.files = make([]FileInStorageInfo, 0)
 	}
@@ -51,7 +58,7 @@ func (i *ImMemoryLocalStorage) PutFile(id string, filename string, file []byte) 
 	return nil
 }
 
-func (i *ImMemoryLocalStorage) GetFile(id string, filename string) ([]byte, error) {
+func (i *InMemoryLocalStorage) GetFile(id string, filename string) ([]byte, error) {
 	for _, file := range i.files {
 		if file.Id == id && file.Name == filename {
 			if f, err := os.ReadFile(file.Path); err == nil {
@@ -62,7 +69,7 @@ func (i *ImMemoryLocalStorage) GetFile(id string, filename string) ([]byte, erro
 	return nil, FileNotFoundError{}
 }
 
-func (i *ImMemoryLocalStorage) GetFileList(id string) ([]FileInStorageInfo, error) {
+func (i *InMemoryLocalStorage) GetFileList(id string) ([]FileInStorageInfo, error) {
 	result := make([]FileInStorageInfo, 0, len(i.files))
 	for _, v := range i.files {
 		if v.Id == id {
