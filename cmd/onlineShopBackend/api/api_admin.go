@@ -10,6 +10,9 @@
 package onlineShopBackend
 
 import (
+	"OnlineShopBackend/pkg/app"
+	"go.uber.org/zap"
+	"io"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -37,5 +40,23 @@ func UpdateItem(c *gin.Context) {
 
 // UploadFile - upload an image
 func UploadFile(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{})
+	l := app.GlobalApp.Log.Logger
+	id := c.Param("itemID")
+	name := ""
+	file, err := io.ReadAll(c.Request.Body)
+
+	if err != nil {
+		c.JSON(http.StatusUnsupportedMediaType, gin.H{})
+	}
+
+	l.Info("Read id", zap.String("id", id))
+	l.Info("File len=", zap.Int32("len", int32(len(file))))
+	err = app.GlobalApp.Fs.PutFile(id, name, file)
+
+	if err != nil {
+		c.JSON(http.StatusInsufficientStorage, gin.H{})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{})
 }

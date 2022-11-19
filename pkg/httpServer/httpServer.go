@@ -2,6 +2,7 @@ package httpServer
 
 import (
 	sw "OnlineShopBackend/cmd/onlineShopBackend/api"
+	"OnlineShopBackend/pkg/app"
 	"context"
 	"fmt"
 	"reflect"
@@ -34,6 +35,6 @@ func (h *HttpServer) Start(ctx context.Context) error {
 }
 
 func (h *HttpServer) ShutDown() error {
-	//TODO implement me
-	panic("implement me")
+	app.GlobalApp.Log.Logger.Info("Shutdown http server.")
+	return nil
 }
