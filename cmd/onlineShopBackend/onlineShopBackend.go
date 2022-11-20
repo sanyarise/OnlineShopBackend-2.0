@@ -35,19 +35,20 @@ func main() {
 		log.Fatal("can't initialize configuration")
 	}
 	logger := logger.NewLogger(cfg.LogLevel)
-	store, err := repository.NewPgrepo(cfg.DSN)
+	l := logger.Logger
+	store, err := repository.NewPgrepo(cfg.DSN, l)
 	if err != nil {
 		log.Fatalf("can't initalize storage: %v", err)
 	}
-	usecase := usecase.NewStorage(store)
-	handlers := handlers.NewHandlers(usecase)
-	delivery := delivery.NewDelivery(handlers)
-	router := app.NewRouter(delivery)
-	server := httpServer.NewServer(ctx, router)
-	server.Start(ctx, cfg.Port)
-	//var services []app.Service
-	//services = append(services, server)
-	//a := app.NewApp(services)
+	usecase := usecase.NewStorage(store, l)
+	handlers := handlers.NewHandlers(usecase, l)
+	delivery := delivery.NewDelivery(handlers, l)
+	router := app.NewRouter(delivery, l)
+	server := httpServer.NewServer(ctx, cfg.Port, router, l)
+	server.Start(ctx)
+	var services []app.Service
+	services = append(services, server)
+	a := app.NewApp(services)
 	log.Printf("Server started")
-	//a.Start()
+	a.Start()
 }

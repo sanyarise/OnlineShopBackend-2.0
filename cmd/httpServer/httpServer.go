@@ -5,31 +5,35 @@ import (
 	"context"
 	"fmt"
 	"log"
+
+	"go.uber.org/zap"
 	//"reflect"
 )
 
 type HttpServer struct {
 	ctx    context.Context
+	port string
 	router *sw.Router
+	l *zap.Logger
 }
 
-func NewServer(ctx context.Context, router *sw.Router) *HttpServer {
+func NewServer(ctx context.Context, port string, router *sw.Router, logger *zap.Logger) *HttpServer {
 	log.Println("Enter in NewServer()")
-	return &HttpServer{ctx: ctx, router: router}
+	return &HttpServer{ctx: ctx,port: port, router: router, l: logger}
 }
 
 func (h *HttpServer) GetName() string {
 	return "http server"
 }
 
-func (h *HttpServer) Start(ctx context.Context, port string) error {
+func (h *HttpServer) Start(ctx context.Context) error {
 	h.ctx = ctx
 
 	//cfg := h.ctx.Value("config")
 	//port := reflect.ValueOf(cfg).FieldByName("Port").String()
-	fmt.Println(port)
+	fmt.Println(h.port)
 
-	err := h.router.Run(port)
+	err := h.router.Run(h.port)
 
 	return err
 }

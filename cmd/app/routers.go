@@ -16,6 +16,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 // Route is the information for every URI.
@@ -36,10 +37,11 @@ type Routes []Route
 type Router struct {
 	router *gin.Engine
 	del    *delivery.Delivery
+	l      *zap.Logger
 }
 
 // NewRouter returns a new router.
-func NewRouter(del *delivery.Delivery) *Router {
+func NewRouter(del *delivery.Delivery, logger *zap.Logger) *Router {
 	log.Println("Enter in NewRouter()")
 	router := gin.Default()
 	routes := Routes{
@@ -149,7 +151,7 @@ func NewRouter(del *delivery.Delivery) *Router {
 			router.DELETE(route.Pattern, route.HandlerFunc)
 		}
 	}
-	return &Router{router: router, del: del}
+	return &Router{router: router, del: del, l: logger}
 }
 
 // Index is the index handler.
