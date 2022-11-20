@@ -63,5 +63,5 @@ func (a *App) Start() {
 		}()
 	}
 
-	time.Sleep(time.Duration(cfg.ShutDownTimeout) * time.Second)
+	time.Sleep(time.Duration(cfg.Timeout) * time.Second)
 }

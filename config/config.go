@@ -3,24 +3,21 @@ package config
 import (
 	"flag"
 	"log"
-	"os"
 
 	"github.com/BurntSushi/toml"
 	"github.com/caarlos0/env/v6"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 )
 
 type Config struct {
-	DSN             string      `toml:"dsn" env:"DSN" envDefault:"postgres://shopteam:123@localhost:5432/shop?sslmode=disable" json:"dsn,omitempty"`
-	Port            string      `toml:"port" env:"PORT" envDefault:":8000" json:"port,omitempty"`
-	ServerUrl       string      `toml:"server_url" env:"SERVER_URL" envDefault:"http://localhost:8000" json:"server___url,omitempty"`
-	Logger          *zap.Logger `json:"logger,omitempty"`
-	LogLevel        string      `toml:"log_level" env:"LOG_LEVEL" envDefault:"debug" json:"log_level,omitempty"`
-	ShutDownTimeout int         `toml:"ShutDownTimeout" env:"ShutDownTimeout" envDefault:"5" json:"ShutDownTimeout"`
+	IsProd    bool   `toml:"is_prod" env:"IS_PROD" envDefault:"false"`
+	DSN       string `toml:"dsn" env:"DSN" envDefault:"postgres://shopteam:123@localhost:5432/shop?sslmode=disable"`
+	Port      string `toml:"port" env:"PORT" envDefault:":8000"`
+	ServerURL string `toml:"server_url" env:"SERVER_URL" envDefault:"http://localhost:8000"`
+	Timeout   int    `toml:"timeout" env:"TIMEOUT" envDefault:"5"`
+	LogLevel  string `toml:"log_level" env:"LOG_LEVEL" envDefault:"debug"`
 }
 
-// New initializes the configuration
+// NewConfig() initializes the configuration
 func NewConfig() (*Config, error) {
 	var configPath string
 
@@ -39,48 +36,5 @@ func NewConfig() (*Config, error) {
 			log.Fatalf("can't load configuration file: %s", err)
 		}
 	}
-
-	// Logger settings
-	atomicLevel := zap.NewAtomicLevel()
-
-	switch cfg.LogLevel {
-	case "info":
-		{
-			atomicLevel.SetLevel(zap.InfoLevel)
-		}
-	case "warning":
-		{
-			atomicLevel.SetLevel(zap.WarnLevel)
-		}
-	case "debug":
-		{
-			atomicLevel.SetLevel(zap.DebugLevel)
-		}
-	case "error":
-		{
-			atomicLevel.SetLevel(zap.ErrorLevel)
-
-		}
-	case "panic":
-		{
-			atomicLevel.SetLevel(zap.PanicLevel)
-		}
-	case "fatal":
-		{
-			atomicLevel.SetLevel(zap.FatalLevel)
-		}
-	}
-
-	encoderCfg := zap.NewProductionEncoderConfig()
-	encoderCfg.EncodeTime = zapcore.RFC3339TimeEncoder
-	encoderCfg.EncodeLevel = zapcore.CapitalLevelEncoder
-	encoderCfg.EncodeCaller = zapcore.ShortCallerEncoder
-
-	logger := zap.New(zapcore.NewCore(
-		zapcore.NewJSONEncoder(encoderCfg),
-		zapcore.Lock(os.Stdout),
-		atomicLevel,
-	), zap.AddCaller())
-	cfg.Logger = logger
 	return &cfg, nil
 }

@@ -15,6 +15,7 @@ import (
 	"OnlineShopBackend/config"
 	"OnlineShopBackend/internal/delivery"
 	"OnlineShopBackend/internal/handlers"
+	"OnlineShopBackend/internal/logger"
 	"OnlineShopBackend/internal/repository"
 	"OnlineShopBackend/internal/usecase"
 	"context"
@@ -33,18 +34,20 @@ func main() {
 	if err != nil {
 		log.Fatal("can't initialize configuration")
 	}
+	logger := logger.NewLogger(cfg.LogLevel)
 	store, err := repository.NewPgrepo(cfg.DSN)
 	if err != nil {
-		log.Fatal("can't initalize storage")
+		log.Fatalf("can't initalize storage: %v", err)
 	}
 	usecase := usecase.NewStorage(store)
 	handlers := handlers.NewHandlers(usecase)
 	delivery := delivery.NewDelivery(handlers)
 	router := app.NewRouter(delivery)
 	server := httpServer.NewServer(ctx, router)
-	var services []app.Service
-	services = append(services, server)
-	a := app.NewApp(services)
+	server.Start(ctx, cfg.Port)
+	//var services []app.Service
+	//services = append(services, server)
+	//a := app.NewApp(services)
 	log.Printf("Server started")
-	a.Start()
+	//a.Start()
 }

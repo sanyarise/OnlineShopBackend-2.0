@@ -4,11 +4,13 @@ import (
 	"OnlineShopBackend/internal/models"
 	"context"
 	"fmt"
+	"log"
 
 	"github.com/google/uuid"
 )
 
 func (s *Storage) CreateItem(ctx context.Context, item *models.Item) (uuid.UUID, error) {
+	log.Println("Enter in usecase CreateItem()")
 	id, err := s.store.CreateItem(ctx, item)
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("error on create item: %w", err)

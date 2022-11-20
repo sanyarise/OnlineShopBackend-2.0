@@ -11,6 +11,7 @@ package app
 
 import (
 	"OnlineShopBackend/internal/delivery"
+	"log"
 
 	"net/http"
 
@@ -39,16 +40,8 @@ type Router struct {
 
 // NewRouter returns a new router.
 func NewRouter(del *delivery.Delivery) *Router {
+	log.Println("Enter in NewRouter()")
 	router := gin.Default()
-	return &Router{router: router, del: del}
-}
-
-// Index is the index handler.
-func Index(c *gin.Context) {
-	c.String(http.StatusOK, "Hello World!")
-}
-
-func (r *Router) Routes() {
 	routes := Routes{
 		{
 			"Index",
@@ -68,28 +61,28 @@ func (r *Router) Routes() {
 			"CreateItem",
 			http.MethodPost,
 			"/items",
-			r.del.CreateItem,
+			del.CreateItem,
 		},
 
 		{
 			"GetItem",
 			http.MethodGet,
 			"/items/:itemID",
-			r.del.GetItem,
+			del.GetItem,
 		},
 
 		{
 			"UpdateItem",
 			http.MethodPut,
 			"/items/:itemID",
-			r.del.UpdateItem,
+			del.UpdateItem,
 		},
 
 		{
 			"UploadFile",
 			http.MethodPost,
 			"/items/:itemID/upload",
-			r.del.UploadFile,
+			del.UploadFile,
 		},
 
 		{
@@ -110,14 +103,14 @@ func (r *Router) Routes() {
 			"ItemsList",
 			http.MethodGet,
 			"/items",
-			r.del.ItemsList,
+			del.ItemsList,
 		},
 
 		{
 			"SearchLine",
 			http.MethodGet,
 			"/search/:searchRequest",
-			r.del.SearchLine,
+			del.SearchLine,
 		},
 
 		{
@@ -145,17 +138,24 @@ func (r *Router) Routes() {
 	for _, route := range routes {
 		switch route.Method {
 		case http.MethodGet:
-			r.router.GET(route.Pattern, route.HandlerFunc)
+			router.GET(route.Pattern, route.HandlerFunc)
 		case http.MethodPost:
-			r.router.POST(route.Pattern, route.HandlerFunc)
+			router.POST(route.Pattern, route.HandlerFunc)
 		case http.MethodPut:
-			r.router.PUT(route.Pattern, route.HandlerFunc)
+			router.PUT(route.Pattern, route.HandlerFunc)
 		case http.MethodPatch:
-			r.router.PATCH(route.Pattern, route.HandlerFunc)
+			router.PATCH(route.Pattern, route.HandlerFunc)
 		case http.MethodDelete:
-			r.router.DELETE(route.Pattern, route.HandlerFunc)
+			router.DELETE(route.Pattern, route.HandlerFunc)
 		}
 	}
+	return &Router{router: router, del: del}
+}
+
+// Index is the index handler.
+func Index(c *gin.Context) {
+	log.Println("Enter in Index")
+	c.String(http.StatusOK, "Hello World!")
 }
 
 func (r *Router) Run(port string) error {

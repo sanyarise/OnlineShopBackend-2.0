@@ -12,12 +12,14 @@ package delivery
 import (
 	"OnlineShopBackend/internal/handlers"
 	"net/http"
+	"log"
 
 	"github.com/gin-gonic/gin"
 )
 
 // CreateItem - create a new item
 func (d *Delivery) CreateItem(c *gin.Context) {
+	log.Println("Enter in delivery CreateItem()")
 	ctx := c.Request.Context()
 	var json handlers.Item
 	if err := c.ShouldBindJSON(&json); err != nil {
@@ -58,7 +60,7 @@ func (d *Delivery) UpdateItem(c *gin.Context) {
 }
 
 // UploadFile - upload an image
-func(d *Delivery) UploadFile(c *gin.Context) {
+func (d *Delivery) UploadFile(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{})
 }
 

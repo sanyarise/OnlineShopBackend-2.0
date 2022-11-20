@@ -4,7 +4,8 @@ import (
 	sw "OnlineShopBackend/cmd/app"
 	"context"
 	"fmt"
-	"reflect"
+	"log"
+	//"reflect"
 )
 
 type HttpServer struct {
@@ -13,6 +14,7 @@ type HttpServer struct {
 }
 
 func NewServer(ctx context.Context, router *sw.Router) *HttpServer {
+	log.Println("Enter in NewServer()")
 	return &HttpServer{ctx: ctx, router: router}
 }
 
@@ -20,11 +22,11 @@ func (h *HttpServer) GetName() string {
 	return "http server"
 }
 
-func (h *HttpServer) Start(ctx context.Context) error {
+func (h *HttpServer) Start(ctx context.Context, port string) error {
 	h.ctx = ctx
 
-	cfg := h.ctx.Value("config")
-	port := reflect.ValueOf(cfg).FieldByName("Port").String()
+	//cfg := h.ctx.Value("config")
+	//port := reflect.ValueOf(cfg).FieldByName("Port").String()
 	fmt.Println(port)
 
 	err := h.router.Run(port)
