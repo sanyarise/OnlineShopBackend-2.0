@@ -10,8 +10,8 @@
 package main
 
 import (
-	"OnlineShopBackend/pkg/app"
-	"OnlineShopBackend/pkg/httpServer"
+	"OnlineShopBackend/cmd/app"
+	"OnlineShopBackend/cmd/httpServer"
 	"log"
 	"os"
 )

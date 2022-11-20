@@ -1,7 +1,7 @@
 package httpServer
 
 import (
-	sw "OnlineShopBackend/cmd/onlineShopBackend/api"
+	sw "OnlineShopBackend/cmd/app"
 	"context"
 	"fmt"
 	"reflect"

@@ -1,7 +1,7 @@
 package app
 
 import (
-	"OnlineShopBackend/pkg/config"
+	"OnlineShopBackend/config"
 	"context"
 	"log"
 	"os"

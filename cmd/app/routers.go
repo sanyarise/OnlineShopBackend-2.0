@@ -10,6 +10,8 @@
 package app
 
 import (
+	"OnlineShopBackend/internal/delivery"
+
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -68,83 +70,83 @@ var routes = Routes{
 		"CreateCategory",
 		http.MethodPost,
 		"/categories/:category",
-		CreateCategory,
+		delivery.CreateCategory,
 	},
 
 	{
 		"CreateItem",
 		http.MethodPost,
 		"/items",
-		CreateItem,
+		delivery.CreateItem,
 	},
 
 	{
 		"GetItem",
 		http.MethodGet,
 		"/items/:itemID",
-		GetItem,
+		delivery.GetItem,
 	},
 
 	{
 		"UpdateItem",
 		http.MethodPut,
 		"/items/:itemID",
-		UpdateItem,
+		delivery.UpdateItem,
 	},
 
 	{
 		"UploadFile",
 		http.MethodPost,
 		"/items/:itemID/upload",
-		UploadFile,
+		delivery.UploadFile,
 	},
 
 	{
 		"GetCart",
 		http.MethodGet,
 		"/cart/:userID",
-		GetCart,
+		delivery.GetCart,
 	},
 
 	{
 		"GetCategoryList",
 		http.MethodGet,
 		"/items/categories/:category",
-		GetCategoryList,
+		delivery.GetCategoryList,
 	},
 
 	{
 		"ItemsList",
 		http.MethodGet,
 		"/items",
-		ItemsList,
+		delivery.ItemsList,
 	},
 
 	{
 		"SearchLine",
 		http.MethodGet,
 		"/search/:searchRequest",
-		SearchLine,
+		delivery.SearchLine,
 	},
 
 	{
 		"CreateUser",
 		http.MethodPost,
 		"/user/create",
-		CreateUser,
+		delivery.CreateUser,
 	},
 
 	{
 		"LoginUser",
 		http.MethodPost,
 		"/user/login",
-		LoginUser,
+		delivery.LoginUser,
 	},
 
 	{
 		"LogoutUser",
 		http.MethodPost,
 		"/user/logout",
-		LogoutUser,
+		delivery.LogoutUser,
 	},
 }
