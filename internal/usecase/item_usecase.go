@@ -28,11 +28,49 @@ func (s *Storage) GetItem(ctx context.Context, id uuid.UUID) (*models.Item, erro
 	return item, nil
 }
 
-func (s *Storage) ItemsList(ctx context.Context, params string) ([]*models.Item, error) {
-	var itemList []*models.Item
-	itemList, err := s.store.ItemsList(ctx, params)
+func (s *Storage) ItemsList(ctx context.Context) (chan models.Item, error) {
+	chin, err := s.store.ItemsList(ctx)
 	if err != nil {
-		return itemList, fmt.Errorf("error on get item: %w", err)
+		return nil, err
 	}
-	return itemList, nil
+	chout := make(chan models.Item, 100)
+	go func() {
+		defer close(chout)
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case item, ok := <-chin:
+				if !ok {
+					return
+				}
+				chout <- item
+			}
+		}
+	}()
+	return chout, nil
+
+}
+
+func (s *Storage) SearchLine(ctx context.Context, param string) (chan models.Item, error) {
+	chin, err := s.store.SearchLine(ctx, param)
+	if err != nil {
+		return nil, err
+	}
+	chout := make(chan models.Item, 100)
+	go func() {
+		defer close(chout)
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case item, ok := <-chin:
+				if !ok {
+					return
+				}
+				chout <- item
+			}
+		}
+	}()
+	return chout, nil
 }

@@ -31,9 +31,15 @@ func (d *Delivery) CreateItem(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": id.String()})
 }
 
-// GetItem - 
-func GetItem(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{})
+// GetItem - returns item on id
+func (d *Delivery) GetItem(c *gin.Context) {
+	id := c.Param("itemID")
+	ctx := c.Request.Context()
+	item, err := d.h.GetItem(ctx, id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	}
+	c.JSON(http.StatusOK, item)
 }
 
 // UpdateItem - update an item
@@ -52,16 +58,28 @@ func (d *Delivery) UpdateItem(c *gin.Context) {
 }
 
 // UploadFile - upload an image
-func UploadFile(c *gin.Context) {
+func(d *Delivery) UploadFile(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{})
 }
 
-// ItemsList - List of Items with filters
-func ItemsList(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{})
+// ItemsList - returns list of all items
+func (d *Delivery) ItemsList(c *gin.Context) {
+	list, err := d.h.ItemsList(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	}
+	for _, item := range list {
+		c.JSON(http.StatusOK, item)
+	}
 }
 
-// SearchLine -
-func SearchLine(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{})
+// SearchLine - returns list of items with parameters
+func (d *Delivery) SearchLine(c *gin.Context) {
+	list, err := d.h.ItemsList(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	}
+	for _, item := range list {
+		c.JSON(http.StatusOK, item)
+	}
 }

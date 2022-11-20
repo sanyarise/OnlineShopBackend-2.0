@@ -75,7 +75,7 @@ func (r *Router) Routes() {
 			"GetItem",
 			http.MethodGet,
 			"/items/:itemID",
-			delivery.GetItem,
+			r.del.GetItem,
 		},
 
 		{
@@ -89,7 +89,7 @@ func (r *Router) Routes() {
 			"UploadFile",
 			http.MethodPost,
 			"/items/:itemID/upload",
-			delivery.UploadFile,
+			r.del.UploadFile,
 		},
 
 		{
@@ -110,14 +110,14 @@ func (r *Router) Routes() {
 			"ItemsList",
 			http.MethodGet,
 			"/items",
-			delivery.ItemsList,
+			r.del.ItemsList,
 		},
 
 		{
 			"SearchLine",
 			http.MethodGet,
 			"/search/:searchRequest",
-			delivery.SearchLine,
+			r.del.SearchLine,
 		},
 
 		{

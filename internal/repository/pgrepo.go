@@ -1,6 +1,10 @@
 package repository
 
-import "database/sql"
+import (
+	"database/sql"
+
+	_ "github.com/jackc/pgx/v4/stdlib"
+)
 
 type Pgrepo struct {
 	db *sql.DB
