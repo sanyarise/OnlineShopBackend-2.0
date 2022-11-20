@@ -28,7 +28,7 @@ func NewApp(serviceList []Service) *App {
 
 func (a *App) Start() {
 	ctx := context.Background()
-	cfg, err := config.New()
+	cfg, err := config.NewConfig()
 	if err != nil {
 		// TODO correct logger
 		log.Println("Error load config. set default values")

@@ -12,6 +12,12 @@ package main
 import (
 	"OnlineShopBackend/cmd/app"
 	"OnlineShopBackend/cmd/httpServer"
+	"OnlineShopBackend/config"
+	"OnlineShopBackend/internal/delivery"
+	"OnlineShopBackend/internal/handlers"
+	"OnlineShopBackend/internal/repository"
+	"OnlineShopBackend/internal/usecase"
+	"context"
 	"log"
 	"os"
 )
@@ -22,10 +28,22 @@ func main() {
 			os.Exit(1)
 		}
 	}()
-
-	h := httpServer.New()
+	ctx := context.Background()
+	cfg, err := config.NewConfig()
+	if err != nil {
+		log.Fatal("can't initialize configuration")
+	}
+	store, err := repository.NewPgrepo(cfg.DSN)
+	if err != nil {
+		log.Fatal("can't initalize storage")
+	}
+	usecase := usecase.NewStorage(store)
+	handlers := handlers.NewHandlers(usecase)
+	delivery := delivery.NewDelivery(handlers)
+	router := app.NewRouter(delivery)
+	server := httpServer.NewServer(ctx, router)
 	var services []app.Service
-	services = append(services, h)
+	services = append(services, server)
 	a := app.NewApp(services)
 	log.Printf("Server started")
 	a.Start()

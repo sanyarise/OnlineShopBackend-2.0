@@ -32,25 +32,15 @@ type Route struct {
 // Routes is the list of the generated Route.
 type Routes []Route
 
-// NewRouter returns a new router.
-func NewRouter() *gin.Engine {
-	router := gin.Default()
-	for _, route := range routes {
-		switch route.Method {
-		case http.MethodGet:
-			router.GET(route.Pattern, route.HandlerFunc)
-		case http.MethodPost:
-			router.POST(route.Pattern, route.HandlerFunc)
-		case http.MethodPut:
-			router.PUT(route.Pattern, route.HandlerFunc)
-		case http.MethodPatch:
-			router.PATCH(route.Pattern, route.HandlerFunc)
-		case http.MethodDelete:
-			router.DELETE(route.Pattern, route.HandlerFunc)
-		}
-	}
+type Router struct {
+	router *gin.Engine
+	del    *delivery.Delivery
+}
 
-	return router
+// NewRouter returns a new router.
+func NewRouter(del *delivery.Delivery) *Router {
+	router := gin.Default()
+	return &Router{router: router, del: del}
 }
 
 // Index is the index handler.
@@ -58,95 +48,116 @@ func Index(c *gin.Context) {
 	c.String(http.StatusOK, "Hello World!")
 }
 
-var routes = Routes{
-	{
-		"Index",
-		http.MethodGet,
-		"/",
-		Index,
-	},
+func (r *Router) Routes() {
+	routes := Routes{
+		{
+			"Index",
+			http.MethodGet,
+			"/",
+			Index,
+		},
 
-	{
-		"CreateCategory",
-		http.MethodPost,
-		"/categories/:category",
-		delivery.CreateCategory,
-	},
+		{
+			"CreateCategory",
+			http.MethodPost,
+			"/categories/:category",
+			delivery.CreateCategory,
+		},
 
-	{
-		"CreateItem",
-		http.MethodPost,
-		"/items",
-		delivery.CreateItem,
-	},
+		{
+			"CreateItem",
+			http.MethodPost,
+			"/items",
+			r.del.CreateItem,
+		},
 
-	{
-		"GetItem",
-		http.MethodGet,
-		"/items/:itemID",
-		delivery.GetItem,
-	},
+		{
+			"GetItem",
+			http.MethodGet,
+			"/items/:itemID",
+			delivery.GetItem,
+		},
 
-	{
-		"UpdateItem",
-		http.MethodPut,
-		"/items/:itemID",
-		delivery.UpdateItem,
-	},
+		{
+			"UpdateItem",
+			http.MethodPut,
+			"/items/:itemID",
+			r.del.UpdateItem,
+		},
 
-	{
-		"UploadFile",
-		http.MethodPost,
-		"/items/:itemID/upload",
-		delivery.UploadFile,
-	},
+		{
+			"UploadFile",
+			http.MethodPost,
+			"/items/:itemID/upload",
+			delivery.UploadFile,
+		},
 
-	{
-		"GetCart",
-		http.MethodGet,
-		"/cart/:userID",
-		delivery.GetCart,
-	},
+		{
+			"GetCart",
+			http.MethodGet,
+			"/cart/:userID",
+			delivery.GetCart,
+		},
 
-	{
-		"GetCategoryList",
-		http.MethodGet,
-		"/items/categories/:category",
-		delivery.GetCategoryList,
-	},
+		{
+			"GetCategoryList",
+			http.MethodGet,
+			"/items/categories/:category",
+			delivery.GetCategoryList,
+		},
 
-	{
-		"ItemsList",
-		http.MethodGet,
-		"/items",
-		delivery.ItemsList,
-	},
+		{
+			"ItemsList",
+			http.MethodGet,
+			"/items",
+			delivery.ItemsList,
+		},
 
-	{
-		"SearchLine",
-		http.MethodGet,
-		"/search/:searchRequest",
-		delivery.SearchLine,
-	},
+		{
+			"SearchLine",
+			http.MethodGet,
+			"/search/:searchRequest",
+			delivery.SearchLine,
+		},
 
-	{
-		"CreateUser",
-		http.MethodPost,
-		"/user/create",
-		delivery.CreateUser,
-	},
+		{
+			"CreateUser",
+			http.MethodPost,
+			"/user/create",
+			delivery.CreateUser,
+		},
 
-	{
-		"LoginUser",
-		http.MethodPost,
-		"/user/login",
-		delivery.LoginUser,
-	},
+		{
+			"LoginUser",
+			http.MethodPost,
+			"/user/login",
+			delivery.LoginUser,
+		},
 
-	{
-		"LogoutUser",
-		http.MethodPost,
-		"/user/logout",
-		delivery.LogoutUser,
-	},
+		{
+			"LogoutUser",
+			http.MethodPost,
+			"/user/logout",
+			delivery.LogoutUser,
+		},
+	}
+
+	for _, route := range routes {
+		switch route.Method {
+		case http.MethodGet:
+			r.router.GET(route.Pattern, route.HandlerFunc)
+		case http.MethodPost:
+			r.router.POST(route.Pattern, route.HandlerFunc)
+		case http.MethodPut:
+			r.router.PUT(route.Pattern, route.HandlerFunc)
+		case http.MethodPatch:
+			r.router.PATCH(route.Pattern, route.HandlerFunc)
+		case http.MethodDelete:
+			r.router.DELETE(route.Pattern, route.HandlerFunc)
+		}
+	}
+}
+
+func (r *Router) Run(port string) error {
+	return r.router.Run(port)
 }

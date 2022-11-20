@@ -21,7 +21,7 @@ type Config struct {
 }
 
 // New initializes the configuration
-func New() (*Config, error) {
+func NewConfig() (*Config, error) {
 	var configPath string
 
 	// The flag allows to specify the path to the folder with the configuration file in .toml format.

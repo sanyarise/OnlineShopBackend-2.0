@@ -8,11 +8,12 @@ import (
 )
 
 type HttpServer struct {
-	ctx context.Context
+	ctx    context.Context
+	router *sw.Router
 }
 
-func New() *HttpServer {
-	return &HttpServer{}
+func NewServer(ctx context.Context, router *sw.Router) *HttpServer {
+	return &HttpServer{ctx: ctx, router: router}
 }
 
 func (h *HttpServer) GetName() string {
@@ -22,13 +23,11 @@ func (h *HttpServer) GetName() string {
 func (h *HttpServer) Start(ctx context.Context) error {
 	h.ctx = ctx
 
-	router := sw.NewRouter()
-
 	cfg := h.ctx.Value("config")
 	port := reflect.ValueOf(cfg).FieldByName("Port").String()
 	fmt.Println(port)
 
-	err := router.Run(port)
+	err := h.router.Run(port)
 
 	return err
 }

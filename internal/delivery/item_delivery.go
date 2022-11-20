@@ -10,25 +10,44 @@
 package delivery
 
 import (
+	"OnlineShopBackend/internal/handlers"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
-
-
-// CreateItem - Create a new item
-func CreateItem(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{})
+// CreateItem - create a new item
+func (d *Delivery) CreateItem(c *gin.Context) {
+	ctx := c.Request.Context()
+	var json handlers.Item
+	if err := c.ShouldBindJSON(&json); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	id, err := d.h.CreateItem(ctx, json)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	}
+	c.JSON(http.StatusOK, gin.H{"success": id.String()})
 }
 
-// GetItem -
+// GetItem - 
 func GetItem(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{})
 }
 
-// UpdateItem - Update an item
-func UpdateItem(c *gin.Context) {
+// UpdateItem - update an item
+func (d *Delivery) UpdateItem(c *gin.Context) {
+	ctx := c.Request.Context()
+	var json handlers.Item
+	if err := c.ShouldBindJSON(&json); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	err := d.h.UpdateItem(ctx, json)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	}
 	c.JSON(http.StatusOK, gin.H{})
 }
 
@@ -36,7 +55,6 @@ func UpdateItem(c *gin.Context) {
 func UploadFile(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{})
 }
-
 
 // ItemsList - List of Items with filters
 func ItemsList(c *gin.Context) {
