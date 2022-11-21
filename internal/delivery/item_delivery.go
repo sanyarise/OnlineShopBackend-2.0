@@ -11,8 +11,9 @@ package delivery
 
 import (
 	"OnlineShopBackend/internal/handlers"
-	"net/http"
+	"fmt"
 	"log"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -36,6 +37,7 @@ func (d *Delivery) CreateItem(c *gin.Context) {
 // GetItem - returns item on id
 func (d *Delivery) GetItem(c *gin.Context) {
 	id := c.Param("itemID")
+	d.l.Debug(id)
 	ctx := c.Request.Context()
 	item, err := d.h.GetItem(ctx, id)
 	if err != nil {
@@ -67,17 +69,17 @@ func (d *Delivery) UploadFile(c *gin.Context) {
 // ItemsList - returns list of all items
 func (d *Delivery) ItemsList(c *gin.Context) {
 	list, err := d.h.ItemsList(c.Request.Context())
+	fmt.Println(list)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
-	for _, item := range list {
-		c.JSON(http.StatusOK, item)
-	}
+	c.JSON(http.StatusOK, list)
 }
 
 // SearchLine - returns list of items with parameters
 func (d *Delivery) SearchLine(c *gin.Context) {
-	list, err := d.h.ItemsList(c.Request.Context())
+	param := c.Param("searchRequest")
+	list, err := d.h.SearchLine(c.Request.Context(), param)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}

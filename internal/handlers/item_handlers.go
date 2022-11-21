@@ -8,7 +8,7 @@ import (
 
 	"github.com/google/uuid"
 )
-
+// Item is struct for DTO
 type Item struct {
 	Id          string `json:"id,omitempty"`
 	Title       string `json:"title,omitempty"`
@@ -19,9 +19,9 @@ type Item struct {
 	Image       string `json:"image,omitempty"`
 }
 
+// CreateItem transform Item to models.Item and call usecase CreateItem
 func (h *Handlers) CreateItem(ctx context.Context, item Item) (uuid.UUID, error) {
 	log.Println("Enter in handlers CreateItem()")
-	log.Println(item)
 	cid, err := uuid.Parse(item.Category)
 	if err != nil {
 		return uuid.UUID{}, err
@@ -41,7 +41,9 @@ func (h *Handlers) CreateItem(ctx context.Context, item Item) (uuid.UUID, error)
 	return id, nil
 }
 
+// UpdateItem transform Item to models.Item and call usecase UpdateItem
 func (h *Handlers) UpdateItem(ctx context.Context, item Item) error {
+
 	id, _ := uuid.Parse(item.Id)
 	cid, _ := uuid.Parse(item.Category)
 	updateItem := &models.Item{
@@ -56,6 +58,7 @@ func (h *Handlers) UpdateItem(ctx context.Context, item Item) error {
 	return h.repo.UpdateItem(ctx, updateItem)
 }
 
+// GetItem returns Item on id
 func (h *Handlers) GetItem(ctx context.Context, id string) (Item, error) {
 	uid, err := uuid.Parse(id)
 	if err != nil {
@@ -76,6 +79,7 @@ func (h *Handlers) GetItem(ctx context.Context, id string) (Item, error) {
 	}, nil
 }
 
+// ItemsList returns list of all Items 
 func (h *Handlers) ItemsList(ctx context.Context) ([]Item, error) {
 	res := make([]Item, 0, 100)
 	items, err := h.repo.ItemsList(ctx)
@@ -99,10 +103,10 @@ func (h *Handlers) ItemsList(ctx context.Context) ([]Item, error) {
 				Vendor:      item.Vendor,
 			})
 		}
-		return res, nil
 	}
+	
 }
-
+// SearchLine returns list of Items with parameters
 func (h *Handlers) SearchLine(ctx context.Context, param string) ([]Item, error) {
 	res := make([]Item, 0, 100)
 	items, err := h.repo.SearchLine(ctx, param)
@@ -126,6 +130,5 @@ func (h *Handlers) SearchLine(ctx context.Context, param string) ([]Item, error)
 				Vendor:      item.Vendor,
 			})
 		}
-		return res, nil
 	}
 }
