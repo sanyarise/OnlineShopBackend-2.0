@@ -45,7 +45,10 @@ func main() {
 	delivery := delivery.NewDelivery(handlers, l)
 	router := app.NewRouter(delivery, l)
 	server := httpServer.NewServer(ctx, cfg.Port, router, l)
-	server.Start(ctx)
+	err = server.Start(ctx)
+	if err != nil {
+		log.Fatalf("can't start server: %v", err)
+	}
 	var services []app.Service
 	services = append(services, server)
 	a := app.NewApp(services)
