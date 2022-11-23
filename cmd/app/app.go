@@ -1,19 +1,14 @@
 package app
 
 import (
-	"OnlineShopBackend/pkg/config"
-	"OnlineShopBackend/pkg/filestorage"
-	"OnlineShopBackend/pkg/logger"
+	"OnlineShopBackend/config"
 	"context"
-	"go.uber.org/zap"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 )
-
-var GlobalApp *App
 
 type Service interface {
 	GetName() string
@@ -23,8 +18,6 @@ type Service interface {
 
 type App struct {
 	services []Service
-	Log      *logger.Logger
-	Fs       filestorage.FileStorager
 }
 
 func NewApp(serviceList []Service) *App {
@@ -37,21 +30,20 @@ func (a *App) Start() {
 	ctx := context.Background()
 	cfg, err := config.NewConfig()
 	if err != nil {
-		log.Println("Error load config. set default values")
+		// TODO correct logger
+		log.Printf("Error load config: %v. set default values", err)
 	}
-	a.Log = logger.NewLogger(cfg.LogLevel)
-
-	ctx = context.WithValue(ctx, "config", *cfg)
-
-	im := filestorage.NewOnDiskLocalStorage(cfg.DiskFileStoragePath)
-	a.Fs = im
+	type myString string
+	var config myString = "config"
+	ctx = context.WithValue(ctx, config, *cfg)
 
 	for _, service := range a.services {
 		service := service
 		go func() {
 			err := service.Start(ctx)
 			if err != nil {
-				a.Log.Logger.Panic("Error start service ", zap.Field{String: service.GetName()}, zap.Field{Interface: err})
+				// TODO correct logger
+				log.Panicln("Error start service ", service.GetName(), err)
 			}
 		}()
 	}
@@ -59,14 +51,16 @@ func (a *App) Start() {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, syscall.SIGINT)
 	<-c
-	a.Log.Logger.Info("App shutdown...")
+	// TODO correct logger
+	log.Println("App shutdown...")
 
 	for _, service := range a.services {
 		service := service
 		go func() {
 			err := service.ShutDown()
 			if err != nil {
-				a.Log.Logger.Error("Error Shutdown service ", zap.Field{String: service.GetName()}, zap.Field{Interface: err})
+				// TODO correct logger
+				log.Println("Error Shutdown service ", service.GetName(), err)
 			}
 		}()
 	}
