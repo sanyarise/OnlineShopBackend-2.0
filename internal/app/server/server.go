@@ -2,7 +2,7 @@ package server
 
 import (
 	//sw "OnlineShopBackend/cmd/app"
-	"OnlineShopBackend/internal/router"
+	"OnlineShopBackend/internal/app/router"
 	"context"
 	"fmt"
 	"log"
