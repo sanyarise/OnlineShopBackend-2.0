@@ -7,10 +7,11 @@ import (
 )
 
 type Storage struct {
-	store repository.ItemStore
-	l *zap.Logger
+	itemStore     repository.ItemStore
+	categoryStore repository.CategoryStore
+	l             *zap.Logger
 }
 
-func NewStorage(store repository.ItemStore, logger *zap.Logger) *Storage {
-	return &Storage{store: store, l: logger}
+func NewStorage(itemStore repository.ItemStore, categoryStore repository.CategoryStore, logger *zap.Logger) *Storage {
+	return &Storage{itemStore: itemStore, categoryStore: categoryStore, l: logger}
 }
