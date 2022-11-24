@@ -1,7 +1,8 @@
-package httpServer
+package server
 
 import (
-	sw "OnlineShopBackend/cmd/app"
+	//sw "OnlineShopBackend/cmd/app"
+	"OnlineShopBackend/internal/router"
 	"context"
 	"fmt"
 	"log"
@@ -12,14 +13,14 @@ import (
 
 type HttpServer struct {
 	ctx    context.Context
-	port string
-	router *sw.Router
-	l *zap.Logger
+	port   string
+	router *router.Router
+	l      *zap.Logger
 }
 
-func NewServer(ctx context.Context, port string, router *sw.Router, logger *zap.Logger) *HttpServer {
+func NewServer(ctx context.Context, port string, router *router.Router, logger *zap.Logger) *HttpServer {
 	log.Println("Enter in NewServer()")
-	return &HttpServer{ctx: ctx,port: port, router: router, l: logger}
+	return &HttpServer{ctx: ctx, port: port, router: router, l: logger}
 }
 
 func (h *HttpServer) GetName() string {

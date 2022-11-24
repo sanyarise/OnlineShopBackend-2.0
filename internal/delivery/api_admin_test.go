@@ -1,4 +1,4 @@
-package onlineShopBackend
+package delivery
 
 import (
 	"bytes"
@@ -18,7 +18,7 @@ func TestUploadFile(t *testing.T) {
 
 	resp, err := http.Post("http://localhost:8000/items/yyy/upload", "image/jpeg", &buf)
 	if resp.StatusCode != 201 {
-		t.Error("Error status code ", resp.Status)
+		t.Error("Error status code, err: ", resp.Status, err.Error())
 	}
 	log.Print(resp.Status)
 }

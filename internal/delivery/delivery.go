@@ -1,6 +1,7 @@
 package delivery
 
 import (
+	"OnlineShopBackend/internal/filestorage"
 	"OnlineShopBackend/internal/handlers"
 	"log"
 
@@ -8,11 +9,12 @@ import (
 )
 
 type Delivery struct {
-	h *handlers.Handlers
-	l *zap.Logger
+	h  *handlers.Handlers
+	l  *zap.Logger
+	fs filestorage.FileStorager
 }
 
-func NewDelivery(handlers *handlers.Handlers, logger *zap.Logger) *Delivery {
+func NewDelivery(handlers *handlers.Handlers, logger *zap.Logger, fs filestorage.FileStorager) *Delivery {
 	log.Println("Enter in NewDelivery()")
-	return &Delivery{h: handlers, l: logger}
+	return &Delivery{h: handlers, l: logger, fs: fs}
 }

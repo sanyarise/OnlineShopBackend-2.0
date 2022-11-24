@@ -1,13 +1,15 @@
 package main
 
 import (
-	"OnlineShopBackend/cmd/app"
-	"OnlineShopBackend/cmd/httpServer"
 	"OnlineShopBackend/config"
+	"OnlineShopBackend/internal/app"
 	"OnlineShopBackend/internal/delivery"
+	"OnlineShopBackend/internal/filestorage"
 	"OnlineShopBackend/internal/handlers"
 	"OnlineShopBackend/internal/logger"
 	"OnlineShopBackend/internal/repository"
+	"OnlineShopBackend/internal/router"
+	"OnlineShopBackend/internal/server"
 	"OnlineShopBackend/internal/usecase"
 	"context"
 	"log"
@@ -33,9 +35,10 @@ func main() {
 	}
 	usecase := usecase.NewStorage(store, l)
 	handlers := handlers.NewHandlers(usecase, l)
-	delivery := delivery.NewDelivery(handlers, l)
-	router := app.NewRouter(delivery, l)
-	server := httpServer.NewServer(ctx, cfg.Port, router, l)
+	filestorage := filestorage.NewInMemoryStorage(cfg.FsPath)
+	delivery := delivery.NewDelivery(handlers, l, filestorage)
+	router := router.NewRouter(delivery, l)
+	server := server.NewServer(ctx, cfg.Port, router, l)
 	err = server.Start(ctx)
 	if err != nil {
 		log.Fatalf("can't start server: %v", err)

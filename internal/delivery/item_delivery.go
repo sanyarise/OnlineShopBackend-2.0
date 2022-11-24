@@ -61,11 +61,6 @@ func (d *Delivery) UpdateItem(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{})
 }
 
-// UploadFile - upload an image
-func (d *Delivery) UploadFile(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{})
-}
-
 // ItemsList - returns list of all items
 func (d *Delivery) ItemsList(c *gin.Context) {
 	list, err := d.h.ItemsList(c.Request.Context())
