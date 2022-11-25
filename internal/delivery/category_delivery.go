@@ -25,6 +25,10 @@ func (delivery *Delivery) CreateCategory(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	if deliveryCategory.Name == "" && deliveryCategory.Description == "" {
+		c.JSON(http.StatusBadRequest, "empty category is not correct")
+	} 
+
 	id, err := delivery.handlers.CreateCategory(ctx, deliveryCategory)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

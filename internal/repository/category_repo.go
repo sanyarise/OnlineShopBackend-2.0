@@ -29,7 +29,7 @@ func (repo *Pgrepo) GetCategoryList(ctx context.Context) (chan models.Category, 
 		category := &models.Category{}
 
 		rows, err := repo.db.QueryContext(ctx, `
-		SELECT id, name,description FROM categories`)
+		SELECT id, name, description FROM categories`)
 		if err != nil {
 			msg := fmt.Errorf("error on categories list query context: %w", err)
 			repo.logger.Error(msg.Error())

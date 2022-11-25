@@ -25,6 +25,9 @@ func (delivery *Delivery) CreateItem(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	if deliveryItem.Title == "" && deliveryItem.Description == "" && deliveryItem.Category == "" && deliveryItem.Price == 0 && deliveryItem.Vendor == "" {
+		c.JSON(http.StatusBadRequest, "empty item is not correct")
+	}
 	id, err := delivery.handlers.CreateItem(ctx, deliveryItem)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
