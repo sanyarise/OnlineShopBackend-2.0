@@ -3,11 +3,13 @@ package app
 import (
 	"OnlineShopBackend/config"
 	"context"
-	"log"
+	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 type Service interface {
@@ -17,21 +19,23 @@ type Service interface {
 }
 
 type App struct {
+	l        *zap.Logger
 	services []Service
 }
 
-func NewApp(serviceList []Service) *App {
+func NewApp(l *zap.Logger, serviceList []Service) *App {
+	l.Debug("Enter in NewApp()")
 	var s []Service
 	s = append(s, serviceList...)
-	return &App{services: s}
+	return &App{l: l, services: s}
 }
 
 func (a *App) Start() {
+	a.l.Debug("Enter in app Start()")
 	ctx := context.Background()
 	cfg, err := config.NewConfig()
 	if err != nil {
-		// TODO correct logger
-		log.Printf("Error load config: %v. set default values", err)
+		a.l.Error(fmt.Sprintf("error load config: %v. set default values", err))
 	}
 	type myString string
 	var config myString = "config"
@@ -42,8 +46,7 @@ func (a *App) Start() {
 		go func() {
 			err := service.Start(ctx)
 			if err != nil {
-				// TODO correct logger
-				log.Panicln("Error start service ", service.GetName(), err)
+				a.l.Panic(fmt.Sprintf("error start service %s, %v", service.GetName(), err))
 			}
 		}()
 	}
@@ -51,16 +54,14 @@ func (a *App) Start() {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, syscall.SIGINT)
 	<-c
-	// TODO correct logger
-	log.Println("App shutdown...")
+	a.l.Info("App shutdown...")
 
 	for _, service := range a.services {
 		service := service
 		go func() {
 			err := service.ShutDown()
 			if err != nil {
-				// TODO correct logger
-				log.Println("Error Shutdown service ", service.GetName(), err)
+				a.l.Error(fmt.Sprintf("Error Shutdown service: %s, %v ", service.GetName(), err))
 			}
 		}()
 	}

@@ -55,7 +55,7 @@ func NewRouter(del *delivery.Delivery, logger *zap.Logger) *Router {
 		{
 			"CreateCategory",
 			http.MethodPost,
-			"/categories/:category",
+			"/categories",
 			del.CreateCategory,
 		},
 
@@ -97,7 +97,7 @@ func NewRouter(del *delivery.Delivery, logger *zap.Logger) *Router {
 		{
 			"GetCategoryList",
 			http.MethodGet,
-			"/items/categories/:category",
+			"/items/categories",
 			del.GetCategoryList,
 		},
 
