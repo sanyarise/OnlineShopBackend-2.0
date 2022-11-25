@@ -33,7 +33,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("can't initalize storage: %v", err)
 	}
-	usecase := usecase.NewStorage(store, l)
+	usecase := usecase.NewStorage(store, store, l)
 	handlers := handlers.NewHandlers(usecase, l)
 	filestorage := filestorage.NewInMemoryStorage(cfg.FsPath)
 	delivery := delivery.NewDelivery(handlers, l, filestorage)

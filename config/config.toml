@@ -7,4 +7,4 @@ timeout = 5
 # log_level - sets the logging level (info, warning, debug, error, panic, fatal)
 log_level = "debug"
 
-diskFileStoragePath = "./storage/files/"
+fs_path = "./storage/files/"
