@@ -46,7 +46,7 @@ func main() {
 	var services []app.Service
 
 	services = append(services, server)
-	a := app.NewApp(services)
+	a := app.NewApp(l, services)
 	log.Printf("Server started")
 	a.Start()
 }

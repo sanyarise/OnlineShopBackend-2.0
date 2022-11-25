@@ -11,7 +11,7 @@ package router
 
 import (
 	"OnlineShopBackend/internal/delivery"
-	"log"
+	"fmt"
 
 	"net/http"
 
@@ -42,14 +42,14 @@ type Router struct {
 
 // NewRouter returns a new router.
 func NewRouter(del *delivery.Delivery, logger *zap.Logger) *Router {
-	log.Println("Enter in NewRouter()")
+	logger.Debug("Enter in NewRouter()")
 	router := gin.Default()
 	routes := Routes{
 		{
 			"Index",
 			http.MethodGet,
 			"/",
-			Index,
+			del.Index,
 		},
 
 		{
@@ -154,12 +154,7 @@ func NewRouter(del *delivery.Delivery, logger *zap.Logger) *Router {
 	return &Router{router: router, del: del, l: logger}
 }
 
-// Index is the index handler.
-func Index(c *gin.Context) {
-	log.Println("Enter in Index")
-	c.String(http.StatusOK, "Hello World!")
-}
-
 func (r *Router) Run(port string) error {
+	r.l.Debug(fmt.Sprintf("Enter in router Run(), port: %s", port))
 	return r.router.Run(port)
 }
