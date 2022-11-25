@@ -16,7 +16,7 @@ import (
 )
 
 // GetCart - get user cart
-func GetCart(c *gin.Context) {
+func (delivery *Delivery) GetCart(c *gin.Context) {
+	delivery.logger.Debug("Enter in delivery GetCart()")
 	c.JSON(http.StatusOK, gin.H{})
 }
-

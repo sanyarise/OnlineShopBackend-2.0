@@ -35,13 +35,13 @@ type Route struct {
 type Routes []Route
 
 type Router struct {
-	router *gin.Engine
-	del    *delivery.Delivery
-	l      *zap.Logger
+	router   *gin.Engine
+	delivery *delivery.Delivery
+	logger   *zap.Logger
 }
 
 // NewRouter returns a new router.
-func NewRouter(del *delivery.Delivery, logger *zap.Logger) *Router {
+func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 	logger.Debug("Enter in NewRouter()")
 	router := gin.Default()
 	routes := Routes{
@@ -49,42 +49,42 @@ func NewRouter(del *delivery.Delivery, logger *zap.Logger) *Router {
 			"Index",
 			http.MethodGet,
 			"/",
-			del.Index,
+			delivery.Index,
 		},
 
 		{
 			"CreateCategory",
 			http.MethodPost,
 			"/categories",
-			del.CreateCategory,
+			delivery.CreateCategory,
 		},
 
 		{
 			"CreateItem",
 			http.MethodPost,
 			"/items",
-			del.CreateItem,
+			delivery.CreateItem,
 		},
 
 		{
 			"GetItem",
 			http.MethodGet,
 			"/items/:itemID",
-			del.GetItem,
+			delivery.GetItem,
 		},
 
 		{
 			"UpdateItem",
 			http.MethodPut,
 			"/items/:itemID",
-			del.UpdateItem,
+			delivery.UpdateItem,
 		},
 
 		{
 			"UploadFile",
 			http.MethodPost,
 			"/items/:itemID/upload",
-			del.UploadFile,
+			delivery.UploadFile,
 		},
 
 		{
@@ -98,21 +98,21 @@ func NewRouter(del *delivery.Delivery, logger *zap.Logger) *Router {
 			"GetCategoryList",
 			http.MethodGet,
 			"/items/categories",
-			del.GetCategoryList,
+			delivery.GetCategoryList,
 		},
 
 		{
 			"ItemsList",
 			http.MethodGet,
 			"/items",
-			del.ItemsList,
+			delivery.ItemsList,
 		},
 
 		{
 			"SearchLine",
 			http.MethodGet,
 			"/search/:searchRequest",
-			del.SearchLine,
+			delivery.SearchLine,
 		},
 
 		{
@@ -151,10 +151,10 @@ func NewRouter(del *delivery.Delivery, logger *zap.Logger) *Router {
 			router.DELETE(route.Pattern, route.HandlerFunc)
 		}
 	}
-	return &Router{router: router, del: del, l: logger}
+	return &Router{router: router, delivery: delivery, logger: logger}
 }
 
-func (r *Router) Run(port string) error {
-	r.l.Debug(fmt.Sprintf("Enter in router Run(), port: %s", port))
-	return r.router.Run(port)
+func (router *Router) Run(port string) error {
+	router.logger.Debug(fmt.Sprintf("Enter in router Run(), port: %s", port))
+	return router.router.Run(port)
 }

@@ -9,9 +9,9 @@ import (
 type Storage struct {
 	itemStore     repository.ItemStore
 	categoryStore repository.CategoryStore
-	l             *zap.Logger
+	logger        *zap.Logger
 }
 
 func NewStorage(itemStore repository.ItemStore, categoryStore repository.CategoryStore, logger *zap.Logger) *Storage {
-	return &Storage{itemStore: itemStore, categoryStore: categoryStore, l: logger}
+	return &Storage{itemStore: itemStore, categoryStore: categoryStore, logger: logger}
 }

@@ -9,7 +9,7 @@ import (
 
 type Pgrepo struct {
 	db *sql.DB
-	l  *zap.Logger
+	logger  *zap.Logger
 }
 
 func NewPgrepo(dns string, logger *zap.Logger) (*Pgrepo, error) {
@@ -23,5 +23,5 @@ func NewPgrepo(dns string, logger *zap.Logger) (*Pgrepo, error) {
 		db.Close()
 		return nil, err
 	}
-	return &Pgrepo{db: db, l: logger}, nil
+	return &Pgrepo{db: db, logger: logger}, nil
 }

@@ -5,7 +5,6 @@ import (
 	"OnlineShopBackend/internal/app/router"
 	"context"
 	"fmt"
-	"log"
 
 	"go.uber.org/zap"
 	//"reflect"
@@ -15,31 +14,31 @@ type HttpServer struct {
 	ctx    context.Context
 	port   string
 	router *router.Router
-	l      *zap.Logger
+	logger *zap.Logger
 }
 
 func NewServer(ctx context.Context, port string, router *router.Router, logger *zap.Logger) *HttpServer {
-	log.Println("Enter in NewServer()")
-	return &HttpServer{ctx: ctx, port: port, router: router, l: logger}
+	logger.Debug("Enter in NewServer()")
+	return &HttpServer{ctx: ctx, port: port, router: router, logger: logger}
 }
 
-func (h *HttpServer) GetName() string {
+func (server *HttpServer) GetName() string {
+	server.logger.Debug("Enter in server GetName()")
 	return "http server"
 }
 
-func (h *HttpServer) Start(ctx context.Context) error {
-	h.ctx = ctx
+func (server *HttpServer) Start(ctx context.Context) error {
+	server.logger.Debug("Enter in server Start()")
+	server.ctx = ctx
+	fmt.Println(server.port)
 
-	//cfg := h.ctx.Value("config")
-	//port := reflect.ValueOf(cfg).FieldByName("Port").String()
-	fmt.Println(h.port)
-
-	err := h.router.Run(h.port)
+	err := server.router.Run(server.port)
 
 	return err
 }
 
-func (h *HttpServer) ShutDown() error {
+func (server *HttpServer) ShutDown() error {
+	server.logger.Debug("Enter in server ShubDown()")
 	//TODO implement me
 	panic("implement me")
 }

@@ -8,31 +8,31 @@ import (
 	"github.com/google/uuid"
 )
 
-func (r *Pgrepo) CreateCategory(ctx context.Context, category *models.Category) (uuid.UUID, error) {
-	r.l.Debug("Enter in repository CreateCategory()")
+func (repo *Pgrepo) CreateCategory(ctx context.Context, category *models.Category) (uuid.UUID, error) {
+	repo.logger.Debug("Enter in repository CreateCategory()")
 	var id uuid.UUID
-	_ = r.db.QueryRowContext(ctx, `INSERT INTO categories(name, description)
+	_ = repo.db.QueryRowContext(ctx, `INSERT INTO categories(name, description)
 	values ($1, $2) RETURNING id`,
 		category.Name,
 		category.Description,
 	).Scan(&id)
 
-	r.l.Debug(fmt.Sprintf("id is %v\n", id))
+	repo.logger.Debug(fmt.Sprintf("id is %v\n", id))
 	return id, nil
 }
 
-func (r *Pgrepo) GetCategoryList(ctx context.Context) (chan models.Category, error) {
-	chout := make(chan models.Category, 100)
-
+func (repo *Pgrepo) GetCategoryList(ctx context.Context) (chan models.Category, error) {
+	repo.logger.Debug("Enter in repository GetCategoryList()")
+	categoryChan := make(chan models.Category, 100)
 	go func() {
-		defer close(chout)
+		defer close(categoryChan)
 		category := &models.Category{}
 
-		rows, err := r.db.QueryContext(ctx, `
+		rows, err := repo.db.QueryContext(ctx, `
 		SELECT id, name,description FROM categories`)
 		if err != nil {
 			msg := fmt.Errorf("error on categories list query context: %w", err)
-			r.l.Error(msg.Error())
+			repo.logger.Error(msg.Error())
 			return
 		}
 		defer rows.Close()
@@ -43,13 +43,12 @@ func (r *Pgrepo) GetCategoryList(ctx context.Context) (chan models.Category, err
 				&category.Name,
 				&category.Description,
 			); err != nil {
-				r.l.Error(err.Error())
+				repo.logger.Error(err.Error())
 				return
 			}
-			fmt.Println(category)
-			chout <- *category
+			categoryChan <- *category
 		}
 	}()
 
-	return chout, nil
+	return categoryChan, nil
 }

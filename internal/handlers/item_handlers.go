@@ -4,10 +4,10 @@ import (
 	"OnlineShopBackend/internal/models"
 	"context"
 	"fmt"
-	"log"
 
 	"github.com/google/uuid"
 )
+
 // Item is struct for DTO
 type Item struct {
 	Id          string `json:"id,omitempty"`
@@ -20,9 +20,9 @@ type Item struct {
 }
 
 // CreateItem transform Item to models.Item and call usecase CreateItem
-func (h *Handlers) CreateItem(ctx context.Context, item Item) (uuid.UUID, error) {
-	log.Println("Enter in handlers CreateItem()")
-	cid, err := uuid.Parse(item.Category)
+func (handlers *Handlers) CreateItem(ctx context.Context, item Item) (uuid.UUID, error) {
+	handlers.logger.Debug("Enter in handlers CreateItem()")
+	categoryId, err := uuid.Parse(item.Category)
 	if err != nil {
 		return uuid.UUID{}, err
 	}
@@ -30,11 +30,11 @@ func (h *Handlers) CreateItem(ctx context.Context, item Item) (uuid.UUID, error)
 		Title:       item.Title,
 		Description: item.Description,
 		Price:       item.Price,
-		Category:    cid,
+		Category:    categoryId,
 		Vendor:      item.Vendor,
 		Image:       item.Image,
 	}
-	id, err := h.repo.CreateItem(ctx, newItem)
+	id, err := handlers.repo.CreateItem(ctx, newItem)
 	if err != nil {
 		return id, err
 	}
@@ -42,29 +42,36 @@ func (h *Handlers) CreateItem(ctx context.Context, item Item) (uuid.UUID, error)
 }
 
 // UpdateItem transform Item to models.Item and call usecase UpdateItem
-func (h *Handlers) UpdateItem(ctx context.Context, item Item) error {
-
-	id, _ := uuid.Parse(item.Id)
-	cid, _ := uuid.Parse(item.Category)
+func (handlers *Handlers) UpdateItem(ctx context.Context, item Item) error {
+	handlers.logger.Debug("Enter in handlers UpdateItem()")
+	id, err := uuid.Parse(item.Id)
+	if err != nil {
+		return fmt.Errorf("invalid item uuid: %w", err)
+	}
+	categoryId, err := uuid.Parse(item.Category)
+	if err != nil {
+		return fmt.Errorf("invalid category uuid: %w", err)
+	}
 	updateItem := &models.Item{
 		Id:          id,
 		Title:       item.Title,
 		Description: item.Description,
 		Price:       item.Price,
-		Category:    cid,
+		Category:    categoryId,
 		Vendor:      item.Vendor,
 		Image:       item.Image,
 	}
-	return h.repo.UpdateItem(ctx, updateItem)
+	return handlers.repo.UpdateItem(ctx, updateItem)
 }
 
 // GetItem returns Item on id
-func (h *Handlers) GetItem(ctx context.Context, id string) (Item, error) {
+func (handlers *Handlers) GetItem(ctx context.Context, id string) (Item, error) {
+	handlers.logger.Debug("Enter in handlers GetItem()")
 	uid, err := uuid.Parse(id)
 	if err != nil {
-		return Item{}, fmt.Errorf("invalid uuid: %w", err)
+		return Item{}, fmt.Errorf("invalid item uuid: %w", err)
 	}
-	item, err := h.repo.GetItem(ctx, uid)
+	item, err := handlers.repo.GetItem(ctx, uid)
 	if err != nil {
 		return Item{}, err
 	}
@@ -79,16 +86,18 @@ func (h *Handlers) GetItem(ctx context.Context, id string) (Item, error) {
 	}, nil
 }
 
-// ItemsList returns list of all Items 
-func (h *Handlers) ItemsList(ctx context.Context) ([]Item, error) {
+// ItemsList returns list of all Items
+func (handlers *Handlers) ItemsList(ctx context.Context) ([]Item, error) {
+	handlers.logger.Debug("Enter in handlers ItemsList()")
 	res := make([]Item, 0, 100)
-	items, err := h.repo.ItemsList(ctx)
+	items, err := handlers.repo.ItemsList(ctx)
 	if err != nil {
 		return res, err
 	}
 	for {
 		select {
 		case <-ctx.Done():
+			handlers.logger.Debug("handlers ItemList() ctx.Done recieved")
 			return res, ctx.Err()
 		case item, ok := <-items:
 			if !ok {
@@ -104,18 +113,21 @@ func (h *Handlers) ItemsList(ctx context.Context) ([]Item, error) {
 			})
 		}
 	}
-	
+
 }
+
 // SearchLine returns list of Items with parameters
-func (h *Handlers) SearchLine(ctx context.Context, param string) ([]Item, error) {
+func (handlers *Handlers) SearchLine(ctx context.Context, param string) ([]Item, error) {
+	handlers.logger.Debug("Enter in handlers SearchLine()")
 	res := make([]Item, 0, 100)
-	items, err := h.repo.SearchLine(ctx, param)
+	items, err := handlers.repo.SearchLine(ctx, param)
 	if err != nil {
 		return res, err
 	}
 	for {
 		select {
 		case <-ctx.Done():
+			handlers.logger.Debug("handlers SearchLine() ctx.Done recieved")
 			return res, ctx.Err()
 		case item, ok := <-items:
 			if !ok {

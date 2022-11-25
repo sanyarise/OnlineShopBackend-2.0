@@ -17,15 +17,15 @@ import (
 )
 
 // CreateCategory - create a new category
-func (d *Delivery) CreateCategory(c *gin.Context) {
-	d.l.Debug("Enter in delivery CreateCategory()")
+func (delivery *Delivery) CreateCategory(c *gin.Context) {
+	delivery.logger.Debug("Enter in delivery CreateCategory()")
 	ctx := c.Request.Context()
-	var json handlers.Category
-	if err := c.ShouldBindJSON(&json); err != nil {
+	var deliveryCategory handlers.Category
+	if err := c.ShouldBindJSON(&deliveryCategory); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	id, err := d.h.CreateCategory(ctx, json)
+	id, err := delivery.handlers.CreateCategory(ctx, deliveryCategory)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
@@ -33,9 +33,9 @@ func (d *Delivery) CreateCategory(c *gin.Context) {
 }
 
 // GetCategoryList - get a specific category
-func (d *Delivery) GetCategoryList(c *gin.Context) {
-	d.l.Debug("Enter in delivery GetCategoryList()")
-	list, err := d.h.GetCategoryList(c.Request.Context())
+func (delivery *Delivery) GetCategoryList(c *gin.Context) {
+	delivery.logger.Debug("Enter in delivery GetCategoryList()")
+	list, err := delivery.handlers.GetCategoryList(c.Request.Context())
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}

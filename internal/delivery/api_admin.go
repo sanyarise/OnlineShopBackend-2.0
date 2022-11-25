@@ -19,7 +19,7 @@ import (
 )
 
 // UploadFile - upload an image
-func (d *Delivery) UploadFile(c *gin.Context) {
+func (delivery *Delivery) UploadFile(c *gin.Context) {
 	id := c.Param("itemID")
 	name := ""
 	file, err := io.ReadAll(c.Request.Body)
@@ -28,9 +28,9 @@ func (d *Delivery) UploadFile(c *gin.Context) {
 		c.JSON(http.StatusUnsupportedMediaType, gin.H{})
 	}
 
-	d.l.Info("Read id", zap.String("id", id))
-	d.l.Info("File len=", zap.Int32("len", int32(len(file))))
-	err = d.fs.PutFile(id, name, file)
+	delivery.logger.Info("Read id", zap.String("id", id))
+	delivery.logger.Info("File len=", zap.Int32("len", int32(len(file))))
+	err = delivery.filestorage.PutFile(id, name, file)
 
 	if err != nil {
 		c.JSON(http.StatusInsufficientStorage, gin.H{})

@@ -4,15 +4,14 @@ import (
 	"OnlineShopBackend/internal/models"
 	"context"
 	"fmt"
-	"log"
 
 	"github.com/google/uuid"
 )
 
 // CreateItem call database method and returns id of created item or error
-func (s *Storage) CreateItem(ctx context.Context, item *models.Item) (uuid.UUID, error) {
-	log.Println("Enter in usecase CreateItem()")
-	id, err := s.itemStore.CreateItem(ctx, item)
+func (storage *Storage) CreateItem(ctx context.Context, item *models.Item) (uuid.UUID, error) {
+	storage.logger.Debug("Enter in usecase CreateItem()")
+	id, err := storage.itemStore.CreateItem(ctx, item)
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("error on create item: %w", err)
 	}
@@ -20,13 +19,15 @@ func (s *Storage) CreateItem(ctx context.Context, item *models.Item) (uuid.UUID,
 }
 
 // UpdateItem call database method to update item and returns error or nil
-func (s *Storage) UpdateItem(ctx context.Context, item *models.Item) error {
-	return s.itemStore.UpdateItem(ctx, item)
+func (storage *Storage) UpdateItem(ctx context.Context, item *models.Item) error {
+	storage.logger.Debug("Enter in usecase UpdateItem()")
+	return storage.itemStore.UpdateItem(ctx, item)
 }
 
 // GetItem call database and returns *models.Item with given id or returns error
-func (s *Storage) GetItem(ctx context.Context, id uuid.UUID) (*models.Item, error) {
-	item, err := s.itemStore.GetItem(ctx, id)
+func (storage *Storage) GetItem(ctx context.Context, id uuid.UUID) (*models.Item, error) {
+	storage.logger.Debug("Enter in usecase GetItem()")
+	item, err := storage.itemStore.GetItem(ctx, id)
 	if err != nil {
 		return &models.Item{}, fmt.Errorf("error on get item: %w", err)
 	}
@@ -34,50 +35,51 @@ func (s *Storage) GetItem(ctx context.Context, id uuid.UUID) (*models.Item, erro
 }
 
 // ItemsList call database method and returns chan with all models.Item or error
-func (s *Storage) ItemsList(ctx context.Context) (chan models.Item, error) {
-	chin, err := s.itemStore.ItemsList(ctx)
+func (storage *Storage) ItemsList(ctx context.Context) (chan models.Item, error) {
+	storage.logger.Debug("Enter in usecase ItemsList()")
+	itemIncomingChan, err := storage.itemStore.ItemsList(ctx)
 	if err != nil {
 		return nil, err
 	}
-	chout := make(chan models.Item, 100)
+	itemOutChan := make(chan models.Item, 100)
 	go func() {
-		defer close(chout)
+		defer close(itemOutChan)
 		for {
 			select {
 			case <-ctx.Done():
 				return
-			case item, ok := <-chin:
+			case item, ok := <-itemIncomingChan:
 				if !ok {
 					return
 				}
-				chout <- item
+				itemOutChan <- item
 			}
 		}
 	}()
-	return chout, nil
-
+	return itemOutChan, nil
 }
 
 // SearchLine call database method and returns chan with all models.Item with given params or error
-func (s *Storage) SearchLine(ctx context.Context, param string) (chan models.Item, error) {
-	chin, err := s.itemStore.SearchLine(ctx, param)
+func (storage *Storage) SearchLine(ctx context.Context, param string) (chan models.Item, error) {
+	storage.logger.Debug("Enter in usecase SearchLine()")
+	itemIncomingChan, err := storage.itemStore.SearchLine(ctx, param)
 	if err != nil {
 		return nil, err
 	}
-	chout := make(chan models.Item, 100)
+	itemOutChan := make(chan models.Item, 100)
 	go func() {
-		defer close(chout)
+		defer close(itemOutChan)
 		for {
 			select {
 			case <-ctx.Done():
 				return
-			case item, ok := <-chin:
+			case item, ok := <-itemIncomingChan:
 				if !ok {
 					return
 				}
-				chout <- item
+				itemOutChan <- item
 			}
 		}
 	}()
-	return chout, nil
+	return itemOutChan, nil
 }
