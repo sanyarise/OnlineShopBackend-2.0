@@ -102,3 +102,6 @@ help: ## Show this help.
 		if (/^[a-zA-Z_-]+:.*?##.*$$/) {printf "    ${YELLOW}%-20s${GREEN}%s${RESET}\n", $$1, $$2} \
 		else if (/^## .*$$/) {printf "  ${CYAN}%s${RESET}\n", substr($$1,4)} \
 		}' $(MAKEFILE_LIST)
+
+mock:
+	mockgen -source=internal/repository/repo_interface.go -destination=internal/usecase/mocks/repo_mock.go -package=mocks ItemStore
