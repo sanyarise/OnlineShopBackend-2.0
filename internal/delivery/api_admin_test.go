@@ -1,6 +1,6 @@
 package delivery
 
-import (
+/*import (
 	"bytes"
 	"encoding/binary"
 	"log"
@@ -21,4 +21,4 @@ func TestUploadFile(t *testing.T) {
 		t.Error("Error status code, err: ", resp.Status, err.Error())
 	}
 	log.Print(resp.Status)
-}
+}*/
