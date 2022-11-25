@@ -45,7 +45,7 @@ func (repo *Pgrepo) GetItem(ctx context.Context, id uuid.UUID) (*models.Item, er
 	rows, err := repo.db.QueryContext(ctx,
 		`SELECT id, name, category, description, price, vendor FROM items WHERE id = $1`, id)
 	if err != nil {
-		return nil, fmt.Errorf("error on get item: %w", err)
+		return &models.Item{}, fmt.Errorf("error on get item: %w", err)
 	}
 	defer rows.Close()
 	for rows.Next() {
@@ -57,12 +57,12 @@ func (repo *Pgrepo) GetItem(ctx context.Context, id uuid.UUID) (*models.Item, er
 			&item.Price,
 			&item.Vendor,
 		); err != nil {
-			return nil, fmt.Errorf("error in rows scan get item by id: %w", err)
+			return &models.Item{}, fmt.Errorf("error in rows scan get item by id: %w", err)
 		}
 	}
 	if uuid.UUID.String(item.Id) == "00000000-0000-0000-0000-000000000000" {
 		err = fmt.Errorf("id not found")
-		return nil, err
+		return &models.Item{}, err
 	}
 
 	return &item, nil
