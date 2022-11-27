@@ -11,23 +11,24 @@ package delivery
 
 import (
 	"OnlineShopBackend/internal/handlers"
-	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
 // CreateItem - create a new item
-func (d *Delivery) CreateItem(c *gin.Context) {
-	log.Println("Enter in delivery CreateItem()")
+func (delivery *Delivery) CreateItem(c *gin.Context) {
+	delivery.logger.Debug("Enter in delivery CreateItem()")
 	ctx := c.Request.Context()
-	var json handlers.Item
-	if err := c.ShouldBindJSON(&json); err != nil {
+	var deliveryItem handlers.Item
+	if err := c.ShouldBindJSON(&deliveryItem); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	id, err := d.h.CreateItem(ctx, json)
+	if deliveryItem.Title == "" && deliveryItem.Description == "" && deliveryItem.Category == "" && deliveryItem.Price == 0 && deliveryItem.Vendor == "" {
+		c.JSON(http.StatusBadRequest, "empty item is not correct")
+	}
+	id, err := delivery.handlers.CreateItem(ctx, deliveryItem)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
@@ -35,11 +36,12 @@ func (d *Delivery) CreateItem(c *gin.Context) {
 }
 
 // GetItem - returns item on id
-func (d *Delivery) GetItem(c *gin.Context) {
+func (delivery *Delivery) GetItem(c *gin.Context) {
+	delivery.logger.Debug("Enter in delivery GetItem()")
 	id := c.Param("itemID")
-	d.l.Debug(id)
+	delivery.logger.Debug(id)
 	ctx := c.Request.Context()
-	item, err := d.h.GetItem(ctx, id)
+	item, err := delivery.handlers.GetItem(ctx, id)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
@@ -47,29 +49,25 @@ func (d *Delivery) GetItem(c *gin.Context) {
 }
 
 // UpdateItem - update an item
-func (d *Delivery) UpdateItem(c *gin.Context) {
+func (delivery *Delivery) UpdateItem(c *gin.Context) {
+	delivery.logger.Debug("Enter in delivery UpdateItem()")
 	ctx := c.Request.Context()
-	var json handlers.Item
-	if err := c.ShouldBindJSON(&json); err != nil {
+	var deliveryItem handlers.Item
+	if err := c.ShouldBindJSON(&deliveryItem); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	err := d.h.UpdateItem(ctx, json)
+	err := delivery.handlers.UpdateItem(ctx, deliveryItem)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
 	c.JSON(http.StatusOK, gin.H{})
 }
 
-// UploadFile - upload an image
-func (d *Delivery) UploadFile(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{})
-}
-
 // ItemsList - returns list of all items
-func (d *Delivery) ItemsList(c *gin.Context) {
-	list, err := d.h.ItemsList(c.Request.Context())
-	fmt.Println(list)
+func (delivery *Delivery) ItemsList(c *gin.Context) {
+	delivery.logger.Debug("Enter in delivery ItemsList()")
+	list, err := delivery.handlers.ItemsList(c.Request.Context())
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
@@ -77,9 +75,10 @@ func (d *Delivery) ItemsList(c *gin.Context) {
 }
 
 // SearchLine - returns list of items with parameters
-func (d *Delivery) SearchLine(c *gin.Context) {
+func (delivery *Delivery) SearchLine(c *gin.Context) {
+	delivery.logger.Debug("Enter in delivery SearchLine()")
 	param := c.Param("searchRequest")
-	list, err := d.h.SearchLine(c.Request.Context(), param)
+	list, err := delivery.handlers.SearchLine(c.Request.Context(), param)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}

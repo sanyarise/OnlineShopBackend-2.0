@@ -16,16 +16,19 @@ import (
 )
 
 // CreateUser -
-func CreateUser(c *gin.Context) {
+func (delivery *Delivery) CreateUser(c *gin.Context) {
+	delivery.logger.Debug("Enter in delivery CreateUser()")
 	c.JSON(http.StatusOK, gin.H{})
 }
 
 // LoginUser -
-func LoginUser(c *gin.Context) {
+func (delivery *Delivery) LoginUser(c *gin.Context) {
+	delivery.logger.Debug("Enter in delivery LoginUser()")
 	c.JSON(http.StatusOK, gin.H{})
 }
 
 // LogoutUser -
-func LogoutUser(c *gin.Context) {
+func (delivery *Delivery) LogoutUser(c *gin.Context) {
+	delivery.logger.Debug("Enter in delivery LogoutUser()")
 	c.JSON(http.StatusOK, gin.H{})
 }

@@ -10,11 +10,8 @@
 package models
 
 type User struct {
-	Firstname string `json:"firstname,omitempty"`
-
-	Lastname string `json:"lastname,omitempty"`
-
-	Email string `json:"email,omitempty"`
-
-	Address UserAddress `json:"address,omitempty"`
+	Firstname string      `json:"firstname,omitempty"`
+	Lastname  string      `json:"lastname,omitempty"`
+	Email     string      `json:"email,omitempty"`
+	Address   UserAddress `json:"address,omitempty"`
 }

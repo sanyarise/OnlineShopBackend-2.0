@@ -10,9 +10,7 @@
 package models
 
 type Cart struct {
-	UserID int64 `json:"userID,omitempty"`
-
-	Date string `json:"date,omitempty"`
-
+	UserID   int64                  `json:"userID,omitempty"`
+	Date     string                 `json:"date,omitempty"`
 	Products map[string]interface{} `json:"products,omitempty"`
 }

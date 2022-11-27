@@ -1,12 +1,14 @@
 package main
 
 import (
-	"OnlineShopBackend/cmd/app"
-	"OnlineShopBackend/cmd/httpServer"
 	"OnlineShopBackend/config"
+	"OnlineShopBackend/internal/app"
+	"OnlineShopBackend/internal/app/logger"
+	"OnlineShopBackend/internal/app/router"
+	"OnlineShopBackend/internal/app/server"
 	"OnlineShopBackend/internal/delivery"
+	"OnlineShopBackend/internal/filestorage"
 	"OnlineShopBackend/internal/handlers"
-	"OnlineShopBackend/internal/logger"
 	"OnlineShopBackend/internal/repository"
 	"OnlineShopBackend/internal/usecase"
 	"context"
@@ -31,11 +33,12 @@ func main() {
 	if err != nil {
 		log.Fatalf("can't initalize storage: %v", err)
 	}
-	usecase := usecase.NewStorage(store, l)
+	usecase := usecase.NewStorage(store, store, l)
 	handlers := handlers.NewHandlers(usecase, l)
-	delivery := delivery.NewDelivery(handlers, l)
-	router := app.NewRouter(delivery, l)
-	server := httpServer.NewServer(ctx, cfg.Port, router, l)
+	filestorage := filestorage.NewInMemoryStorage(cfg.FsPath)
+	delivery := delivery.NewDelivery(handlers, l, filestorage)
+	router := router.NewRouter(delivery, l)
+	server := server.NewServer(ctx, cfg.Port, router, l)
 	err = server.Start(ctx)
 	if err != nil {
 		log.Fatalf("can't start server: %v", err)
@@ -43,7 +46,7 @@ func main() {
 	var services []app.Service
 
 	services = append(services, server)
-	a := app.NewApp(services)
+	a := app.NewApp(l, services)
 	log.Printf("Server started")
 	a.Start()
 }

@@ -10,17 +10,38 @@
 package delivery
 
 import (
+	"OnlineShopBackend/internal/handlers"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
-// CreateCategory -
-func CreateCategory(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{})
+// CreateCategory - create a new category
+func (delivery *Delivery) CreateCategory(c *gin.Context) {
+	delivery.logger.Debug("Enter in delivery CreateCategory()")
+	ctx := c.Request.Context()
+	var deliveryCategory handlers.Category
+	if err := c.ShouldBindJSON(&deliveryCategory); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if deliveryCategory.Name == "" && deliveryCategory.Description == "" {
+		c.JSON(http.StatusBadRequest, "empty category is not correct")
+	} 
+
+	id, err := delivery.handlers.CreateCategory(ctx, deliveryCategory)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	}
+	c.JSON(http.StatusOK, gin.H{"success": id.String()})
 }
 
 // GetCategoryList - get a specific category
-func GetCategoryList(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{})
+func (delivery *Delivery) GetCategoryList(c *gin.Context) {
+	delivery.logger.Debug("Enter in delivery GetCategoryList()")
+	list, err := delivery.handlers.GetCategoryList(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	}
+	c.JSON(http.StatusOK, list)
 }
