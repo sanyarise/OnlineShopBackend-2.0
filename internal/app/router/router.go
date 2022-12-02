@@ -16,6 +16,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/thinkerou/favicon"
 	"go.uber.org/zap"
 )
 
@@ -44,6 +45,7 @@ type Router struct {
 func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 	logger.Debug("Enter in NewRouter()")
 	router := gin.Default()
+	router.Use(favicon.New("./favicon.ico"))
 	routes := Routes{
 		{
 			"Index",

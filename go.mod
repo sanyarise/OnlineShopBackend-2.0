@@ -10,6 +10,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/jackc/pgx/v4 v4.17.2
 	github.com/stretchr/testify v1.8.0
+	github.com/thinkerou/favicon v0.1.0
 	go.uber.org/zap v1.23.0
 )
 
