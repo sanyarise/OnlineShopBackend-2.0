@@ -105,3 +105,15 @@ help: ## Show this help.
 
 mock:
 	mockgen -source=internal/repository/repo_interface.go -destination=internal/usecase/mocks/repo_mock.go -package=mocks ItemStore
+
+
+run_db:
+	(docker stop postgres && docker rm postgres) || true 
+	docker run \
+	--name postgres \
+	-e POSTGRESQL_USERNAME=shopteam \
+	-e POSTGRESQL_DATABASE=shop \
+	-e POSTGRESQL_PASSWORD=123 \
+	-p 5432:5432 \
+	-v $(CURDIR)/storage/init_db:/docker-entrypoint-initdb.d \
+	 bitnami/postgresql:latest
