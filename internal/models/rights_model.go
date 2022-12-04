@@ -6,9 +6,10 @@ import "github.com/google/uuid"
 //     name VARCHAR(256),
 //     rules text[]
 
+// TODO: create type
 const (
 	Admin    = "admin"
-	Costumer = "costumer"
+	Customer = "customer"
 	Seller   = "seller"
 	Vendor   = "vendor"
 )
