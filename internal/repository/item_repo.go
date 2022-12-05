@@ -148,7 +148,7 @@ func (repo *itemRepo) SearchLine(ctx context.Context, param string, number int) 
 				repo.logger.Error(err.Error())
 				return
 			}
-			fmt.Println(item)
+			repo.logger.Info(item)
 			itemChan <- *item
 		}
 	}()
