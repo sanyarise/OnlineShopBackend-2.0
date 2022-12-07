@@ -16,6 +16,13 @@ type categoryRepo struct {
 
 var _ CategoryStore = (*categoryRepo)(nil)
 
+func NewCategoryRepo(store Storage, log *zap.SugaredLogger) CategoryStore {
+	return &categoryRepo{
+		storage: store,
+		logger:  log,
+	}
+}
+
 func (repo *categoryRepo) CreateCategory(ctx context.Context, category *models.Category) (uuid.UUID, error) {
 	repo.logger.Debug("Enter in repository CreateCategory()")
 	var id uuid.UUID

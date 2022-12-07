@@ -15,6 +15,15 @@ type order struct {
 	logger  *zap.SugaredLogger
 }
 
+var _ OrderStore = (*order)(nil)
+
+func NewOrderRepo(store Storage, log *zap.SugaredLogger) OrderStore {
+	return &order{
+		storage: store,
+		logger:  log,
+	}
+}
+
 func (o *order) Create(ctx context.Context, order *models.Order) (*models.Order, error) {
 	select {
 	case <-ctx.Done():
@@ -46,7 +55,7 @@ func (o *order) Create(ctx context.Context, order *models.Order) (*models.Order,
 		itemsString := ""
 		items := make([]interface{}, 0, len(order.Items))
 		for ind, item := range order.Items {
-			itemsString += fmt.Sprintf("($%d $$d),", 1, ind+2)
+			itemsString += fmt.Sprintf("($%d $%d),", 1, ind+2)
 			items = append(items, item.Id.String())
 		}
 		itemsString = itemsString[:len(itemsString)-1]

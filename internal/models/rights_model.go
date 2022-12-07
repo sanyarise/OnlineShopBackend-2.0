@@ -15,7 +15,7 @@ const (
 )
 
 type Rights struct {
-	UUID  uuid.UUID
+	ID    uuid.UUID
 	Name  string
 	Rules []string
 }
