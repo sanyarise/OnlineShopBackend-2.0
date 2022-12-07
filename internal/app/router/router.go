@@ -16,6 +16,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-contrib/cors"
 	"github.com/thinkerou/favicon"
 	"go.uber.org/zap"
 )
@@ -46,6 +47,10 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 	logger.Debug("Enter in NewRouter()")
 	router := gin.Default()
 	router.Use(favicon.New("./favicon.ico"))
+	router.Use(cors.New(cors.Config{
+		AllowOrigins: []string{"http://localhost:3000"},
+		AllowMethods: []string{"PUT", "GET", "POST"},
+	}))
 	routes := Routes{
 		{
 			"Index",
@@ -136,6 +141,33 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 			http.MethodPost,
 			"/user/logout",
 			delivery.LogoutUser,
+		},
+		{
+			"LoginUserGoogle",
+			http.MethodGet,
+			"/user/login/google",
+			delivery.LoginUserGoogle,
+		},
+
+		{
+			"LoginUserYandex",
+			http.MethodGet,
+			"/user/login/yandex",
+			delivery.LoginUserYandex,
+		},
+
+		{
+			"callbackGoogle",
+			http.MethodGet,
+			"/user/callbackGoogle",
+			delivery.CallbackGoogle,
+		},
+
+		{
+			"callbackYandex",
+			http.MethodPost,
+			"/user/callbackYandex",
+			delivery.CallbackYandex,
 		},
 	}
 
