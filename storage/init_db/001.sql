@@ -52,7 +52,11 @@ CREATE TABLE carts (
 CREATE TABLE cart_items (
     cart_id UUID,
     item_id UUID,
-    PRIMARY KEY(cart_id, item_id)
+    PRIMARY KEY(cart_id, item_id),
+    CONSTRAINT fk_cart_id
+        FOREIGN KEY(cart_id) REFERENCES carts(id),
+    CONSTRAINT fk_item_id
+        FOREIGN KEY(item_id) REFERENCES items(id)    
 );
 
 CREATE TABLE orders (

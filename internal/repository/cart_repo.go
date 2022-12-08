@@ -23,15 +23,16 @@ func NewCartStore(storage Storage, logger *zap.SugaredLogger) CartStore {
 	}
 }
 
+// ? Shall we add items at the moment we create cart
 func (c *cart) Create(ctx context.Context, cart *models.Cart) (*models.Cart, error) {
 	select {
 	case <-ctx.Done():
 		return nil, fmt.Errorf("context closed")
 	default:
 		pool := c.storage.GetPool()
-		row := pool.QueryRow(ctx, `INSERT INTO cart (user_id, expire_at) VALUES ($1, $2) RETURNING id`,
+		row := pool.QueryRow(ctx, `INSERT INTO carts (user_id, expire_at) VALUES ($1, $2) RETURNING id`,
 			cart.UserID, cart.ExpireAt)
-		err := row.Scan(cart.ID)
+		err := row.Scan(&cart.ID)
 		if err != nil {
 			c.logger.Error(err)
 			return nil, fmt.Errorf("can't create cart object: %w", err)
@@ -92,7 +93,7 @@ func (c *cart) DeleteItemFromCart(ctx context.Context, cart *models.Cart, item *
 		return fmt.Errorf("context closed")
 	default:
 		pool := c.storage.GetPool()
-		_, err := pool.Exec(ctx, `DELETE FROM cart_irems WHERE item_id=$1 AND cart_id=$2`, item.Id, cart.ID)
+		_, err := pool.Exec(ctx, `DELETE FROM cart_items WHERE item_id=$1 AND cart_id=$2`, item.Id, cart.ID)
 		if err != nil {
 			c.logger.Errorf("can't delete item from cart: %s", err)
 			return fmt.Errorf("can't delete item from cart: %w", err)
