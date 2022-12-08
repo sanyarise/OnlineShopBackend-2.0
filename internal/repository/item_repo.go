@@ -30,7 +30,7 @@ func (repo *itemRepo) CreateItem(ctx context.Context, item *models.Item) (uuid.U
 	row := pool.QueryRow(ctx, `INSERT INTO items(name, category, description, price, vendor)
 	values ($1, $2, $3, $4, $5) RETURNING id`,
 		item.Title,
-		item.Category,
+		item.Category.Id,
 		item.Description,
 		item.Price,
 		item.Vendor,
@@ -51,7 +51,7 @@ func (repo *itemRepo) UpdateItem(ctx context.Context, item *models.Item) error {
 	pool := repo.storage.GetPool()
 	_, err := pool.Exec(ctx, `UPDATE items SET name=$1, category=$2, description=$3, price=$4, vendor=$5 WHERE id=$6`,
 		item.Title,
-		item.Category,
+		item.Category.Id,
 		item.Description,
 		item.Price,
 		item.Vendor,
@@ -73,7 +73,7 @@ func (repo *itemRepo) GetItem(ctx context.Context, id uuid.UUID) (*models.Item, 
 	err := row.Scan(
 		&item.Id,
 		&item.Title,
-		&item.Category,
+		&item.Category.Id,
 		&item.Description,
 		&item.Price,
 		&item.Vendor,
@@ -105,7 +105,7 @@ func (repo *itemRepo) ItemsList(ctx context.Context, number int) (chan models.It
 			if err := rows.Scan(
 				&item.Id,
 				&item.Title,
-				&item.Category,
+				&item.Category.Id,
 				&item.Description,
 				&item.Price,
 				&item.Vendor,
@@ -140,7 +140,7 @@ func (repo *itemRepo) SearchLine(ctx context.Context, param string, number int) 
 			if err := rows.Scan(
 				&item.Id,
 				&item.Title,
-				&item.Category,
+				&item.Category.Id,
 				&item.Description,
 				&item.Price,
 				&item.Vendor,
