@@ -32,7 +32,10 @@ func (repo *categoryRepo) CreateCategory(ctx context.Context, category *models.C
 		category.Name,
 		category.Description,
 	)
-	row.Scan(&id)
+	if err := row.Scan(&id); err != nil {
+		repo.logger.Errorf("can't scan %s", err)
+		return uuid.Nil, fmt.Errorf("can't scan %w", err)
+	}
 
 	repo.logger.Debugf("id is %v\n", id)
 	return id, nil

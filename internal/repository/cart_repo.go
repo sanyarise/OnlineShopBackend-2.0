@@ -68,10 +68,15 @@ func (c *cart) DeleteCart(ctx context.Context, cart *models.Cart) error {
 		defer func() {
 			if err != nil {
 				c.logger.Errorf("transaction rolled back")
-				tx.Rollback(ctx)
+				if err = tx.Rollback(ctx); err != nil {
+					c.logger.Errorf("can't rollback %s", err)
+				}
+
 			} else {
 				c.logger.Info("transaction commited")
-				tx.Commit(ctx)
+				if err != tx.Commit(ctx) {
+					c.logger.Errorf("can't commit %s", err)
+				}
 			}
 		}()
 		_, err = tx.Exec(ctx, `DELETE FROM cart_items WHERE cart_id=$1`, cart.ID)

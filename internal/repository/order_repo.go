@@ -38,11 +38,16 @@ func (o *order) Create(ctx context.Context, order *models.Order) (*models.Order,
 		}
 		defer func() {
 			if err != nil {
-				o.logger.Info("rollback transaction")
-				tx.Rollback(ctx)
+				o.logger.Errorf("transaction rolled back")
+				if err = tx.Rollback(ctx); err != nil {
+					o.logger.Errorf("can't rollback %s", err)
+				}
+
 			} else {
-				o.logger.Info("commit transaction")
-				tx.Commit(ctx)
+				o.logger.Info("transaction commited")
+				if err != tx.Commit(ctx) {
+					o.logger.Errorf("can't commit %s", err)
+				}
 			}
 		}()
 		row := tx.QueryRow(ctx, `INSERT INTO orders (shipment_time, user_id, status, address) 
@@ -81,11 +86,16 @@ func (o *order) DeleteOrder(ctx context.Context, order *models.Order) error {
 		tx, err := pool.BeginTx(ctx, pgx.TxOptions{})
 		defer func() {
 			if err != nil {
-				o.logger.Info("rollback transaction")
-				tx.Rollback(ctx)
+				o.logger.Errorf("transaction rolled back")
+				if err = tx.Rollback(ctx); err != nil {
+					o.logger.Errorf("can't rollback %s", err)
+				}
+
 			} else {
-				o.logger.Info("commit transaction")
-				tx.Commit(ctx)
+				o.logger.Info("transaction commited")
+				if err != tx.Commit(ctx) {
+					o.logger.Errorf("can't commit %s", err)
+				}
 			}
 		}()
 		_, err = tx.Exec(ctx, `DELETE FROM order_items WHERE order_id=$1`, order.ID)
