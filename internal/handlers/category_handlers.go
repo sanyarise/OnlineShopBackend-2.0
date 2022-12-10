@@ -2,10 +2,24 @@ package handlers
 
 import (
 	"OnlineShopBackend/internal/models"
+	"OnlineShopBackend/internal/usecase"
 	"context"
 
 	"github.com/google/uuid"
+	"go.uber.org/zap"
 )
+
+var _ ICategoryHandlers = &CategoryHandlers{}
+
+type CategoryHandlers struct {
+	usecase usecase.ICategoryUsecase
+	logger  *zap.Logger
+}
+
+func NewCategoryHandlers(usecase usecase.ICategoryUsecase, logger *zap.Logger) *CategoryHandlers {
+	return &CategoryHandlers{usecase: usecase, logger: logger}
+}
+
 // Category is struct for DTO
 type Category struct {
 	Id          string `json:"id,omitempty"`
@@ -14,13 +28,13 @@ type Category struct {
 }
 
 // CreateCategory transform Category to models.Category and call usecase CreateCategory
-func (handlers *Handlers) CreateCategory(ctx context.Context, category Category) (uuid.UUID, error) {
+func (handlers *CategoryHandlers) CreateCategory(ctx context.Context, category Category) (uuid.UUID, error) {
 	handlers.logger.Debug("Enter in handlers CreateCategory()")
 	newCategory := &models.Category{
 		Name:        category.Name,
 		Description: category.Description,
 	}
-	id, err := handlers.repo.CreateCategory(ctx, newCategory)
+	id, err := handlers.usecase.CreateCategory(ctx, newCategory)
 	if err != nil {
 		return id, err
 	}
@@ -28,10 +42,10 @@ func (handlers *Handlers) CreateCategory(ctx context.Context, category Category)
 }
 
 // GetCategoryList returns list of all categories
-func (handlers *Handlers) GetCategoryList(ctx context.Context) ([]Category, error) {
+func (handlers *CategoryHandlers) GetCategoryList(ctx context.Context) ([]Category, error) {
 	handlers.logger.Debug("Enter in handlers GetCategoryList()")
 	res := make([]Category, 0, 100)
-	categories, err := handlers.repo.GetCategoryList(ctx)
+	categories, err := handlers.usecase.GetCategoryList(ctx)
 	if err != nil {
 		return res, err
 	}
