@@ -10,15 +10,16 @@ import (
 )
 
 type Delivery struct {
-	handlers    *handlers.Handlers
-	logger      *zap.Logger
-	filestorage filestorage.FileStorager
+	itemHandlers     handlers.IItemHandlers
+	categoryHandlers handlers.ICategoryHandlers
+	logger           *zap.Logger
+	filestorage      filestorage.FileStorager
 }
 
 // NewDelivery initialize delivery layer
-func NewDelivery(handlers *handlers.Handlers, logger *zap.Logger, fs filestorage.FileStorager) *Delivery {
+func NewDelivery(itemHandlers handlers.IItemHandlers, categoryHandlers handlers.ICategoryHandlers, logger *zap.Logger, fs filestorage.FileStorager) *Delivery {
 	logger.Debug("Enter in NewDelivery()")
-	return &Delivery{handlers: handlers, logger: logger, filestorage: fs}
+	return &Delivery{itemHandlers: itemHandlers, categoryHandlers: categoryHandlers, logger: logger, filestorage: fs}
 }
 
 // Index is the index handler.

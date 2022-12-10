@@ -44,6 +44,8 @@ type Router struct {
 func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 	logger.Debug("Enter in NewRouter()")
 	router := gin.Default()
+
+	router.Static("/files", "./storage/files")
 	routes := Routes{
 		{
 			"Index",
@@ -58,7 +60,12 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 			"/categories",
 			delivery.CreateCategory,
 		},
-
+		{
+			"GetCategoryList",
+			http.MethodGet,
+			"/items/categories",
+			delivery.GetCategoryList,
+		},
 		{
 			"CreateItem",
 			http.MethodPost,
@@ -81,40 +88,41 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 		},
 
 		{
-			"UploadFile",
+			"UploadImage",
 			http.MethodPost,
-			"/items/:itemID/upload",
-			delivery.UploadFile,
+			"/items/image/upload/:itemID",
+			delivery.UploadImage,
 		},
-
 		{
-			"GetCart",
-			http.MethodGet,
-			"/cart/:userID",
-			delivery.GetCart,
+			"DeleteImage", //?id=25f32441-587a-452d-af8c-b3876ae29d45&name=20221209194557.jpeg
+			http.MethodDelete,
+			"/items/image/delete",
+			delivery.DeleteImage,
 		},
-
 		{
-			"GetCategoryList",
+			"ItemsQuantity",
 			http.MethodGet,
-			"/items/categories",
-			delivery.GetCategoryList,
+			"/items/quantity",
+			delivery.ItemsQuantity,
 		},
-
 		{
-			"ItemsList",
+			"ItemsList", //?offset=20&limit=10
 			http.MethodGet,
-			"/items",
+			"/items/list",
 			delivery.ItemsList,
 		},
-
 		{
 			"SearchLine",
 			http.MethodGet,
 			"/search/:searchRequest",
 			delivery.SearchLine,
 		},
-
+		{
+			"GetCart",
+			http.MethodGet,
+			"/cart/:userID",
+			delivery.GetCart,
+		},
 		{
 			"CreateUser",
 			http.MethodPost,
