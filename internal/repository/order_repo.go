@@ -4,6 +4,7 @@ import (
 	"OnlineShopBackend/internal/models"
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4"
@@ -45,7 +46,8 @@ func (o *order) Create(ctx context.Context, order *models.Order) (*models.Order,
 			}
 		}()
 		row := tx.QueryRow(ctx, `INSERT INTO orders (shipment_time, user_id, status, address) 
-		VALUES ($1, $2, $3, $4) RETURNING id`, order.ShipmentTime, order.User.ID, order.Status, order.Address)
+		VALUES ($1, $2, $3, $4) RETURNING id`, order.ShipmentTime, order.User.ID, order.Status,
+			fmt.Sprintf("%s -> %s -> %s -> %s", order.User.Address.Zipcode, order.User.Address.Country, order.User.Address.City, order.User.Address.Street))
 		err = row.Scan(&order.ID)
 		if err != nil {
 			o.logger.Errorf("can't add new order: %w", err)
@@ -53,18 +55,20 @@ func (o *order) Create(ctx context.Context, order *models.Order) (*models.Order,
 		}
 		query := `INSERT INTO order_items (order_id, item_id) VALUES`
 		itemsString := ""
-		items := make([]interface{}, 0, len(order.Items))
-		for ind, item := range order.Items {
-			itemsString += fmt.Sprintf("($%d $%d),", 1, ind+2)
-			items = append(items, item.Id.String())
+		// items := make([]interface{}, 0, len(order.Items))
+		// items = append(items, order.ID)
+		for _, item := range order.Items {
+			itemsString += fmt.Sprintf("('%s', '%s'),", order.ID.String(), item.Id.String())
+			// items = append(items, item.Id.String())
 		}
 		itemsString = itemsString[:len(itemsString)-1]
-		_, err = tx.Exec(ctx, fmt.Sprintf("%s %s", query, itemsString), items...)
+		o.logger.Debug(fmt.Sprintf("%s %s;", query, itemsString))
+		_, err = tx.Exec(ctx, fmt.Sprintf("%s %s;", query, itemsString))
 		if err != nil {
 			o.logger.Errorf("can't add items to order: %s", err)
 			return nil, fmt.Errorf("can't add items to order: %w", err)
 		}
-		return &models.Order{}, nil
+		return order, nil
 	}
 }
 
@@ -84,7 +88,7 @@ func (o *order) DeleteOrder(ctx context.Context, order *models.Order) error {
 				tx.Commit(ctx)
 			}
 		}()
-		_, err = tx.Exec(ctx, `DELETE FROM order_items WHERE cart_id=$1`, order.ID)
+		_, err = tx.Exec(ctx, `DELETE FROM order_items WHERE order_id=$1`, order.ID)
 		if err != nil {
 			o.logger.Errorf("can't delete order items from order: %s", err)
 			return fmt.Errorf("can't delete order items from order: %w", err)
@@ -103,7 +107,8 @@ func (o *order) ChangeAddress(ctx context.Context, order *models.Order, address 
 		return fmt.Errorf("context closed")
 	default:
 		pool := o.storage.GetPool()
-		_, err := pool.Exec(ctx, `UPDATE orders SET address=$1 WHERE id=%2`, address, order.ID)
+		_, err := pool.Exec(ctx, `UPDATE orders SET address=$1 WHERE id=$2`,
+			fmt.Sprintf("%s %s %s %s", address.Zipcode, address.Country, address.City, address.Street), order.ID)
 		if err != nil {
 			o.logger.Errorf("can't update address: %s", err)
 			return fmt.Errorf("can't update address: %w", err)
@@ -117,7 +122,7 @@ func (o *order) ChangeStatus(ctx context.Context, order *models.Order, status mo
 		return fmt.Errorf("context closed")
 	default:
 		pool := o.storage.GetPool()
-		_, err := pool.Exec(ctx, `UPDATE orders SET status=$1 WHERE id=%2`, status, order.ID)
+		_, err := pool.Exec(ctx, `UPDATE orders SET status=$1 WHERE id=$2`, status, order.ID)
 		if err != nil {
 			o.logger.Errorf("can't update status: %s", err)
 			return fmt.Errorf("can't update status: %w", err)
@@ -144,14 +149,23 @@ func (o *order) GetOrderByID(ctx context.Context, id uuid.UUID) (models.Order, e
 			return ordr, fmt.Errorf("can't get order from db: %w", err)
 		}
 		defer rows.Close()
+		var address string
 		for rows.Next() {
 			item := models.Item{}
 			if err := rows.Scan(&item.Id, &item.Title, &item.Category.Id, &item.Category.Name, &item.Category.Description,
-				&item.Description, &item.Price, &item.Vendor, &ordr.ID, &ordr.ShipmentTime, &ordr.Status, &ordr.Address); err != nil {
+				&item.Description, &item.Price, &item.Vendor, &ordr.ID, &ordr.ShipmentTime, &ordr.Status, &address); err != nil {
 				o.logger.Errorf("can't scan data to order object: %w", err)
 				return models.Order{}, err
 			}
 			ordr.Items = append(ordr.Items, item)
+		}
+		o.logger.Debug(address)
+		splitted := strings.Split(address, " -> ")
+		ordr.Address = models.UserAddress{
+			Zipcode: splitted[0],
+			Country: splitted[1],
+			City:    splitted[2],
+			Street:  splitted[3],
 		}
 		return ordr, nil
 	}
@@ -181,19 +195,31 @@ func (o *order) GetOrdersForUser(ctx context.Context, user *models.User) (chan m
 				Items: make([]models.Item, 0),
 			}
 			for rows.Next() {
+				var address string
 				item := models.Item{}
 				order := models.Order{}
 				if err := rows.Scan(&item.Id, &item.Title, &item.Category.Id, &item.Category.Name, &item.Category.Description,
-					&item.Description, &item.Price, &item.Vendor, &order.ID, &order.ShipmentTime, &order.Status, &order.Address); err != nil {
+					&item.Description, &item.Price, &item.Vendor, &order.ID, &order.ShipmentTime, &order.Status, &address); err != nil {
 					o.logger.Errorf("can't scan data to order object: %w", err)
 					return
 				}
-				if order.ID != prevOrder.ID {
+				if prevOrder.ID == uuid.Nil {
 					prevOrder = order
-					resChan <- prevOrder
-				} else {
-					prevOrder.Items = append(prevOrder.Items, item)
 				}
+				if order.ID != prevOrder.ID {
+					resChan <- prevOrder
+					prevOrder = order
+				}
+				o.logger.Debug(address)
+				splitted := strings.Split(address, " -> ")
+				prevOrder.Address = models.UserAddress{
+					Zipcode: splitted[0],
+					Country: splitted[1],
+					City:    splitted[2],
+					Street:  splitted[3],
+				}
+				prevOrder.Items = append(prevOrder.Items, item)
+
 			}
 			resChan <- prevOrder
 		}()

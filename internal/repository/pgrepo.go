@@ -28,7 +28,7 @@ var _ Storage = (*PGres)(nil)
 // used to create configuration for connection from config
 func configurePool(conf *pgxpool.Config) (err error) {
 	// add cofiguration
-	conf.MaxConns = int32(15)
+	conf.MaxConns = int32(30)
 	conf.MinConns = int32(5)
 
 	conf.HealthCheckPeriod = 1 * time.Minute

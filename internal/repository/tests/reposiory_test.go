@@ -6,6 +6,7 @@ import (
 	"OnlineShopBackend/internal/models"
 	"OnlineShopBackend/internal/repository"
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -659,6 +660,7 @@ func TestCartDelete(t *testing.T) {
 
 func TestCartDeleteItem(t *testing.T) {
 	store, err := store.InitStorage(context.Background(), "postgresql://localhost:5432/shop?user=shopteam&password=123")
+	// defer store.GetPool().Close()
 	assert.NoError(t, err)
 	assert.NotNil(t, store)
 
@@ -757,4 +759,661 @@ func TestCartDeleteItem(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, 0, count)
 
+}
+
+func TestOrderCreate(t *testing.T) {
+	store, err := store.InitStorage(context.Background(), "postgresql://localhost:5432/shop?user=shopteam&password=123")
+	// defer store.GetPool().Close()
+	assert.NoError(t, err)
+	assert.NotNil(t, store)
+
+	cat := models.Category{
+		Name:        "1",
+		Description: "1des",
+	}
+	row := store.GetPool().QueryRow(context.Background(), `INSERT INTO categories (name, description) VALUES
+	('1', '1des') RETURNING id`)
+	err = row.Scan(&cat.Id)
+	defer store.GetPool().Exec(context.Background(), `DELETE FROM categories`)
+	assert.NoError(t, err)
+
+	item1 := models.Item{
+		Title:       "testItem",
+		Description: "desc",
+		Price:       300,
+		Category:    cat,
+	}
+	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO items(name, category, description, price, vendor)
+	values ($1, $2, $3, $4, $5) RETURNING id`,
+		item1.Title,
+		item1.Category.Id,
+		item1.Description,
+		item1.Price,
+		item1.Vendor,
+	)
+	row.Scan(&item1.Id)
+	defer store.GetPool().Exec(context.Background(), `DELETE FROM items`)
+
+	item2 := models.Item{
+		Title:       "Item",
+		Description: "desc",
+		Price:       400,
+		Category:    cat,
+	}
+	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO items(name, category, description, price, vendor)
+	values ($1, $2, $3, $4, $5) RETURNING id`,
+		item2.Title,
+		item2.Category.Id,
+		item2.Description,
+		item2.Price,
+		item2.Vendor,
+	)
+	row.Scan(&item2.Id)
+
+	user := models.User{
+		Firstname: "Firstname",
+		Lastname:  "Lastname",
+		Password:  "123",
+		Email:     "123@mail.ru",
+		Address: models.UserAddress{
+			Zipcode: "123455",
+			Country: "Russia",
+			City:    "Moscow",
+			Street:  "Polyanka, 10",
+		},
+		Rights: models.Rights{
+			Name:  models.Admin,
+			Rules: []string{"Do everything"},
+		},
+	}
+	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO rights (name, rules) VALUES ('admin', $1) RETURNING id`, []string{})
+	err = row.Scan(&user.Rights.ID)
+	defer store.GetPool().Exec(context.TODO(), `DELETE FROM rights`)
+	assert.NoError(t, err)
+
+	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO users 
+	(name, lastname, password, email, rights, zipcode, country, city, street) VALUES
+	($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
+		user.Firstname, user.Lastname, user.Password, user.Email, user.Rights.ID,
+		user.Address.Zipcode, user.Address.Country, user.Address.City, user.Address.Street)
+
+	err = row.Scan(&user.ID)
+	defer store.GetPool().Exec(context.Background(), `DELETE FROM users`)
+	assert.NoError(t, err)
+
+	ordr := repository.NewOrderRepo(store, logger)
+	order := models.Order{
+		ShipmentTime: time.Now().Add(2 * time.Hour),
+		User:         user,
+		Address:      user.Address,
+		Status:       models.Processed,
+		Items:        []models.Item{item1, item2},
+	}
+	res, err := ordr.Create(context.Background(), &order)
+	defer store.GetPool().Exec(context.Background(), `DELETE FROM orders`)
+	defer store.GetPool().Exec(context.Background(), `DELETE FROM order_items`)
+	require.NoError(t, err)
+	require.NotEqual(t, uuid.Nil, res.ID)
+}
+
+func TestOrderDelete(t *testing.T) {
+	store, err := store.InitStorage(context.Background(), "postgresql://localhost:5432/shop?user=shopteam&password=123")
+	// defer store.GetPool().Close()
+	assert.NoError(t, err)
+	assert.NotNil(t, store)
+
+	cat := models.Category{
+		Name:        "1",
+		Description: "1des",
+	}
+	row := store.GetPool().QueryRow(context.Background(), `INSERT INTO categories (name, description) VALUES
+	('1', '1des') RETURNING id`)
+	err = row.Scan(&cat.Id)
+	defer store.GetPool().Exec(context.Background(), `DELETE FROM categories`)
+	assert.NoError(t, err)
+
+	item1 := models.Item{
+		Title:       "testItem",
+		Description: "desc",
+		Price:       300,
+		Category:    cat,
+	}
+	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO items(name, category, description, price, vendor)
+	values ($1, $2, $3, $4, $5) RETURNING id`,
+		item1.Title,
+		item1.Category.Id,
+		item1.Description,
+		item1.Price,
+		item1.Vendor,
+	)
+	row.Scan(&item1.Id)
+	defer store.GetPool().Exec(context.Background(), `DELETE FROM items`)
+
+	item2 := models.Item{
+		Title:       "Item",
+		Description: "desc",
+		Price:       400,
+		Category:    cat,
+	}
+	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO items(name, category, description, price, vendor)
+	values ($1, $2, $3, $4, $5) RETURNING id`,
+		item2.Title,
+		item2.Category.Id,
+		item2.Description,
+		item2.Price,
+		item2.Vendor,
+	)
+	row.Scan(&item2.Id)
+
+	user := models.User{
+		Firstname: "Firstname",
+		Lastname:  "Lastname",
+		Password:  "123",
+		Email:     "123@mail.ru",
+		Address: models.UserAddress{
+			Zipcode: "123455",
+			Country: "Russia",
+			City:    "Moscow",
+			Street:  "Polyanka, 10",
+		},
+		Rights: models.Rights{
+			Name:  models.Admin,
+			Rules: []string{"Do everything"},
+		},
+	}
+	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO rights (name, rules) VALUES ('admin', $1) RETURNING id`, []string{})
+	err = row.Scan(&user.Rights.ID)
+	defer store.GetPool().Exec(context.TODO(), `DELETE FROM rights`)
+	assert.NoError(t, err)
+
+	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO users 
+	(name, lastname, password, email, rights, zipcode, country, city, street) VALUES
+	($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
+		user.Firstname, user.Lastname, user.Password, user.Email, user.Rights.ID,
+		user.Address.Zipcode, user.Address.Country, user.Address.City, user.Address.Street)
+
+	err = row.Scan(&user.ID)
+	defer store.GetPool().Exec(context.Background(), `DELETE FROM users`)
+	assert.NoError(t, err)
+
+	order := models.Order{
+		ShipmentTime: time.Now().Add(2 * time.Hour),
+		User:         user,
+		Address:      user.Address,
+		Status:       models.Processed,
+		Items:        []models.Item{item1, item2},
+	}
+
+	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO orders (shipment_time, user_id, status, address) 
+	VALUES ($1, $2, $3, $4) RETURNING id`, order.ShipmentTime, order.User.ID, order.Status,
+		fmt.Sprintf("%s %s %s %s", order.User.Address.Zipcode, order.User.Address.Country, order.User.Address.City, order.User.Address.Street))
+	row.Scan(&order.ID)
+
+	row = store.GetPool().QueryRow(context.Background(),
+		`INSERT INTO order_items (order_id, item_id) VALUES ($1, $2), ($1, $3)`, order.ID, order.Items[0].Id, order.ID, order.Items[1].Id)
+
+	rdrRp := repository.NewOrderRepo(store, logger)
+	err = rdrRp.DeleteOrder(context.Background(), &order)
+	require.NoError(t, err)
+
+	row = store.GetPool().QueryRow(context.Background(), `SELECT COUNT(id) FROM orders`)
+	var count int
+	row.Scan(&count)
+	require.Equal(t, 0, count)
+}
+
+func TestOrderChangeAddres(t *testing.T) {
+	store, err := store.InitStorage(context.Background(), "postgresql://localhost:5432/shop?user=shopteam&password=123")
+	assert.NoError(t, err)
+	assert.NotNil(t, store)
+
+	cat := models.Category{
+		Name:        "1",
+		Description: "1des",
+	}
+	row := store.GetPool().QueryRow(context.Background(), `INSERT INTO categories (name, description) VALUES
+	('1', '1des') RETURNING id`)
+	err = row.Scan(&cat.Id)
+	defer store.GetPool().Exec(context.Background(), `DELETE FROM categories`)
+	assert.NoError(t, err)
+
+	item1 := models.Item{
+		Title:       "testItem",
+		Description: "desc",
+		Price:       300,
+		Category:    cat,
+	}
+	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO items(name, category, description, price, vendor)
+	values ($1, $2, $3, $4, $5) RETURNING id`,
+		item1.Title,
+		item1.Category.Id,
+		item1.Description,
+		item1.Price,
+		item1.Vendor,
+	)
+	row.Scan(&item1.Id)
+	defer store.GetPool().Exec(context.Background(), `DELETE FROM items`)
+
+	item2 := models.Item{
+		Title:       "Item",
+		Description: "desc",
+		Price:       400,
+		Category:    cat,
+	}
+	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO items(name, category, description, price, vendor)
+	values ($1, $2, $3, $4, $5) RETURNING id`,
+		item2.Title,
+		item2.Category.Id,
+		item2.Description,
+		item2.Price,
+		item2.Vendor,
+	)
+	row.Scan(&item2.Id)
+
+	user := models.User{
+		Firstname: "Firstname",
+		Lastname:  "Lastname",
+		Password:  "123",
+		Email:     "123@mail.ru",
+		Address: models.UserAddress{
+			Zipcode: "123455",
+			Country: "Russia",
+			City:    "Moscow",
+			Street:  "Polyanka, 10",
+		},
+		Rights: models.Rights{
+			Name:  models.Admin,
+			Rules: []string{"Do everything"},
+		},
+	}
+	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO rights (name, rules) VALUES ('admin', $1) RETURNING id`, []string{})
+	err = row.Scan(&user.Rights.ID)
+	defer store.GetPool().Exec(context.TODO(), `DELETE FROM rights`)
+	assert.NoError(t, err)
+
+	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO users 
+	(name, lastname, password, email, rights, zipcode, country, city, street) VALUES
+	($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
+		user.Firstname, user.Lastname, user.Password, user.Email, user.Rights.ID,
+		user.Address.Zipcode, user.Address.Country, user.Address.City, user.Address.Street)
+
+	err = row.Scan(&user.ID)
+	defer store.GetPool().Exec(context.Background(), `DELETE FROM users`)
+	assert.NoError(t, err)
+
+	order := models.Order{
+		ShipmentTime: time.Now().Add(2 * time.Hour),
+		User:         user,
+		Address:      user.Address,
+		Status:       models.Processed,
+		Items:        []models.Item{item1, item2},
+	}
+
+	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO orders (shipment_time, user_id, status, address) 
+	VALUES ($1, $2, $3, $4) RETURNING id`, order.ShipmentTime, order.User.ID, order.Status,
+		fmt.Sprintf("%s %s %s %s", order.User.Address.Zipcode, order.User.Address.Country, order.User.Address.City, order.User.Address.Street))
+	row.Scan(&order.ID)
+
+	row = store.GetPool().QueryRow(context.Background(),
+		`INSERT INTO order_items (order_id, item_id) VALUES ($1, $2), ($1, $3)`, order.ID, order.Items[0].Id, order.ID, order.Items[1].Id)
+
+	rdrRp := repository.NewOrderRepo(store, logger)
+	err = rdrRp.ChangeAddress(context.Background(), &order, models.UserAddress{
+		Zipcode: "123456",
+		Country: "Kyrgizstan",
+		Street:  "Baitik Batyr, 10",
+		City:    "Bishkek",
+	})
+	defer store.GetPool().Exec(context.Background(), `DELETE FROM orders`)
+	defer store.GetPool().Exec(context.Background(), `DELETE FROM order_items`)
+	require.NoError(t, err)
+	row = store.GetPool().QueryRow(context.Background(), `SELECT address FROM orders`)
+	var addr string
+	row.Scan(&addr)
+	assert.Contains(t, addr, "Bishkek")
+
+}
+
+func TestOrderChangeStatus(t *testing.T) {
+	store, err := store.InitStorage(context.Background(), "postgresql://localhost:5432/shop?user=shopteam&password=123")
+	// defer store.GetPool().Close()
+	assert.NoError(t, err)
+	assert.NotNil(t, store)
+
+	cat := models.Category{
+		Name:        "1",
+		Description: "1des",
+	}
+	row := store.GetPool().QueryRow(context.Background(), `INSERT INTO categories (name, description) VALUES
+	('1', '1des') RETURNING id`)
+	err = row.Scan(&cat.Id)
+	defer store.GetPool().Exec(context.Background(), `DELETE FROM categories`)
+	assert.NoError(t, err)
+
+	item1 := models.Item{
+		Title:       "testItem",
+		Description: "desc",
+		Price:       300,
+		Category:    cat,
+	}
+	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO items(name, category, description, price, vendor)
+	values ($1, $2, $3, $4, $5) RETURNING id`,
+		item1.Title,
+		item1.Category.Id,
+		item1.Description,
+		item1.Price,
+		item1.Vendor,
+	)
+	row.Scan(&item1.Id)
+	defer store.GetPool().Exec(context.Background(), `DELETE FROM items`)
+
+	item2 := models.Item{
+		Title:       "Item",
+		Description: "desc",
+		Price:       400,
+		Category:    cat,
+	}
+	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO items(name, category, description, price, vendor)
+	values ($1, $2, $3, $4, $5) RETURNING id`,
+		item2.Title,
+		item2.Category.Id,
+		item2.Description,
+		item2.Price,
+		item2.Vendor,
+	)
+	row.Scan(&item2.Id)
+
+	user := models.User{
+		Firstname: "Firstname",
+		Lastname:  "Lastname",
+		Password:  "123",
+		Email:     "123@mail.ru",
+		Address: models.UserAddress{
+			Zipcode: "123455",
+			Country: "Russia",
+			City:    "Moscow",
+			Street:  "Polyanka, 10",
+		},
+		Rights: models.Rights{
+			Name:  models.Admin,
+			Rules: []string{"Do everything"},
+		},
+	}
+	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO rights (name, rules) VALUES ('admin', $1) RETURNING id`, []string{})
+	err = row.Scan(&user.Rights.ID)
+	defer store.GetPool().Exec(context.TODO(), `DELETE FROM rights`)
+	assert.NoError(t, err)
+
+	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO users 
+	(name, lastname, password, email, rights, zipcode, country, city, street) VALUES
+	($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
+		user.Firstname, user.Lastname, user.Password, user.Email, user.Rights.ID,
+		user.Address.Zipcode, user.Address.Country, user.Address.City, user.Address.Street)
+
+	err = row.Scan(&user.ID)
+	defer store.GetPool().Exec(context.Background(), `DELETE FROM users`)
+	assert.NoError(t, err)
+
+	order := models.Order{
+		ShipmentTime: time.Now().Add(2 * time.Hour),
+		User:         user,
+		Address:      user.Address,
+		Status:       models.Processed,
+		Items:        []models.Item{item1, item2},
+	}
+
+	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO orders (shipment_time, user_id, status, address) 
+	VALUES ($1, $2, $3, $4) RETURNING id`, order.ShipmentTime, order.User.ID, order.Status,
+		fmt.Sprintf("%s %s %s %s", order.User.Address.Zipcode, order.User.Address.Country, order.User.Address.City, order.User.Address.Street))
+	row.Scan(&order.ID)
+
+	row = store.GetPool().QueryRow(context.Background(),
+		`INSERT INTO order_items (order_id, item_id) VALUES ($1, $2), ($1, $3)`, order.ID, order.Items[0].Id, order.ID, order.Items[1].Id)
+
+	rdrRp := repository.NewOrderRepo(store, logger)
+	err = rdrRp.ChangeStatus(context.Background(), &order, models.Courier)
+	defer store.GetPool().Exec(context.Background(), `DELETE FROM orders`)
+	defer store.GetPool().Exec(context.Background(), `DELETE FROM order_items`)
+	require.NoError(t, err)
+	row = store.GetPool().QueryRow(context.Background(), `SELECT status FROM orders`)
+	var status models.Status
+	row.Scan(&status)
+	assert.Equal(t, models.Courier, status)
+
+}
+
+func TestOrdersGetOrderByID(t *testing.T) {
+	store, err := store.InitStorage(context.Background(), "postgresql://localhost:5432/shop?user=shopteam&password=123")
+	// defer store.GetPool().Close()
+	assert.NoError(t, err)
+	assert.NotNil(t, store)
+
+	cat := models.Category{
+		Name:        "1",
+		Description: "1des",
+	}
+	row := store.GetPool().QueryRow(context.Background(), `INSERT INTO categories (name, description) VALUES
+	('1', '1des') RETURNING id`)
+	err = row.Scan(&cat.Id)
+	defer store.GetPool().Exec(context.Background(), `DELETE FROM categories`)
+	assert.NoError(t, err)
+
+	item1 := models.Item{
+		Title:       "testItem",
+		Description: "desc",
+		Price:       300,
+		Category:    cat,
+	}
+	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO items(name, category, description, price, vendor)
+	values ($1, $2, $3, $4, $5) RETURNING id`,
+		item1.Title,
+		item1.Category.Id,
+		item1.Description,
+		item1.Price,
+		item1.Vendor,
+	)
+	row.Scan(&item1.Id)
+	defer store.GetPool().Exec(context.Background(), `DELETE FROM items`)
+
+	item2 := models.Item{
+		Title:       "Item",
+		Description: "desc",
+		Price:       400,
+		Category:    cat,
+	}
+	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO items(name, category, description, price, vendor)
+	values ($1, $2, $3, $4, $5) RETURNING id`,
+		item2.Title,
+		item2.Category.Id,
+		item2.Description,
+		item2.Price,
+		item2.Vendor,
+	)
+	row.Scan(&item2.Id)
+
+	user := models.User{
+		Firstname: "Firstname",
+		Lastname:  "Lastname",
+		Password:  "123",
+		Email:     "123@mail.ru",
+		Address: models.UserAddress{
+			Zipcode: "123455",
+			Country: "Russia",
+			City:    "Moscow",
+			Street:  "Polyanka, 10",
+		},
+		Rights: models.Rights{
+			Name:  models.Admin,
+			Rules: []string{"Do everything"},
+		},
+	}
+	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO rights (name, rules) VALUES ('admin', $1) RETURNING id`, []string{})
+	err = row.Scan(&user.Rights.ID)
+	defer store.GetPool().Exec(context.TODO(), `DELETE FROM rights`)
+	assert.NoError(t, err)
+
+	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO users 
+	(name, lastname, password, email, rights, zipcode, country, city, street) VALUES
+	($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
+		user.Firstname, user.Lastname, user.Password, user.Email, user.Rights.ID,
+		user.Address.Zipcode, user.Address.Country, user.Address.City, user.Address.Street)
+
+	err = row.Scan(&user.ID)
+	defer store.GetPool().Exec(context.Background(), `DELETE FROM users`)
+	assert.NoError(t, err)
+
+	order := models.Order{
+		ShipmentTime: time.Now().Add(2 * time.Hour),
+		User:         user,
+		Address:      user.Address,
+		Status:       models.Processed,
+		Items:        []models.Item{item1, item2},
+	}
+
+	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO orders (shipment_time, user_id, status, address) 
+	VALUES ($1, $2, $3, $4) RETURNING id`, order.ShipmentTime, order.User.ID, order.Status,
+		fmt.Sprintf("%s -> %s -> %s -> %s", order.User.Address.Zipcode, order.User.Address.Country, order.User.Address.City, order.User.Address.Street))
+	row.Scan(&order.ID)
+
+	_, err = store.GetPool().Exec(context.Background(),
+		`INSERT INTO order_items (order_id, item_id) VALUES ($1, $2), ($1, $3)`, order.ID, order.Items[0].Id, order.Items[1].Id)
+	require.NoError(t, err)
+	rdrRp := repository.NewOrderRepo(store, logger)
+	res, err := rdrRp.GetOrderByID(context.Background(), order.ID)
+	defer store.GetPool().Exec(context.Background(), `DELETE FROM orders`)
+	defer store.GetPool().Exec(context.Background(), `DELETE FROM order_items`)
+	require.NoError(t, err)
+	require.Equal(t, order.Items[0].Title, res.Items[0].Title)
+	require.Equal(t, order.ID, res.ID)
+	require.Equal(t, order.Address, res.Address)
+}
+
+func TestOrdersGetOrders(t *testing.T) {
+	store, err := store.InitStorage(context.Background(), "postgresql://localhost:5432/shop?user=shopteam&password=123")
+	// defer store.GetPool().Close()
+	assert.NoError(t, err)
+	assert.NotNil(t, store)
+
+	cat := models.Category{
+		Name:        "1",
+		Description: "1des",
+	}
+	row := store.GetPool().QueryRow(context.Background(), `INSERT INTO categories (name, description) VALUES
+	('1', '1des') RETURNING id`)
+	err = row.Scan(&cat.Id)
+	defer store.GetPool().Exec(context.Background(), `DELETE FROM categories`)
+	assert.NoError(t, err)
+
+	item1 := models.Item{
+		Title:       "testItem",
+		Description: "desc",
+		Price:       300,
+		Category:    cat,
+	}
+	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO items(name, category, description, price, vendor)
+	values ($1, $2, $3, $4, $5) RETURNING id`,
+		item1.Title,
+		item1.Category.Id,
+		item1.Description,
+		item1.Price,
+		item1.Vendor,
+	)
+	row.Scan(&item1.Id)
+	defer store.GetPool().Exec(context.Background(), `DELETE FROM items`)
+
+	item2 := models.Item{
+		Title:       "Item",
+		Description: "desc",
+		Price:       400,
+		Category:    cat,
+	}
+	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO items(name, category, description, price, vendor)
+	values ($1, $2, $3, $4, $5) RETURNING id`,
+		item2.Title,
+		item2.Category.Id,
+		item2.Description,
+		item2.Price,
+		item2.Vendor,
+	)
+	row.Scan(&item2.Id)
+
+	user := models.User{
+		Firstname: "Firstname",
+		Lastname:  "Lastname",
+		Password:  "123",
+		Email:     "123@mail.ru",
+		Address: models.UserAddress{
+			Zipcode: "123455",
+			Country: "Russia",
+			City:    "Moscow",
+			Street:  "Polyanka, 10",
+		},
+		Rights: models.Rights{
+			Name:  models.Admin,
+			Rules: []string{"Do everything"},
+		},
+	}
+	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO rights (name, rules) VALUES ('admin', $1) RETURNING id`, []string{})
+	err = row.Scan(&user.Rights.ID)
+	defer store.GetPool().Exec(context.TODO(), `DELETE FROM rights`)
+	assert.NoError(t, err)
+
+	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO users 
+	(name, lastname, password, email, rights, zipcode, country, city, street) VALUES
+	($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
+		user.Firstname, user.Lastname, user.Password, user.Email, user.Rights.ID,
+		user.Address.Zipcode, user.Address.Country, user.Address.City, user.Address.Street)
+
+	err = row.Scan(&user.ID)
+	defer store.GetPool().Exec(context.Background(), `DELETE FROM users`)
+	assert.NoError(t, err)
+
+	order := models.Order{
+		ShipmentTime: time.Now().Add(2 * time.Hour),
+		User:         user,
+		Address:      user.Address,
+		Status:       models.Processed,
+		Items:        []models.Item{item1, item2},
+	}
+
+	order2 := models.Order{
+		ShipmentTime: time.Now().Add(2 * time.Hour),
+		User:         user,
+		Address:      user.Address,
+		Status:       models.Courier,
+		Items:        []models.Item{item1},
+	}
+
+	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO orders (shipment_time, user_id, status, address) 
+	VALUES ($1, $2, $3, $4) RETURNING id`, order.ShipmentTime, order.User.ID, order.Status,
+		fmt.Sprintf("%s -> %s -> %s -> %s", order.User.Address.Zipcode, order.User.Address.Country, order.User.Address.City, order.User.Address.Street))
+	row.Scan(&order.ID)
+
+	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO orders (shipment_time, user_id, status, address) 
+	VALUES ($1, $2, $3, $4) RETURNING id`, order2.ShipmentTime, order2.User.ID, order2.Status,
+		fmt.Sprintf("%s -> %s -> %s -> %s", order2.User.Address.Zipcode, order2.User.Address.Country, order2.User.Address.City, order2.User.Address.Street))
+	row.Scan(&order2.ID)
+
+	_, err = store.GetPool().Exec(context.Background(),
+		`INSERT INTO order_items (order_id, item_id) VALUES ($1, $2), ($1, $3)`, order.ID, order.Items[0].Id, order.Items[1].Id)
+	require.NoError(t, err)
+	_, err = store.GetPool().Exec(context.Background(),
+		`INSERT INTO order_items (order_id, item_id) VALUES ($1, $2)`, order2.ID, order2.Items[0].Id)
+	require.NoError(t, err)
+	rdrRp := repository.NewOrderRepo(store, logger)
+	ch, err := rdrRp.GetOrdersForUser(context.Background(), &user)
+	defer store.GetPool().Exec(context.Background(), `DELETE FROM orders`)
+	defer store.GetPool().Exec(context.Background(), `DELETE FROM order_items`)
+	require.NoError(t, err)
+	res := make([]models.Order, 0, 2)
+	for o := range ch {
+		res = append(res, o)
+	}
+	require.Equal(t, order.Items[0].Title, res[0].Items[0].Title)
+	require.Equal(t, order.ID, res[0].ID)
+	require.Equal(t, order.Address, res[0].Address)
+
+	require.Equal(t, order2.Items[0].Title, res[1].Items[0].Title)
+	require.Equal(t, order2.ID, res[1].ID)
+	require.Equal(t, order2.Address, res[1].Address)
 }
