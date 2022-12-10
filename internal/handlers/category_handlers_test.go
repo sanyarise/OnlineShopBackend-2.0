@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"OnlineShopBackend/internal/models"
-	"OnlineShopBackend/internal/usecase"
 	"OnlineShopBackend/internal/usecase/mocks"
 	"context"
 	"fmt"
@@ -19,10 +18,8 @@ func TestCreateCategory(t *testing.T) {
 	defer ctrl.Finish()
 	ctx := context.Background()
 	logger := zap.L()
-	categoryRepo := mocks.NewMockCategoryStore(ctrl)
-	itemRepo := mocks.NewMockItemStore(ctrl)
-	usecase := usecase.NewStorage(itemRepo, categoryRepo, logger)
-	handlers := NewHandlers(usecase, logger)
+	usecase := mocks.NewMockICategoryUsecase(ctrl)
+	handlers := NewCategoryHandlers(usecase, logger)
 	testCategory := Category{
 		Name:        "TestName",
 		Description: "TestDescription",
@@ -32,28 +29,26 @@ func TestCreateCategory(t *testing.T) {
 		Description: testCategory.Description,
 	}
 	expect, _ := uuid.Parse("feb77bbc-1b8a-4739-bd68-d3b052af9a80")
-	categoryRepo.EXPECT().CreateCategory(ctx, testModelCategory).Return(expect, nil)
+	usecase.EXPECT().CreateCategory(ctx, testModelCategory).Return(expect, nil)
 	res, err := handlers.CreateCategory(ctx, testCategory)
 	require.NoError(t, err)
 	require.NotNil(t, res)
 	require.Equal(t, res, expect)
 	err = fmt.Errorf("error on create category")
-	categoryRepo.EXPECT().CreateCategory(ctx, testModelCategory).Return(uuid.Nil, err)
+	usecase.EXPECT().CreateCategory(ctx, testModelCategory).Return(uuid.Nil, err)
 	res, err = handlers.CreateCategory(ctx, testCategory)
 	require.Error(t, err)
 	require.Equal(t, res, uuid.Nil)
 }
 
 func TestGetCategoryList(t *testing.T) {
-	t.Parallel()
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	ctx := context.Background()
 	logger := zap.L()
-	categoryRepo := mocks.NewMockCategoryStore(ctrl)
-	itemRepo := mocks.NewMockItemStore(ctrl)
-	usecase := usecase.NewStorage(itemRepo, categoryRepo, logger)
-	handlers := NewHandlers(usecase, logger)
+	usecase := mocks.NewMockICategoryUsecase(ctrl)
+	handlers := NewCategoryHandlers(usecase, logger)
+
 	id, _ := uuid.Parse("feb77bbc-1b8a-4739-bd68-d3b052af9a80")
 	testModelCategory := models.Category{
 		Id:          id,
@@ -71,13 +66,13 @@ func TestGetCategoryList(t *testing.T) {
 		Name:        testModelCategory.Name,
 		Description: testModelCategory.Description,
 	})
-	categoryRepo.EXPECT().GetCategoryList(ctx).Return(testChan, nil)
+	usecase.EXPECT().GetCategoryList(ctx).Return(testChan, nil)
 	res, err := handlers.GetCategoryList(ctx)
 	require.NoError(t, err)
 	require.NotNil(t, res)
 	require.Equal(t, res, expect)
 
-	categoryRepo.EXPECT().GetCategoryList(ctx).Return(testChan2, fmt.Errorf("error on categories list query context"))
+	usecase.EXPECT().GetCategoryList(ctx).Return(testChan2, fmt.Errorf("error on categories list query context"))
 	res, err = handlers.GetCategoryList(ctx)
 	expect2 := make([]Category, 0, 100)
 	require.Error(t, err)

@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"OnlineShopBackend/internal/models"
-	"OnlineShopBackend/internal/usecase"
 	"OnlineShopBackend/internal/usecase/mocks"
 	"context"
 	"fmt"
@@ -14,39 +13,91 @@ import (
 	"go.uber.org/zap"
 )
 
+var (
+	testModelCategory = models.Category{
+		Id:          uuid.New(),
+		Name:        "TestName",
+		Description: "TestDescription",
+	}
+	testHandlersCategory = Category{
+		Id:          testModelCategory.Id.String(),
+		Name:        "TestName",
+		Description: "TestDescription",
+	}
+	testHandlersCategoryWithInvalidId = Category{
+		Id:          "InvalidId",
+		Name:        "TestName",
+		Description: "TestDescription",
+	}
+	testHandlersItem = Item{
+		Title:       "TestTitle",
+		Description: "TestDescription",
+		Category:    testHandlersCategory,
+		Price:       1,
+		Vendor:      "TestVendor",
+	}
+	testHandlersItemWithInvalidCategoryId = Item{
+		Title:       "TestTitle",
+		Description: "TestDescription",
+		Category:    testHandlersCategoryWithInvalidId,
+		Price:       1,
+		Vendor:      "TestVendor",
+	}
+	testHandlersItemWithIdWithInvalidCategoryId = Item{
+		Id:       testNewId.String(),
+		Category: testHandlersCategoryWithInvalidId,
+	}
+	testHandlersItemWithInvalidID = Item{
+		Id: "invalid id",
+	}
+	testModelItem = &models.Item{
+		Title:       "TestTitle",
+		Description: "TestDescription",
+		Category:    testModelCategory,
+		Price:       1,
+		Vendor:      "TestVendor",
+	}
+	testNewId              = uuid.New()
+	testHandlersItemWithId = Item{
+		Id:          testNewId.String(),
+		Title:       "TestTitle",
+		Description: "TestDescription",
+		Category:    testHandlersCategory,
+		Price:       1,
+		Vendor:      "TestVendor",
+	}
+	testModelItemWithId = &models.Item{
+		Id:          testNewId,
+		Title:       "TestTitle",
+		Description: "TestDescription",
+		Category:    testModelCategory,
+		Price:       1,
+		Vendor:      "TestVendor",
+	}
+	testParam = "est"
+)
+
 func TestCreateItem(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	ctx := context.Background()
 	logger := zap.L()
-	categoryRepo := mocks.NewMockCategoryStore(ctrl)
-	itemRepo := mocks.NewMockItemStore(ctrl)
-	usecase := usecase.NewStorage(itemRepo, categoryRepo, logger)
-	handlers := NewHandlers(usecase, logger)
-	testItem := Item{
-		Title:       "TestTitle",
-		Description: "TestDescription",
-		Category:    "b02c1542-dba1-46d2-ac71-e770c13d0d50",
-		Price:       1,
-		Vendor:      "TestVendor",
-	}
-	testCategoryId, _ := uuid.Parse(testItem.Category)
-	testModelItem := &models.Item{
-		Title:       testItem.Title,
-		Description: testItem.Description,
-		Category:    testCategoryId,
-		Price:       testItem.Price,
-		Vendor:      testItem.Vendor,
-	}
-	expect, _ := uuid.Parse("feb77bbc-1b8a-4739-bd68-d3b052af9a80")
-	itemRepo.EXPECT().CreateItem(ctx, testModelItem).Return(expect, nil)
-	res, err := handlers.CreateItem(ctx, testItem)
+	usecase := mocks.NewMockIItemUsecase(ctrl)
+	handlers := NewItemHandlers(usecase, logger)
+
+	res, err := handlers.CreateItem(ctx, testHandlersItemWithInvalidCategoryId)
+	require.Error(t, err)
+	require.Equal(t, res, uuid.Nil)
+
+	usecase.EXPECT().CreateItem(ctx, testModelItem).Return(testNewId, nil)
+	res, err = handlers.CreateItem(ctx, testHandlersItem)
 	require.NoError(t, err)
 	require.NotNil(t, res)
-	require.Equal(t, res, expect)
+	require.Equal(t, res, testNewId)
+
 	err = fmt.Errorf("error on create item")
-	itemRepo.EXPECT().CreateItem(ctx, testModelItem).Return(uuid.Nil, err)
-	res, err = handlers.CreateItem(ctx, testItem)
+	usecase.EXPECT().CreateItem(ctx, testModelItem).Return(uuid.Nil, err)
+	res, err = handlers.CreateItem(ctx, testHandlersItem)
 	require.Error(t, err)
 	require.Equal(t, res, uuid.Nil)
 }
@@ -56,35 +107,22 @@ func TestUpdateItem(t *testing.T) {
 	defer ctrl.Finish()
 	ctx := context.Background()
 	logger := zap.L()
-	categoryRepo := mocks.NewMockCategoryStore(ctrl)
-	itemRepo := mocks.NewMockItemStore(ctrl)
-	usecase := usecase.NewStorage(itemRepo, categoryRepo, logger)
-	handlers := NewHandlers(usecase, logger)
-	testItem := Item{
-		Id:          "feb77bbc-1b8a-4739-bd68-d3b052af9a80",
-		Title:       "TestTitle",
-		Description: "TestDescription",
-		Category:    "b02c1542-dba1-46d2-ac71-e770c13d0d50",
-		Price:       1,
-		Vendor:      "TestVendor",
-	}
-	itemId, _ := uuid.Parse(testItem.Id)
-	testCategoryId, _ := uuid.Parse(testItem.Category)
-	testModelItem := &models.Item{
-		Id:          itemId,
-		Title:       testItem.Title,
-		Description: testItem.Description,
-		Category:    testCategoryId,
-		Price:       testItem.Price,
-		Vendor:      testItem.Vendor,
-	}
-	itemRepo.EXPECT().UpdateItem(ctx, testModelItem).Return(nil)
-	err := handlers.UpdateItem(ctx, testItem)
+	usecase := mocks.NewMockIItemUsecase(ctrl)
+	handlers := NewItemHandlers(usecase, logger)
+
+	err := handlers.UpdateItem(ctx, testHandlersItemWithInvalidID)
+	require.Error(t, err)
+
+	err = handlers.UpdateItem(ctx, testHandlersItemWithIdWithInvalidCategoryId)
+	require.Error(t, err)
+
+	usecase.EXPECT().UpdateItem(ctx, testModelItemWithId).Return(nil)
+	err = handlers.UpdateItem(ctx, testHandlersItemWithId)
 	require.NoError(t, err)
 
 	err = fmt.Errorf("error on update item")
-	itemRepo.EXPECT().UpdateItem(ctx, testModelItem).Return(err)
-	err = handlers.UpdateItem(ctx, testItem)
+	usecase.EXPECT().UpdateItem(ctx, testModelItemWithId).Return(err)
+	err = handlers.UpdateItem(ctx, testHandlersItemWithId)
 	require.Error(t, err)
 }
 
@@ -93,41 +131,22 @@ func TestGetItem(t *testing.T) {
 	defer ctrl.Finish()
 	ctx := context.Background()
 	logger := zap.L()
-	categoryRepo := mocks.NewMockCategoryStore(ctrl)
-	itemRepo := mocks.NewMockItemStore(ctrl)
-	usecase := usecase.NewStorage(itemRepo, categoryRepo, logger)
-	handlers := NewHandlers(usecase, logger)
-	id := "feb77bbc-1b8a-4739-bd68-d3b052af9a80"
-	uid, _ := uuid.Parse(id)
-	testModelItem := &models.Item{
-		Id:          uid,
-		Title:       "TestTitle",
-		Description: "TestDescription",
-		Category:    uuid.New(),
-		Price:       1,
-		Vendor:      "TestVendor",
-	}
-	testItem := Item{
-		Id:          id,
-		Title:       testModelItem.Title,
-		Description: testModelItem.Description,
-		Category:    testModelItem.Category.String(),
-		Price:       testModelItem.Price,
-		Vendor:      testModelItem.Vendor,
-	}
-	itemRepo.EXPECT().GetItem(ctx, uid).Return(testModelItem, nil)
-	res, err := handlers.GetItem(ctx, id)
+	usecase := mocks.NewMockIItemUsecase(ctrl)
+	handlers := NewItemHandlers(usecase, logger)
+
+	usecase.EXPECT().GetItem(ctx, testNewId).Return(testModelItemWithId, nil)
+	res, err := handlers.GetItem(ctx, testNewId.String())
 	require.NoError(t, err)
 	require.NotNil(t, res)
-	require.Equal(t, res, testItem)
+	require.Equal(t, res, testHandlersItemWithId)
 
 	res, err = handlers.GetItem(ctx, "invalidId")
 	require.Error(t, err)
 	require.Equal(t, res, Item{})
 
 	err = fmt.Errorf("error on get item")
-	itemRepo.EXPECT().GetItem(ctx, uid).Return(&models.Item{}, err)
-	res, err = handlers.GetItem(ctx, id)
+	usecase.EXPECT().GetItem(ctx, testNewId).Return(&models.Item{}, err)
+	res, err = handlers.GetItem(ctx, testNewId.String())
 	require.Error(t, err)
 	require.Equal(t, res, Item{})
 }
@@ -137,45 +156,46 @@ func TestItemsList(t *testing.T) {
 	defer ctrl.Finish()
 	ctx := context.Background()
 	logger := zap.L()
-	categoryRepo := mocks.NewMockCategoryStore(ctrl)
-	itemRepo := mocks.NewMockItemStore(ctrl)
-	usecase := usecase.NewStorage(itemRepo, categoryRepo, logger)
-	handlers := NewHandlers(usecase, logger)
-	id := "feb77bbc-1b8a-4739-bd68-d3b052af9a80"
-	uid, _ := uuid.Parse(id)
-	testModelItem := models.Item{
-		Id:          uid,
-		Title:       "TestTitle",
-		Description: "TestDescription",
-		Category:    uuid.New(),
-		Price:       1,
-		Vendor:      "TestVendor",
-	}
-	testItem := Item{
-		Id:          id,
-		Title:       testModelItem.Title,
-		Description: testModelItem.Description,
-		Category:    testModelItem.Category.String(),
-		Price:       testModelItem.Price,
-		Vendor:      testModelItem.Vendor,
-	}
-	testChan := make(chan models.Item, 1)
-	testChan <- testModelItem
-	close(testChan)
-	testSlice := make([]Item, 0, 100)
-	testSlice = append(testSlice, testItem)
-	itemRepo.EXPECT().ItemsList(ctx).Return(testChan, nil)
-	res, err := handlers.ItemsList(ctx)
+	usecase := mocks.NewMockIItemUsecase(ctrl)
+	handlers := NewItemHandlers(usecase, logger)
+
+	testSlice := make([]Item, 0, 1)
+	testSlice = append(testSlice, testHandlersItemWithId)
+	testModelSlice := make([]models.Item, 0, 1)
+	testModelSlice = append(testModelSlice, *testModelItemWithId)
+
+	usecase.EXPECT().ItemsList(ctx, 0, 1).Return(testModelSlice, nil)
+	res, err := handlers.ItemsList(ctx, 0, 1)
 	require.NoError(t, err)
 	require.NotNil(t, res)
 	require.Equal(t, res, testSlice)
 
 	err = fmt.Errorf("error on itemslist()")
-	testSlice2 := make([]Item, 0, 100)
-	itemRepo.EXPECT().ItemsList(ctx).Return(testChan, err)
-	res, err = handlers.ItemsList(ctx)
+	testSlice2 := make([]Item, 0, 1)
+	testModelSlice2 := make([]models.Item, 0, 1)
+	usecase.EXPECT().ItemsList(ctx, 0, 1).Return(testModelSlice2, err)
+	res, err = handlers.ItemsList(ctx, 0, 1)
 	require.Error(t, err)
 	require.Equal(t, res, testSlice2)
+}
+
+func TestItemsQuantity(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	ctx := context.Background()
+	logger := zap.L()
+	usecase := mocks.NewMockIItemUsecase(ctrl)
+	handlers := NewItemHandlers(usecase, logger)
+
+	usecase.EXPECT().ItemsQuantity(ctx).Return(1, nil)
+	res, err := handlers.ItemsQuantity(ctx)
+	require.NoError(t, err)
+	require.Equal(t, res, 1)
+
+	usecase.EXPECT().ItemsQuantity(ctx).Return(-1, fmt.Errorf("error on get items quantity"))
+	res, err = handlers.ItemsQuantity(ctx)
+	require.Error(t, err)
+	require.Equal(t, res, -1)
 }
 
 func TestSearchLine(t *testing.T) {
@@ -183,44 +203,24 @@ func TestSearchLine(t *testing.T) {
 	defer ctrl.Finish()
 	ctx := context.Background()
 	logger := zap.L()
-	categoryRepo := mocks.NewMockCategoryStore(ctrl)
-	itemRepo := mocks.NewMockItemStore(ctrl)
-	usecase := usecase.NewStorage(itemRepo, categoryRepo, logger)
-	handlers := NewHandlers(usecase, logger)
-	id := "feb77bbc-1b8a-4739-bd68-d3b052af9a80"
-	uid, _ := uuid.Parse(id)
-	testModelItem := models.Item{
-		Id:          uid,
-		Title:       "TestTitle",
-		Description: "TestDescription",
-		Category:    uuid.New(),
-		Price:       1,
-		Vendor:      "TestVendor",
-	}
-	testItem := Item{
-		Id:          id,
-		Title:       testModelItem.Title,
-		Description: testModelItem.Description,
-		Category:    testModelItem.Category.String(),
-		Price:       testModelItem.Price,
-		Vendor:      testModelItem.Vendor,
-	}
-	param := "est"
+	usecase := mocks.NewMockIItemUsecase(ctrl)
+	handlers := NewItemHandlers(usecase, logger)
+
 	testChan := make(chan models.Item, 1)
-	testChan <- testModelItem
+	testChan <- *testModelItemWithId
 	close(testChan)
 	testSlice := make([]Item, 0, 100)
-	testSlice = append(testSlice, testItem)
-	itemRepo.EXPECT().SearchLine(ctx, param).Return(testChan, nil)
-	res, err := handlers.SearchLine(ctx, param)
+	testSlice = append(testSlice, testHandlersItemWithId)
+	usecase.EXPECT().SearchLine(ctx, testParam).Return(testChan, nil)
+	res, err := handlers.SearchLine(ctx, testParam)
 	require.NoError(t, err)
 	require.NotNil(t, res)
 	require.Equal(t, res, testSlice)
 
 	err = fmt.Errorf("error on search line()")
 	testSlice2 := make([]Item, 0, 100)
-	itemRepo.EXPECT().SearchLine(ctx, param).Return(testChan, err)
-	res, err = handlers.SearchLine(ctx, param)
+	usecase.EXPECT().SearchLine(ctx, testParam).Return(testChan, err)
+	res, err = handlers.SearchLine(ctx, testParam)
 	require.Error(t, err)
 	require.Equal(t, res, testSlice2)
 }

@@ -123,3 +123,6 @@ mock_cash:
 
 mock_usecase:
 	mockgen -source=internal/usecase/usecase_interface.go -destination=internal/usecase/mocks/usecase_mock.go -package=mocks
+
+mock_handlers:
+	mockgen -source=internal/handlers/handlers_interface.go -destination=internal/handlers/mocks/handlers_mock.go -package=mocks
