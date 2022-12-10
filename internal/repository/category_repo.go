@@ -10,13 +10,13 @@ import (
 )
 
 type categoryRepo struct {
-	storage Storage
+	storage *PGres
 	logger  *zap.SugaredLogger
 }
 
 var _ CategoryStore = (*categoryRepo)(nil)
 
-func NewCategoryRepo(store Storage, log *zap.SugaredLogger) CategoryStore {
+func NewCategoryRepo(store *PGres, log *zap.SugaredLogger) CategoryStore {
 	return &categoryRepo{
 		storage: store,
 		logger:  log,

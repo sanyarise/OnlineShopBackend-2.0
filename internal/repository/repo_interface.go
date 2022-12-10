@@ -5,13 +5,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v4/pgxpool"
 )
-
-type Storage interface {
-	InitStorage(ctx context.Context, dns string) (Storage, error)
-	GetPool() *pgxpool.Pool
-}
 
 type ItemStore interface {
 	CreateItem(ctx context.Context, item *models.Item) (uuid.UUID, error)

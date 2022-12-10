@@ -12,13 +12,13 @@ import (
 )
 
 type order struct {
-	storage Storage
+	storage *PGres
 	logger  *zap.SugaredLogger
 }
 
 var _ OrderStore = (*order)(nil)
 
-func NewOrderRepo(store Storage, log *zap.SugaredLogger) OrderStore {
+func NewOrderRepo(store *PGres, log *zap.SugaredLogger) OrderStore {
 	return &order{
 		storage: store,
 		logger:  log,

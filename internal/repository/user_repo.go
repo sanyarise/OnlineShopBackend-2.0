@@ -10,13 +10,13 @@ import (
 )
 
 type user struct {
-	storage Storage
+	storage *PGres
 	logger  *zap.SugaredLogger
 }
 
 var _ UserStore = (*user)(nil)
 
-func NewUser(storage Storage, logger *zap.SugaredLogger) UserStore {
+func NewUser(storage *PGres, logger *zap.SugaredLogger) UserStore {
 	return &user{
 		storage: storage,
 		logger:  logger,

@@ -10,13 +10,13 @@ import (
 )
 
 type cart struct {
-	storage Storage
+	storage *PGres
 	logger  *zap.SugaredLogger
 }
 
 var _ CartStore = (*cart)(nil)
 
-func NewCartStore(storage Storage, logger *zap.SugaredLogger) CartStore {
+func NewCartStore(storage *PGres, logger *zap.SugaredLogger) CartStore {
 	return &cart{
 		storage: storage,
 		logger:  logger,

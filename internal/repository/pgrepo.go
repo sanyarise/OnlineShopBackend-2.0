@@ -17,13 +17,23 @@ type PGres struct {
 }
 
 // Returns new empty connection
-func NewPgxStorage(logger *zap.SugaredLogger) *PGres {
-	return &PGres{
+func NewPgxStorage(ctx context.Context, logger *zap.SugaredLogger, dsn string) (*PGres, error) {
+	pg := &PGres{
 		logger: logger,
 	}
+	select {
+	case <-ctx.Done():
+		logger.Errorf("closed context")
+		return nil, fmt.Errorf("closed context")
+	default:
+		var err error
+		pg.pool, err = pg.initStorage(ctx, dsn)
+		if err != nil {
+			return nil, fmt.Errorf("can't connect to db: %w", err)
+		}
+		return pg, nil
+	}
 }
-
-var _ Storage = (*PGres)(nil)
 
 // used to create configuration for connection from config
 func configurePool(conf *pgxpool.Config) (err error) {
@@ -43,7 +53,7 @@ func configurePool(conf *pgxpool.Config) (err error) {
 }
 
 // Configurates connection to get ready for work
-func (pg *PGres) InitStorage(ctx context.Context, dns string) (Storage, error) {
+func (pg *PGres) initStorage(ctx context.Context, dns string) (*pgxpool.Pool, error) {
 
 	conf, err := pgxpool.ParseConfig(dns)
 	if err != nil {
@@ -63,7 +73,7 @@ func (pg *PGres) InitStorage(ctx context.Context, dns string) (Storage, error) {
 	}
 	pg.pool = dbPool
 	// pg.logger = pg.logger
-	return pg, nil
+	return pg.GetPool(), nil
 }
 
 // Returns pool to make queries

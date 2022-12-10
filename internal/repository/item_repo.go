@@ -10,11 +10,11 @@ import (
 )
 
 type itemRepo struct {
-	storage Storage
+	storage *PGres
 	logger  *zap.SugaredLogger
 }
 
-func NewItemRepo(storage Storage, logger *zap.SugaredLogger) ItemStore {
+func NewItemRepo(storage *PGres, logger *zap.SugaredLogger) ItemStore {
 	return &itemRepo{
 		storage: storage,
 		logger:  logger,
