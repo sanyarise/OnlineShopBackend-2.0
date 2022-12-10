@@ -69,11 +69,13 @@ func (repo *itemRepo) GetItem(ctx context.Context, id uuid.UUID) (*models.Item, 
 	item := models.Item{}
 	pool := repo.storage.GetPool()
 	row := pool.QueryRow(ctx,
-		`SELECT id, name, category, description, price, vendor FROM items WHERE id = $1`, id)
+		`SELECT items.id, items.name, category, categories.name, categories.description, items.description, price, vendor FROM items INNER JOIN categories ON category=categories.id and items.id = $1`, id)
 	err := row.Scan(
 		&item.Id,
 		&item.Title,
 		&item.Category.Id,
+		&item.Category.Name,
+		&item.Category.Description,
 		&item.Description,
 		&item.Price,
 		&item.Vendor,
@@ -85,7 +87,7 @@ func (repo *itemRepo) GetItem(ctx context.Context, id uuid.UUID) (*models.Item, 
 	return &item, nil
 }
 
-func (repo *itemRepo) ItemsList(ctx context.Context, number int) (chan models.Item, error) {
+func (repo *itemRepo) ItemsList(ctx context.Context) (chan models.Item, error) {
 	itemChan := make(chan models.Item, 100)
 	go func() {
 		defer close(itemChan)
@@ -93,7 +95,7 @@ func (repo *itemRepo) ItemsList(ctx context.Context, number int) (chan models.It
 
 		pool := repo.storage.GetPool()
 		rows, err := pool.Query(ctx, `
-		SELECT id, name, category, description, price, vendor FROM items LIMIT $1`, number)
+		SELECT id, name, category, description, price, vendor FROM items`)
 		if err != nil {
 			msg := fmt.Errorf("error on items list query context: %w", err)
 			repo.logger.Error(msg.Error())
@@ -120,15 +122,15 @@ func (repo *itemRepo) ItemsList(ctx context.Context, number int) (chan models.It
 	return itemChan, nil
 }
 
-func (repo *itemRepo) SearchLine(ctx context.Context, param string, number int) (chan models.Item, error) {
+func (repo *itemRepo) SearchLine(ctx context.Context, param string) (chan models.Item, error) {
 	itemChan := make(chan models.Item, 100)
 	go func() {
 		defer close(itemChan)
 		item := &models.Item{}
 		pool := repo.storage.GetPool()
 		rows, err := pool.Query(ctx, `
-		SELECT id, name, category, description, price, vendor FROM items WHERE name LIKE $1 OR description LIKE $1 OR vendor LIKE $1 LIMIT $2`,
-			"%"+param+"%", number)
+		SELECT id, name, category, description, price, vendor FROM items WHERE name LIKE $1 OR description LIKE $1 OR vendor LIKE $1`,
+			"%"+param+"%")
 		if err != nil {
 			msg := fmt.Errorf("error on search line query context: %w", err)
 			repo.logger.Error(msg.Error())

@@ -281,7 +281,7 @@ func TestItemSearchLine(t *testing.T) {
 	row.Scan(&item2.Id)
 
 	itm := repository.NewItemRepo(store, logger)
-	ch, err := itm.SearchLine(context.Background(), "test", 1)
+	ch, err := itm.SearchLine(context.Background(), "test")
 	assert.NoError(t, err)
 	for r := range ch {
 		require.Equal(t, item1.Title, r.Title)
@@ -337,7 +337,7 @@ func TestItemItemsList(t *testing.T) {
 	row.Scan(&item2.Id)
 
 	itm := repository.NewItemRepo(store, logger)
-	ch, err := itm.ItemsList(context.Background(), 1)
+	ch, err := itm.ItemsList(context.Background())
 	assert.NoError(t, err)
 	for r := range ch {
 		assert.Contains(t, item1.Title, r.Title)
@@ -622,12 +622,12 @@ func TestCartDelete(t *testing.T) {
 		cartMdl.UserID, cartMdl.ExpireAt)
 	err = row.Scan(&cartMdl.ID)
 	require.NoError(t, err)
+	store.GetPool().Exec(context.Background(), `INSERT INTO cart_items (cart_id, item_id) VALUES ($1, $2)`, cartMdl.ID, item1.Id)
 	defer store.GetPool().Exec(context.Background(), `DELETE from carts`)
 	crt := repository.NewCartStore(store, logger)
 	err = crt.DeleteCart(context.Background(), &cartMdl)
 	require.NoError(t, err)
 
-	store.GetPool().Exec(context.Background(), `INSERT INTO cart_items (cart_id, item_id) VALUES ($1, $2)`, cartMdl.ID, item1.Id)
 	row = store.GetPool().QueryRow(context.Background(), `SELECT COUNT(cart_id) FROM cart_items`)
 	var count int
 	err = row.Scan(&count)
