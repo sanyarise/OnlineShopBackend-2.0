@@ -48,7 +48,7 @@ func (repo *itemRepo) CreateItem(ctx context.Context, item *models.Item) (uuid.U
 func (repo *itemRepo) UpdateItem(ctx context.Context, item *models.Item) error {
 	repo.logger.Debug("Enter in repository UpdateItem()")
 	pool := repo.storage.GetPool()
-	_, err := pool.Exec(ctx, `UPDATE items SET name=$1, category=$2, description=$3, price=$4, vendor=$5, pictures = $6 WHERE id=$6`,
+	_, err := pool.Exec(ctx, `UPDATE items SET name=$1, category=$2, description=$3, price=$4, vendor=$5, pictures = $6 WHERE id=$7`,
 		item.Title,
 		item.Category.Id,
 		item.Description,

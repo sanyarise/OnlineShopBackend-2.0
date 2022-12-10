@@ -53,23 +53,22 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 			"/",
 			delivery.Index,
 		},
-
 		{
 			"CreateCategory",
 			http.MethodPost,
-			"/categories",
+			"/categories/create",
 			delivery.CreateCategory,
 		},
 		{
 			"GetCategoryList",
 			http.MethodGet,
-			"/items/categories",
+			"/categories/list",
 			delivery.GetCategoryList,
 		},
 		{
 			"CreateItem",
 			http.MethodPost,
-			"/items",
+			"/items/create",
 			delivery.CreateItem,
 		},
 
@@ -83,7 +82,7 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 		{
 			"UpdateItem",
 			http.MethodPut,
-			"/items/:itemID",
+			"/items/update",
 			delivery.UpdateItem,
 		},
 
@@ -94,9 +93,9 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 			delivery.UploadImage,
 		},
 		{
-			"DeleteImage", //?id=25f32441-587a-452d-af8c-b3876ae29d45&name=20221209194557.jpeg
+			"DeleteImage",
 			http.MethodDelete,
-			"/items/image/delete",
+			"/items/image/delete", //?id=25f32441-587a-452d-af8c-b3876ae29d45&name=20221209194557.jpeg
 			delivery.DeleteImage,
 		},
 		{
@@ -106,15 +105,15 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 			delivery.ItemsQuantity,
 		},
 		{
-			"ItemsList", //?offset=20&limit=10
+			"ItemsList",
 			http.MethodGet,
-			"/items/list",
+			"/items/list", //?offset=20&limit=10
 			delivery.ItemsList,
 		},
 		{
 			"SearchLine",
 			http.MethodGet,
-			"/search/:searchRequest",
+			"/items/search/:searchRequest",
 			delivery.SearchLine,
 		},
 		{
