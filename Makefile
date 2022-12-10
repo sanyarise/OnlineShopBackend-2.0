@@ -103,9 +103,6 @@ help: ## Show this help.
 		else if (/^## .*$$/) {printf "  ${CYAN}%s${RESET}\n", substr($$1,4)} \
 		}' $(MAKEFILE_LIST)
 
-mock:
-	mockgen -source=internal/repository/repo_interface.go -destination=internal/usecase/mocks/repo_mock.go -package=mocks ItemStore
-
 
 run_db:
 	(docker stop postgres && docker rm postgres) || true 
@@ -117,3 +114,12 @@ run_db:
 	-p 5432:5432 \
 	-v $(CURDIR)/storage/init_db:/docker-entrypoint-initdb.d \
 	 bitnami/postgresql:latest
+
+mock_store:
+	mockgen -source=internal/repository/repo_interface.go -destination=internal/repository/mocks/repo_mock.go -package=mocks
+
+mock_cash:
+	mockgen -source=internal/repository/cash/cash_interface.go -destination=internal/repository/mocks/cash_mock.go -package=mocks Cash
+
+mock_usecase:
+	mockgen -source=internal/usecase/usecase_interface.go -destination=internal/usecase/mocks/usecase_mock.go -package=mocks
