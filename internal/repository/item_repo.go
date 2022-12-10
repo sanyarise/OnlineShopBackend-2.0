@@ -13,6 +13,16 @@ type itemRepo struct {
 	storage *PGres
 	logger  *zap.SugaredLogger
 }
+// RepositoryItem struct for DTO
+type RepositoryItem struct {
+	Id          uuid.UUID
+	Title       string
+	Description string
+	Price       int32
+	Category    uuid.UUID
+	Vendor      string
+	Images      []string
+}
 
 func NewItemRepo(storage *PGres, logger *zap.SugaredLogger) ItemStore {
 	return &itemRepo{
@@ -25,6 +35,14 @@ var _ ItemStore = (*itemRepo)(nil)
 
 func (repo *itemRepo) CreateItem(ctx context.Context, item *models.Item) (uuid.UUID, error) {
 	repo.logger.Debug("Enter in repository CreateItem()")
+	repoItem := RepositoryItem{
+		Title:       item.Title,
+		Category:    item.Category.Id,
+		Description: item.Description,
+		Price:       item.Price,
+		Vendor:      item.Vendor,
+		Images:      item.Image,
+	}
 	var id uuid.UUID
 	pool := repo.storage.GetPool()
 	row := pool.QueryRow(ctx, `INSERT INTO items(name, category, description, price, vendor)
