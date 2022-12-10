@@ -16,7 +16,7 @@ type Item struct {
 	Title       string    `json:"title,omitempty"`
 	Description string    `json:"description,omitempty"`
 	Price       int32     `json:"price,omitempty"`
-	Category    uuid.UUID `json:"category,omitempty"`
+	Category    Category `json:"category,omitempty"`
 	Vendor      string    `json:"vendor,omitempty"`
 	Image       string    `json:"image,omitempty"`
 }

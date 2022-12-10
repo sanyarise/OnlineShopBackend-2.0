@@ -9,9 +9,14 @@
 
 package models
 
+import "github.com/google/uuid"
+
 type User struct {
-	Firstname string      `json:"firstname,omitempty"`
-	Lastname  string      `json:"lastname,omitempty"`
+	ID        uuid.UUID
+	Firstname string `json:"firstname,omitempty"`
+	Lastname  string `json:"lastname,omitempty"`
+	Password  string
 	Email     string      `json:"email,omitempty"`
 	Address   UserAddress `json:"address,omitempty"`
+	Rights    Rights
 }

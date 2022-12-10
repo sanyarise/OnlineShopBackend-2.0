@@ -35,9 +35,9 @@ func (storage *Storage) GetItem(ctx context.Context, id uuid.UUID) (*models.Item
 }
 
 // ItemsList call database method and returns chan with all models.Item or error
-func (storage *Storage) ItemsList(ctx context.Context) (chan models.Item, error) {
+func (storage *Storage) ItemsList(ctx context.Context, number int) (chan models.Item, error) {
 	storage.logger.Debug("Enter in usecase ItemsList()")
-	itemIncomingChan, err := storage.itemStore.ItemsList(ctx)
+	itemIncomingChan, err := storage.itemStore.ItemsList(ctx, number)
 	if err != nil {
 		return nil, err
 	}
@@ -60,9 +60,9 @@ func (storage *Storage) ItemsList(ctx context.Context) (chan models.Item, error)
 }
 
 // SearchLine call database method and returns chan with all models.Item with given params or error
-func (storage *Storage) SearchLine(ctx context.Context, param string) (chan models.Item, error) {
+func (storage *Storage) SearchLine(ctx context.Context, param string, number int) (chan models.Item, error) {
 	storage.logger.Debug("Enter in usecase SearchLine()")
-	itemIncomingChan, err := storage.itemStore.SearchLine(ctx, param)
+	itemIncomingChan, err := storage.itemStore.SearchLine(ctx, param, number)
 	if err != nil {
 		return nil, err
 	}

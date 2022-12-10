@@ -9,8 +9,16 @@
 
 package models
 
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
+
 type Cart struct {
-	UserID   int64                  `json:"userID,omitempty"`
-	Date     string                 `json:"date,omitempty"`
-	Products map[string]interface{} `json:"products,omitempty"`
+	ID     uuid.UUID
+	UserID uuid.UUID `json:"userID,omitempty"`
+	// Date     string `json:"date,omitempty"`
+	Items    []Item `json:"products,omitempty"`
+	ExpireAt time.Time
 }

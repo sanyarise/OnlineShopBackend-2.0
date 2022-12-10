@@ -9,9 +9,14 @@ CREATE TABLE rights (
 CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(256) NOT NULL,
+    lastname VARCHAR(256),
     password TEXT NOT NULL,
     email VARCHAR(256) NOT NULL UNIQUE,
     rights UUID,
+    zipcode VARCHAR(16),
+    country VARCHAR(256),
+    city VARCHAR(256),
+    street VARCHAR(256),
     CONSTRAINT fk_rights 
         FOREIGN KEY(rights) REFERENCES rights(id)
 );
@@ -47,13 +52,18 @@ CREATE TABLE carts (
 CREATE TABLE cart_items (
     cart_id UUID,
     item_id UUID,
-    PRIMARY KEY(cart_id, item_id)
+    PRIMARY KEY(cart_id, item_id),
+    CONSTRAINT fk_cart_id
+        FOREIGN KEY(cart_id) REFERENCES carts(id),
+    CONSTRAINT fk_item_id
+        FOREIGN KEY(item_id) REFERENCES items(id)    
 );
 
 CREATE TABLE orders (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     shipment_time timestamp not NULL,
     user_id UUID,
+    status VARCHAR(256),
     address TEXT,
     CONSTRAINT fk_user_id
         FOREIGN KEY(user_id) REFERENCES users(id)
