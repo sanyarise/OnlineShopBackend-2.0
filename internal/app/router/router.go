@@ -82,13 +82,13 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 			"UploadCategoryImage",
 			http.MethodPost,
 			"/categories/image/upload/:categoryID",
-			delivery.CategoryUploadImage,
+			delivery.UploadCategoryImage,
 		},
 		{
 			"DeleteCategoryImage",
 			http.MethodDelete,
 			"/category/image/delete", //?id=25f32441-587a-452d-af8c-b3876ae29d45&name=20221209194557.jpeg
-			delivery.CategoryDeleteImage,
+			delivery.DeleteCategoryImage,
 		},
 		{
 			"CreateItem",

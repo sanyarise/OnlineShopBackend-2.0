@@ -137,8 +137,9 @@ func (delivery *Delivery) SearchLine(c *gin.Context) {
 	c.JSON(http.StatusOK, list)
 }
 
-// UploadFile - upload an image
-func (delivery *Delivery) UploadImage(c *gin.Context) {
+// UploadItemImage - upload an image
+func (delivery *Delivery) UploadItemImage(c *gin.Context) {
+	delivery.logger.Debug("Enter in delivery UploadItemImage()")
 	ctx := c.Request.Context()
 	id := c.Param("itemID")
 	if id == "" {
@@ -166,7 +167,7 @@ func (delivery *Delivery) UploadImage(c *gin.Context) {
 
 	delivery.logger.Info("Read id", zap.String("id", id))
 	delivery.logger.Info("File len=", zap.Int32("len", int32(len(file))))
-	path, err := delivery.filestorage.PutImage(id, name, file)
+	path, err := delivery.filestorage.PutItemImage(id, name, file)
 	if err != nil {
 		c.JSON(http.StatusInsufficientStorage, gin.H{})
 		return
@@ -187,8 +188,8 @@ func (delivery *Delivery) UploadImage(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"status": "upload image success"})
 }
 
-func (delivery *Delivery) DeleteImage(c *gin.Context) {
-	delivery.logger.Debug("Enter in delivery ItemsList()")
+func (delivery *Delivery) DeleteItemImage(c *gin.Context) {
+	delivery.logger.Debug("Enter in delivery DeleteItemImage()")
 	var imageOptions ImageOptions
 	err := c.Bind(&imageOptions)
 	if err != nil {
@@ -202,7 +203,7 @@ func (delivery *Delivery) DeleteImage(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Errorf("empty item id or file name")})
 		return
 	}
-	err = delivery.filestorage.DeleteImage(imageOptions.Id, imageOptions.Name)
+	err = delivery.filestorage.DeleteItemImage(imageOptions.Id, imageOptions.Name)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -227,3 +228,4 @@ func (delivery *Delivery) DeleteImage(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"status": "delete image success"})
 }
+

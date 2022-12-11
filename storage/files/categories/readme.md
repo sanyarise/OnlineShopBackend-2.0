@@ -1,0 +1,1 @@
+### Folder for save categories images

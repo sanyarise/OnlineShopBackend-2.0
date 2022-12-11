@@ -10,8 +10,10 @@ import (
 type FileStorager interface {
 	GetFileList(id string) ([]FileInStorageInfo, error)
 	GetFile(id string, filename string) ([]byte, error)
-	PutImage(id string, filename string, file []byte) (string, error)
-	DeleteImage(id string, filename string) error
+	PutItemImage(id string, filename string, file []byte) (string, error)
+	PutCategoryImage(id string, filename string, file []byte) (string, error)
+	DeleteItemImage(id string, filename string) error
+	DeleteCategoryImage(id string, filename string) error
 }
 
 type OnDiskLocalStorage struct {
@@ -25,9 +27,9 @@ func NewOnDiskLocalStorage(url string, path string, logger *zap.Logger) *OnDiskL
 	return &d
 }
 
-func (imagestorage *OnDiskLocalStorage) PutImage(id string, filename string, file []byte) (filePath string, err error) {
-	imagestorage.logger.Debug("Enter in filestorage PutFile()")
-	_, err = os.Stat(imagestorage.path + id)
+func (imagestorage *OnDiskLocalStorage) PutItemImage(id string, filename string, file []byte) (filePath string, err error) {
+	imagestorage.logger.Debug("Enter in filestorage PutItemImage()")
+	_, err = os.Stat(imagestorage.path + "items/" + id)
 	if os.IsNotExist(err) {
 		err = os.Mkdir(imagestorage.path+id, 0700)
 		if err != nil {
@@ -35,18 +37,47 @@ func (imagestorage *OnDiskLocalStorage) PutImage(id string, filename string, fil
 			return "", fmt.Errorf("error on create dir for save image: %w", err)
 		}
 	}
-	filePath = imagestorage.path + id + "/" + filename
+	filePath = imagestorage.path + "items/" + id + "/" + filename
 	if err := os.WriteFile(filePath, file, os.ModePerm); err != nil {
 		imagestorage.logger.Debug(fmt.Sprintf("error on filestorage put file: %v", err))
 		return "", fmt.Errorf("error on filestorage put file: %w", err)
 	}
-	urlPath := imagestorage.serverURL + "/files/" + id + "/" + filename
+	urlPath := imagestorage.serverURL + "/files/items/" + id + "/" + filename
 	imagestorage.logger.Debug(urlPath)
 	return urlPath, nil
 }
 
-func (imagestorage *OnDiskLocalStorage) DeleteImage(id string, filename string) error {
-	err := os.Remove(imagestorage.path + id + "/" + filename)
+func (imagestorage *OnDiskLocalStorage) PutCategoryImage(id string, filename string, file []byte) (filePath string, err error) {
+	imagestorage.logger.Debug("Enter in filestorage PutCategoryFile()")
+	_, err = os.Stat(imagestorage.path + "categories/" + id)
+	if os.IsNotExist(err) {
+		err = os.Mkdir(imagestorage.path+"categories/"+id, 0700)
+		if err != nil {
+			imagestorage.logger.Debug(fmt.Sprintf("error on create dir for save image %v", err))
+			return "", fmt.Errorf("error on create dir for save image: %w", err)
+		}
+	}
+	filePath = imagestorage.path + "categories/" + id + "/" + filename
+	if err := os.WriteFile(filePath, file, os.ModePerm); err != nil {
+		imagestorage.logger.Debug(fmt.Sprintf("error on filestorage put file: %v", err))
+		return "", fmt.Errorf("error on filestorage put file: %w", err)
+	}
+	urlPath := imagestorage.serverURL + "/files/categories/" + id + "/" + filename
+	imagestorage.logger.Debug(urlPath)
+	return urlPath, nil
+}
+
+func (imagestorage *OnDiskLocalStorage) DeleteItemImage(id string, filename string) error {
+	err := os.Remove(imagestorage.path + "items/" + id + "/" + filename)
+	if err != nil {
+		imagestorage.logger.Debug(fmt.Sprintf("error on delete file: %v", err))
+		return fmt.Errorf("error on delete file: %w", err)
+	}
+	return nil
+}
+
+func (imagestorage *OnDiskLocalStorage) DeleteCategoryImage(id string, filename string) error {
+	err := os.Remove(imagestorage.path + "categories/" + id + "/" + filename)
 	if err != nil {
 		imagestorage.logger.Debug(fmt.Sprintf("error on delete file: %v", err))
 		return fmt.Errorf("error on delete file: %w", err)
