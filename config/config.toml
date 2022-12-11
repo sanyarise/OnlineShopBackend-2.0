@@ -8,3 +8,10 @@ timeout = 5
 log_level = "debug"
 
 fs_path = "./storage/files/"
+
+# amazon rds
+host_amazon = "cozydragon-instance.c421xe1df6ut.ap-south-1.rds.amazonaws.com"
+port_amazon = "5432"
+username_amazon = "DBconnect"
+password_amazon = "qwerty12345"
+dbname_amazon = "cozydragonDB"

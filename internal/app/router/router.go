@@ -12,11 +12,12 @@ package router
 import (
 	"OnlineShopBackend/internal/delivery"
 	"fmt"
+	"time"
 
 	"net/http"
 
-	"github.com/gin-gonic/gin"
 	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 	"github.com/thinkerou/favicon"
 	"go.uber.org/zap"
 )
@@ -50,6 +51,9 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 	router.Use(cors.New(cors.Config{
 		AllowOrigins: []string{"http://localhost:3000"},
 		AllowMethods: []string{"PUT", "GET", "POST"},
+		AllowHeaders: []string{"*"},
+		ExposeHeaders: []string{"Content-Length"},
+		MaxAge: 12 * time.Hour,
 	}))
 	routes := Routes{
 		{

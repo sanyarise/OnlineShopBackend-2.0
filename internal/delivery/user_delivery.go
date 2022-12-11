@@ -10,7 +10,17 @@
 package delivery
 
 import (
+	"OnlineShopBackend/internal/handlers"
+	"fmt"
+	//"github.com/dghubble/sessions"
+
+	//"github.com/dghubble/gologin/v2"
+	//"github.com/dghubble/gologin/v2/google"
+	//"github.com/dghubble/sessions"
+	"golang.org/x/oauth2"
 	"net/http"
+	"unicode"
+	og2 "golang.org/x/oauth2/google"
 
 	"github.com/gin-gonic/gin"
 )
@@ -18,12 +28,69 @@ import (
 // CreateUser -
 func (delivery *Delivery) CreateUser(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery CreateUser()")
-	c.JSON(http.StatusOK, gin.H{})
+	ctx := c.Request.Context()
+	var deliveryUser handlers.User
+	if err := c.ShouldBindJSON(&deliveryUser); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := validationCheck(deliveryUser); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	id, err := delivery.handlers.CreateUser(ctx, deliveryUser)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	}
+	c.JSON(http.StatusOK, gin.H{"success": id.String()})
 }
 
 // LoginUser -
 func (delivery *Delivery) LoginUser(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery LoginUser()")
+	var deliveryUser handlers.User
+	if err := c.ShouldBindJSON(&deliveryUser); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	//TODO
+}
+
+// LoginUserGoogle -
+func (delivery *Delivery) LoginUserGoogle(c *gin.Context) {
+	delivery.logger.Debug("Enter in delivery LogoutUser()")
+	oauth2Config := &oauth2.Config{
+		ClientID: "614400740650-ioroeqq2rvn45k5tv5rc8noa7058m1l9.apps.googleusercontent.com",
+		ClientSecret: "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",
+		RedirectURL:  "http://localhost:8000/user/callbackGoogle",
+		Endpoint:     og2.Endpoint,
+		Scopes:       []string{"profile", "email"},
+	}
+	url := oauth2Config.AuthCodeURL("random")
+	http.Redirect(c.Writer, c.Request, url,  http.StatusTemporaryRedirect)
+	//stateConfig := gologin.DefaultCookieConfig
+	//google.StateHandler(stateConfig, google.CallbackHandler(oauth2Config, issueSession(), nil)).ServeHTTP(c.Writer, c.Request)
+}
+
+// LoginUserYandex -
+func (delivery *Delivery) LoginUserYandex(c *gin.Context) {
+	delivery.logger.Debug("Enter in delivery LogoutUser()")
+	c.JSON(http.StatusOK, gin.H{})
+}
+
+// CallbackGoogle -
+func (delivery *Delivery) CallbackGoogle(c *gin.Context) {
+	delivery.logger.Debug("Enter in delivery LogoutUser()")
+
+	c.Redirect(http.StatusTemporaryRedirect, "http://localhost:8000")
+}
+
+// CallbackYandex -
+func (delivery *Delivery) CallbackYandex(c *gin.Context) {
+	delivery.logger.Debug("Enter in delivery LogoutUser()")
 	c.JSON(http.StatusOK, gin.H{})
 }
 
@@ -32,3 +99,47 @@ func (delivery *Delivery) LogoutUser(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery LogoutUser()")
 	c.JSON(http.StatusOK, gin.H{})
 }
+
+func validationCheck(user handlers.User) error {
+	if user.Email == "" && user.FirstName == "" && user.LastName == "" {
+		return fmt.Errorf("empty filed")
+	}
+	if len(user.Password) < 5 {
+		return fmt.Errorf("password is too short")
+	}
+	for _, char := range user.Password {
+		if !unicode.IsDigit(char) && !unicode.Is(unicode.Latin, char) {
+			return fmt.Errorf("password should contain lathin letter or numbers only")
+		}
+	}
+	return nil
+}
+
+
+const (
+	sessionName     = "example-google-app"
+	sessionSecret   = "example cookie signing secret"
+	sessionUserKey  = "googleID"
+	sessionUsername = "googleName"
+)
+
+//var sessionStore = sessions.NewCookieStore([]byte(sessionSecret), nil)
+
+
+//func issueSession() http.Handler {
+//	fn := func(w http.ResponseWriter, req *http.Request) {
+//		ctx := req.Context()
+//		googleUser, err := google.UserFromContext(ctx)
+//		if err != nil {
+//			http.Error(w, err.Error(), http.StatusInternalServerError)
+//			return
+//		}
+//		// 2. Implement a success handler to issue some form of session
+//		session := sessionStore.New(sessionName)
+//		session.Values[sessionUserKey] = googleUser.Id
+//		session.Values[sessionUsername] = googleUser.Name
+//		session.Save(w)
+//		http.Redirect(w, req, "/", http.StatusFound)
+//	}
+//	return http.HandlerFunc(fn)
+//}

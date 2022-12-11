@@ -13,5 +13,9 @@ type User struct {
 	Firstname string      `json:"firstname,omitempty"`
 	Lastname  string      `json:"lastname,omitempty"`
 	Email     string      `json:"email,omitempty"`
-	Address   UserAddress `json:"address,omitempty"`
+	Password  string   `json:"password,omitempty"`
+	Zipcode   int64  `json:"zipcode,omitempty"`
+	Country   string `json:"country,omitempty"`
+	City      string `json:"city,omitempty"`
+	Street    string `json:"street,omitempty"`
 }
