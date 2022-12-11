@@ -13,12 +13,6 @@ type FileInStorageInfo struct {
 	ModifyDate string `json:"ModifyDate"`
 }
 
-type FileStorager interface {
-	GetFileList(id string) ([]FileInStorageInfo, error)
-	GetFile(id string, filename string) ([]byte, error)
-	PutFile(id string, filename string, file []byte) error
-}
-
 type InMemoryLocalStorage struct {
 	path  string
 	files []FileInStorageInfo

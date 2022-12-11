@@ -44,6 +44,8 @@ type Router struct {
 func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 	logger.Debug("Enter in NewRouter()")
 	router := gin.Default()
+
+	router.Static("/files", "./storage/files")
 	routes := Routes{
 		{
 			"Index",
@@ -51,18 +53,22 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 			"/",
 			delivery.Index,
 		},
-
 		{
 			"CreateCategory",
 			http.MethodPost,
-			"/categories",
+			"/categories/create",
 			delivery.CreateCategory,
 		},
-
+		{
+			"GetCategoryList",
+			http.MethodGet,
+			"/categories/list",
+			delivery.GetCategoryList,
+		},
 		{
 			"CreateItem",
 			http.MethodPost,
-			"/items",
+			"/items/create",
 			delivery.CreateItem,
 		},
 
@@ -76,45 +82,46 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 		{
 			"UpdateItem",
 			http.MethodPut,
-			"/items/:itemID",
+			"/items/update",
 			delivery.UpdateItem,
 		},
 
 		{
-			"UploadFile",
+			"UploadImage",
 			http.MethodPost,
-			"/items/:itemID/upload",
-			delivery.UploadFile,
+			"/items/image/upload/:itemID",
+			delivery.UploadImage,
 		},
-
+		{
+			"DeleteImage",
+			http.MethodDelete,
+			"/items/image/delete", //?id=25f32441-587a-452d-af8c-b3876ae29d45&name=20221209194557.jpeg
+			delivery.DeleteImage,
+		},
+		{
+			"ItemsQuantity",
+			http.MethodGet,
+			"/items/quantity",
+			delivery.ItemsQuantity,
+		},
+		{
+			"ItemsList",
+			http.MethodGet,
+			"/items/list", //?offset=20&limit=10
+			delivery.ItemsList,
+		},
+		{
+			"SearchLine",
+			http.MethodGet,
+			"/items/search/:searchRequest",
+			delivery.SearchLine,
+		},
 		{
 			"GetCart",
 			http.MethodGet,
 			"/cart/:userID",
 			delivery.GetCart,
 		},
-
-		{
-			"GetCategoryList",
-			http.MethodGet,
-			"/items/categories",
-			delivery.GetCategoryList,
-		},
-
-		{
-			"ItemsList",
-			http.MethodGet,
-			"/items",
-			delivery.ItemsList,
-		},
-
-		{
-			"SearchLine",
-			http.MethodGet,
-			"/search/:searchRequest",
-			delivery.SearchLine,
-		},
-
 		{
 			"CreateUser",
 			http.MethodPost,

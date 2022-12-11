@@ -17,21 +17,23 @@
 version: '3.5'
 
 services:
-  shop:
-    build: .
-    image: shop
-    depends_on:
-      - postgres
-    ports:
-      - "8000:8000"
-    shm_size: "2gb"
-    environment:
-      PORT: ":8000"
+ # shop:
+ #   build: .
+ #   image: shop
+ #   depends_on:
+ #     - postgres
+ #   ports:
+ #     - "8000:8000"
+ #   shm_size: "2gb"
+ #   environment:
+ #     PORT: ":8000"
 #      SHOP_UID: ${UID:-1000}                   # user id, should match your host user id
 #      SHOP_GID: ${GID:-1000}                   # group id
 
   postgres:
     image: postgres:latest
+    container_name: postgres
+    hostname: postgres
     ports:
       - "5432:5432" # database port (host:container)
     environment:
@@ -40,6 +42,16 @@ services:
       POSTGRES_PASSWORD: 123
     volumes:
       - ./storage/init_db:/docker-entrypoint-initdb.d
+
+  redis:
+    image: redis:6.2.7
+    container_name: redis
+    hostname: redis
+    restart: always
+    ports:
+      - 6379:6379
+    depends_on:
+      - postgres
 
 networks:
   default:

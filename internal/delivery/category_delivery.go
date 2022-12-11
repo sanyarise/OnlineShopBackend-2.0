@@ -27,9 +27,9 @@ func (delivery *Delivery) CreateCategory(c *gin.Context) {
 	}
 	if deliveryCategory.Name == "" && deliveryCategory.Description == "" {
 		c.JSON(http.StatusBadRequest, "empty category is not correct")
-	} 
+	}
 
-	id, err := delivery.handlers.CreateCategory(ctx, deliveryCategory)
+	id, err := delivery.categoryHandlers.CreateCategory(ctx, deliveryCategory)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
@@ -39,7 +39,7 @@ func (delivery *Delivery) CreateCategory(c *gin.Context) {
 // GetCategoryList - get a specific category
 func (delivery *Delivery) GetCategoryList(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery GetCategoryList()")
-	list, err := delivery.handlers.GetCategoryList(c.Request.Context())
+	list, err := delivery.categoryHandlers.GetCategoryList(c.Request.Context())
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}

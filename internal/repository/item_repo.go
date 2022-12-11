@@ -27,21 +27,20 @@ func (repo *itemRepo) CreateItem(ctx context.Context, item *models.Item) (uuid.U
 	repo.logger.Debug("Enter in repository CreateItem()")
 	var id uuid.UUID
 	pool := repo.storage.GetPool()
-	row := pool.QueryRow(ctx, `INSERT INTO items(name, category, description, price, vendor)
-	values ($1, $2, $3, $4, $5) RETURNING id`,
+	row := pool.QueryRow(ctx, `INSERT INTO items(name, category, description, price, vendor, pictures)
+	values ($1, $2, $3, $4, $5, $6) RETURNING id`,
 		item.Title,
 		item.Category.Id,
 		item.Description,
 		item.Price,
 		item.Vendor,
+		item.Images,
 	)
 	err := row.Scan(&id)
 	if err != nil {
 		repo.logger.Errorf("can't create item %s", err)
 		return uuid.Nil, fmt.Errorf("can't create item %w", err)
 	}
-	item.Id = id
-
 	repo.logger.Debugf("id is %v\n", id)
 	return id, nil
 }
@@ -49,12 +48,13 @@ func (repo *itemRepo) CreateItem(ctx context.Context, item *models.Item) (uuid.U
 func (repo *itemRepo) UpdateItem(ctx context.Context, item *models.Item) error {
 	repo.logger.Debug("Enter in repository UpdateItem()")
 	pool := repo.storage.GetPool()
-	_, err := pool.Exec(ctx, `UPDATE items SET name=$1, category=$2, description=$3, price=$4, vendor=$5 WHERE id=$6`,
+	_, err := pool.Exec(ctx, `UPDATE items SET name=$1, category=$2, description=$3, price=$4, vendor=$5, pictures = $6 WHERE id=$7`,
 		item.Title,
 		item.Category.Id,
 		item.Description,
 		item.Price,
 		item.Vendor,
+		item.Images,
 		item.Id)
 	if err != nil {
 		repo.logger.Errorf("error on update item %s: %s", item.Id, err)
@@ -69,7 +69,7 @@ func (repo *itemRepo) GetItem(ctx context.Context, id uuid.UUID) (*models.Item, 
 	item := models.Item{}
 	pool := repo.storage.GetPool()
 	row := pool.QueryRow(ctx,
-		`SELECT items.id, items.name, category, categories.name, categories.description, items.description, price, vendor FROM items INNER JOIN categories ON category=categories.id and items.id = $1`, id)
+		`SELECT items.id, items.name, category, categories.name, categories.description, items.description, price, vendor, pictures FROM items INNER JOIN categories ON category=categories.id and items.id = $1`, id)
 	err := row.Scan(
 		&item.Id,
 		&item.Title,
@@ -79,6 +79,7 @@ func (repo *itemRepo) GetItem(ctx context.Context, id uuid.UUID) (*models.Item, 
 		&item.Description,
 		&item.Price,
 		&item.Vendor,
+		&item.Images,
 	)
 	if err != nil {
 		repo.logger.Errorf("error in rows scan get item by id: %s", err)
@@ -95,7 +96,7 @@ func (repo *itemRepo) ItemsList(ctx context.Context) (chan models.Item, error) {
 
 		pool := repo.storage.GetPool()
 		rows, err := pool.Query(ctx, `
-		SELECT id, name, category, description, price, vendor FROM items`)
+		SELECT items.id, items.name, category, categories.name, categories.description, items.description, price, vendor, pictures FROM items INNER JOIN categories ON category=categories.id`)
 		if err != nil {
 			msg := fmt.Errorf("error on items list query context: %w", err)
 			repo.logger.Error(msg.Error())
@@ -108,9 +109,12 @@ func (repo *itemRepo) ItemsList(ctx context.Context) (chan models.Item, error) {
 				&item.Id,
 				&item.Title,
 				&item.Category.Id,
+				&item.Category.Name,
+				&item.Category.Description,
 				&item.Description,
 				&item.Price,
 				&item.Vendor,
+				&item.Images,
 			); err != nil {
 				repo.logger.Error(err.Error())
 				return
@@ -129,7 +133,7 @@ func (repo *itemRepo) SearchLine(ctx context.Context, param string) (chan models
 		item := &models.Item{}
 		pool := repo.storage.GetPool()
 		rows, err := pool.Query(ctx, `
-		SELECT id, name, category, description, price, vendor FROM items WHERE name LIKE $1 OR description LIKE $1 OR vendor LIKE $1`,
+		SELECT items.id, items.name, category, categories.name, categories.description, items.description, price, vendor, pictures FROM items INNER JOIN categories ON category=categories.id WHERE items.name LIKE $1 OR items.description LIKE $1 OR vendor LIKE $1 OR categories.name LIKE $1`,
 			"%"+param+"%")
 		if err != nil {
 			msg := fmt.Errorf("error on search line query context: %w", err)
@@ -143,14 +147,17 @@ func (repo *itemRepo) SearchLine(ctx context.Context, param string) (chan models
 				&item.Id,
 				&item.Title,
 				&item.Category.Id,
+				&item.Category.Name,
+				&item.Category.Description,
 				&item.Description,
 				&item.Price,
 				&item.Vendor,
+				&item.Images,
 			); err != nil {
 				repo.logger.Error(err.Error())
 				return
 			}
-			repo.logger.Info(item)
+			repo.logger.Info(fmt.Sprintf("find item: %v",item))
 			itemChan <- *item
 		}
 	}()
