@@ -11,6 +11,7 @@ package delivery
 
 import (
 	"OnlineShopBackend/internal/handlers"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -36,7 +37,21 @@ func (delivery *Delivery) CreateCategory(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": id.String()})
 }
 
-// GetCategoryList - get a specific category
+// GetCategory - get a specific category by id
+func (delivery *Delivery) GetCategory(c *gin.Context) {
+	delivery.logger.Debug("Enter in delivery GetCategory()")
+	id := c.Param("categoryID")
+	delivery.logger.Debug(fmt.Sprintf("Category id from request is %v", id))
+	ctx := c.Request.Context()
+	category, err := delivery.itemHandlers.GetCategory(ctx, id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, category)
+}
+
+// GetCategoryList - get a list of categories
 func (delivery *Delivery) GetCategoryList(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery GetCategoryList()")
 	list, err := delivery.categoryHandlers.GetCategoryList(c.Request.Context())

@@ -15,6 +15,7 @@ import (
 
 	"net/http"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
@@ -44,7 +45,7 @@ type Router struct {
 func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 	logger.Debug("Enter in NewRouter()")
 	router := gin.Default()
-
+	router.Use(cors.Default())
 	router.Static("/files", "./storage/files")
 	routes := Routes{
 		{
@@ -60,10 +61,34 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 			delivery.CreateCategory,
 		},
 		{
+			"GetCategory",
+			http.MethodGet,
+			"/categories/:categoryID",
+			delivery.GetCategory,
+		},
+		{
 			"GetCategoryList",
 			http.MethodGet,
 			"/categories/list",
 			delivery.GetCategoryList,
+		},
+		{
+			"UpdateCategory",
+			http.MethodPut,
+			"/categories/update",
+			delivery.UpdateCategory,
+		},
+		{
+			"UploadCategoryImage",
+			http.MethodPost,
+			"/categories/image/upload/:categoryID",
+			delivery.CategoryUploadImage,
+		},
+		{
+			"DeleteCategoryImage",
+			http.MethodDelete,
+			"/category/image/delete", //?id=25f32441-587a-452d-af8c-b3876ae29d45&name=20221209194557.jpeg
+			delivery.CategoryDeleteImage,
 		},
 		{
 			"CreateItem",
@@ -71,21 +96,18 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 			"/items/create",
 			delivery.CreateItem,
 		},
-
 		{
 			"GetItem",
 			http.MethodGet,
 			"/items/:itemID",
 			delivery.GetItem,
 		},
-
 		{
 			"UpdateItem",
 			http.MethodPut,
 			"/items/update",
 			delivery.UpdateItem,
 		},
-
 		{
 			"UploadImage",
 			http.MethodPost,
@@ -113,7 +135,7 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 		{
 			"SearchLine",
 			http.MethodGet,
-			"/items/search/:searchRequest",
+			"/items/search/:searchRequest", //?offset=20&limit=10
 			delivery.SearchLine,
 		},
 		{
