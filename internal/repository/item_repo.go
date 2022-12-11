@@ -164,6 +164,44 @@ func (repo *itemRepo) SearchLine(ctx context.Context, param string) (chan models
 			itemChan <- *item
 		}
 	}()
+	return itemChan, nil
+}
 
+func (repo *itemRepo) GetItemsByCategory(ctx context.Context, categoryName string) (chan models.Item, error) {
+	itemChan := make(chan models.Item, 100)
+	go func() {
+		defer close(itemChan)
+		item := &models.Item{}
+		pool := repo.storage.GetPool()
+		rows, err := pool.Query(ctx, `
+		SELECT items.id, items.name, category, categories.name, categories.description,categories.picture, items.description, price, vendor, pictures FROM items INNER JOIN categories ON category=categories.id WHERE categories.name=$1`,
+			categoryName)
+		if err != nil {
+			msg := fmt.Errorf("error on get items by category query context: %w", err)
+			repo.logger.Error(msg.Error())
+			return
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			if err := rows.Scan(
+				&item.Id,
+				&item.Title,
+				&item.Category.Id,
+				&item.Category.Name,
+				&item.Category.Description,
+				&item.Category.Image,
+				&item.Description,
+				&item.Price,
+				&item.Vendor,
+				&item.Images,
+			); err != nil {
+				repo.logger.Error(err.Error())
+				return
+			}
+			repo.logger.Info(fmt.Sprintf("find item: %v", item))
+			itemChan <- *item
+		}
+	}()
 	return itemChan, nil
 }

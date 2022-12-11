@@ -129,12 +129,31 @@ func (delivery *Delivery) ItemsQuantity(c *gin.Context) {
 func (delivery *Delivery) SearchLine(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery SearchLine()")
 	param := c.Param("searchRequest")
+	if param == "" {
+		delivery.logger.Sugar().Error("empty search request")
+		c.JSON(http.StatusBadRequest, gin.H{})
+	}
 	list, err := delivery.itemHandlers.SearchLine(c.Request.Context(), param)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, list)
+}
+// GetItemsByCategory returns list of items in category
+func (delivery *Delivery) GetItemsByCategory(c *gin.Context) {
+	delivery.logger.Debug("Enter in delivery GetItemsByCategory()")
+	categoryName := c.Param("categoryName")
+	if categoryName == "" {
+		delivery.logger.Sugar().Error("empty category name")
+		c.JSON(http.StatusBadRequest, gin.H{})
+	}
+	items, err := delivery.itemHandlers.GetItemsByCategory(c.Request.Context(), categoryName)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, items)
 }
 
 // UploadItemImage - upload an image
@@ -228,4 +247,3 @@ func (delivery *Delivery) DeleteItemImage(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"status": "delete image success"})
 }
-

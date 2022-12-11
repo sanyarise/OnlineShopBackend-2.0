@@ -191,3 +191,38 @@ func (handlers *ItemHandlers) SearchLine(ctx context.Context, param string) ([]I
 		}
 	}
 }
+
+// SearchLine returns list of Items in category
+func (handlers *ItemHandlers) GetItemsByCategory(ctx context.Context, categoryName string) ([]Item, error) {
+	handlers.logger.Debug("Enter in handlers GetItemsByCategory()")
+	res := make([]Item, 0, 100)
+	items, err := handlers.usecase.GetItemsByCategory(ctx, categoryName)
+	if err != nil {
+		return res, err
+	}
+	for {
+		select {
+		case <-ctx.Done():
+			handlers.logger.Debug("handlers GetItemsByCategory() ctx.Done recieved")
+			return res, ctx.Err()
+		case item, ok := <-items:
+			if !ok {
+				return res, nil
+			}
+			handlersCategory := Category{
+				Id:          item.Category.Id.String(),
+				Name:        item.Category.Name,
+				Description: item.Category.Description,
+				Image:       item.Category.Image,
+			}
+			res = append(res, Item{
+				Id:          item.Id.String(),
+				Title:       item.Title,
+				Description: item.Description,
+				Price:       item.Price,
+				Category:    handlersCategory,
+				Vendor:      item.Vendor,
+			})
+		}
+	}
+}

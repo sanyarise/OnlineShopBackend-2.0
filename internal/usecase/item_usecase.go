@@ -162,6 +162,31 @@ func (usecase *ItemUsecase) SearchLine(ctx context.Context, param string) (chan 
 	return itemOutChan, nil
 }
 
+// GetItemsByCategory call database method and returns chan with all models.Item in category or error
+func (usecase *ItemUsecase) GetItemsByCategory(ctx context.Context, categoryName string) (chan models.Item, error) {
+	usecase.logger.Debug("Enter in usecase GetItemsByCategory()")
+	itemIncomingChan, err := usecase.itemStore.SearchLine(ctx, categoryName)
+	if err != nil {
+		return nil, err
+	}
+	itemOutChan := make(chan models.Item, 100)
+	go func() {
+		defer close(itemOutChan)
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case item, ok := <-itemIncomingChan:
+				if !ok {
+					return
+				}
+				itemOutChan <- item
+			}
+		}
+	}()
+	return itemOutChan, nil
+}
+
 // updateCash updating cash when creating or updating item
 func (usecase *ItemUsecase) UpdateCash(ctx context.Context, id uuid.UUID, op string) error {
 	usecase.logger.Debug("Enter in usecase UpdateCash()")
