@@ -51,7 +51,7 @@ var (
 		Id: "invalid id",
 	}
 	testModelItem = &models.Item{
-		Title:       "TestTitle",
+		Name:        "TestTitle",
 		Description: "TestDescription",
 		Category:    testModelCategory,
 		Price:       1,
@@ -68,7 +68,7 @@ var (
 	}
 	testModelItemWithId = &models.Item{
 		Id:          testNewId,
-		Title:       "TestTitle",
+		Name:        "TestTitle",
 		Description: "TestDescription",
 		Category:    testModelCategory,
 		Price:       1,

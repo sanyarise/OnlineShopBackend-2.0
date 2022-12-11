@@ -13,7 +13,7 @@ import "github.com/google/uuid"
 
 type Item struct {
 	Id          uuid.UUID `json:"id,omitempty"`
-	Title       string    `json:"title,omitempty"`
+	Name        string    `json:"title,omitempty"`
 	Description string    `json:"description,omitempty"`
 	Price       int32     `json:"price,omitempty"`
 	Category    Category  `json:"category,omitempty"`

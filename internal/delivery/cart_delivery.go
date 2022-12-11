@@ -18,5 +18,15 @@ import (
 // GetCart - get user cart
 func (delivery *Delivery) GetCart(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery GetCart()")
+
+	ctx := c.Request.Context()
+
+	quantity, err := delivery.itemHandlers.ItemsQuantity(ctx)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	itemsQuantity := ItemsQuantity{Quantity: quantity}
+
 	c.JSON(http.StatusOK, gin.H{})
 }

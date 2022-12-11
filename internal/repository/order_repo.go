@@ -162,7 +162,7 @@ func (o *order) GetOrderByID(ctx context.Context, id uuid.UUID) (models.Order, e
 		var address string
 		for rows.Next() {
 			item := models.Item{}
-			if err := rows.Scan(&item.Id, &item.Title, &item.Category.Id, &item.Category.Name, &item.Category.Description,
+			if err := rows.Scan(&item.Id, &item.Name, &item.Category.Id, &item.Category.Name, &item.Category.Description,
 				&item.Description, &item.Price, &item.Vendor, &ordr.ID, &ordr.ShipmentTime, &ordr.Status, &address); err != nil {
 				o.logger.Errorf("can't scan data to order object: %w", err)
 				return models.Order{}, err
@@ -208,7 +208,7 @@ func (o *order) GetOrdersForUser(ctx context.Context, user *models.User) (chan m
 				var address string
 				item := models.Item{}
 				order := models.Order{}
-				if err := rows.Scan(&item.Id, &item.Title, &item.Category.Id, &item.Category.Name, &item.Category.Description,
+				if err := rows.Scan(&item.Id, &item.Name, &item.Category.Id, &item.Category.Name, &item.Category.Description,
 					&item.Description, &item.Price, &item.Vendor, &order.ID, &order.ShipmentTime, &order.Status, &address); err != nil {
 					o.logger.Errorf("can't scan data to order object: %w", err)
 					return
