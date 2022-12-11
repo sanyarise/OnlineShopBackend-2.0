@@ -37,6 +37,23 @@ func (delivery *Delivery) CreateCategory(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": id.String()})
 }
 
+// UpdateCategory updating category
+func (delivery *Delivery) UpdateCategory(c *gin.Context) {
+	delivery.logger.Debug("Enter in delivery UpdateCategory()")
+	ctx := c.Request.Context()
+	var deliveryCategory handlers.Category
+	if err := c.ShouldBindJSON(&deliveryCategory); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	err := delivery.categoryHandlers.UpdateCategory(ctx, deliveryCategory)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{})
+}
+
 // GetCategory - get a specific category by id
 func (delivery *Delivery) GetCategory(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery GetCategory()")

@@ -44,6 +44,23 @@ func (handlers *CategoryHandlers) CreateCategory(ctx context.Context, category C
 	return id, nil
 }
 
+// UpdateCategory transform Category to models.Category and call usecase UpdateCategory
+func (handlers *CategoryHandlers) UpdateCategory(ctx context.Context, category Category) error {
+	handlers.logger.Debug("Enter in handlers UpdateCategory()")
+	id, err := uuid.Parse(category.Id)
+	if err != nil {
+		return fmt.Errorf("invalid category uuid: %w", err)
+	}
+
+	updateCategory := &models.Category{
+		Id:          id,
+		Name:        category.Name,
+		Description: category.Description,
+		Image:       category.Image,
+	}
+	return handlers.usecase.UpdateCategory(ctx, updateCategory)
+}
+
 // GetCategory returns Category on id
 func (handlers *CategoryHandlers) GetCategory(ctx context.Context, id string) (Category, error) {
 	handlers.logger.Debug("Enter in handlers GetCategory()")
