@@ -4,6 +4,7 @@ import (
 	"OnlineShopBackend/internal/models"
 	"context"
 	"fmt"
+	"github.com/google/uuid"
 
 	"github.com/jackc/pgx/v4"
 	"go.uber.org/zap"
@@ -23,7 +24,7 @@ func NewCartStore(storage *PGres, logger *zap.SugaredLogger) CartStore {
 	}
 }
 
-// ? Shall we add items at the moment we create cart
+// Create Shall we add items at the moment we create cart
 func (c *cart) Create(ctx context.Context, cart *models.Cart) (*models.Cart, error) {
 	select {
 	case <-ctx.Done():
@@ -41,7 +42,7 @@ func (c *cart) Create(ctx context.Context, cart *models.Cart) (*models.Cart, err
 	}
 }
 
-// ? Maybe add to item
+// AddItemToCart Maybe add to item
 func (c *cart) AddItemToCart(ctx context.Context, cart *models.Cart, item *models.Item) error {
 	select {
 	case <-ctx.Done():
@@ -104,5 +105,45 @@ func (c *cart) DeleteItemFromCart(ctx context.Context, cart *models.Cart, item *
 			return fmt.Errorf("can't delete item from cart: %w", err)
 		}
 		return nil
+	}
+}
+
+func (c *cart) SelectItemsFromCart(ctx context.Context, cart *models.Cart) ([]*models.Item, error) {
+	select {
+	case <-ctx.Done():
+		return nil, fmt.Errorf("context closed")
+	default:
+		pool := c.storage.GetPool()
+		rows, err := pool.Query(ctx, `
+				SELECT 	i.id, i.name, i.category, i.description, i.price, i.vendor, i.pictures
+				FROM cart_items c, items i\
+				WHERE c.cart_id=$1 and i.id = c.item_id`, cart.ID)
+		if err != nil {
+			c.logger.Errorf("can't select items from cart: %s", err)
+			return nil, fmt.Errorf("can't select items from cart: %w", err)
+		}
+		items := make([]*models.Item, 0)
+		for rows.Next() {
+			v, err := rows.Values()
+			if err != nil {
+				c.logger.Errorf("can't select items from cart: %s", err)
+				return nil, fmt.Errorf("can't select items from cart: %w", err)
+			}
+			i := models.Item{
+				Id:          v[0].(uuid.UUID),
+				Name:        v[1].(string),
+				Description: v[3].(string),
+				Price:       v[4].(int32),
+				Category: models.Category{
+					Id:          v[2].(uuid.UUID),
+					Name:        "",
+					Description: "",
+				},
+				Vendor: v[5].(string),
+				Images: v[6].([]string),
+			}
+			items = append(items, &i)
+		}
+		return items, nil
 	}
 }
