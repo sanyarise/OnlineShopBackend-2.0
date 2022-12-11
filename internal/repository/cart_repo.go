@@ -116,7 +116,7 @@ func (c *cart) SelectItemsFromCart(ctx context.Context, cart *models.Cart) ([]*m
 		pool := c.storage.GetPool()
 		rows, err := pool.Query(ctx, `
 				SELECT 	i.id, i.name, i.category, i.description, i.price, i.vendor, i.pictures
-				FROM cart_items c, items i\
+				FROM cart_items c, items i
 				WHERE c.cart_id=$1 and i.id = c.item_id`, cart.ID)
 		if err != nil {
 			c.logger.Errorf("can't select items from cart: %s", err)
