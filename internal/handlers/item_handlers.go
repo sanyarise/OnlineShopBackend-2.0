@@ -75,7 +75,6 @@ func (handlers *ItemHandlers) UpdateItem(ctx context.Context, item Item) error {
 		Id:          categoryId,
 		Name:        item.Category.Name,
 		Description: item.Category.Description,
-		Image:       item.Category.Image,
 	}
 
 	updateItem := &models.Item{
@@ -106,7 +105,6 @@ func (handlers *ItemHandlers) GetItem(ctx context.Context, id string) (Item, err
 		Id:          item.Category.Id.String(),
 		Name:        item.Category.Name,
 		Description: item.Category.Description,
-		Image:       item.Category.Image,
 	}
 
 	return Item{
@@ -133,7 +131,6 @@ func (handlers *ItemHandlers) ItemsList(ctx context.Context, offset, limit int) 
 			Id:          item.Category.Id.String(),
 			Name:        item.Category.Name,
 			Description: item.Category.Description,
-			Image:       item.Category.Image,
 		}
 
 		res = append(res, Item{

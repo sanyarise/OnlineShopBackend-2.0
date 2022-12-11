@@ -10,124 +10,13 @@
 package delivery
 
 import (
-	"OnlineShopBackend/internal/usecase"
-	"errors"
-	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
+// GetCart - get user cart
 func (delivery *Delivery) GetCart(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery GetCart()")
-
-	if usecase.Cart == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": errors.New("cart object is nil")})
-	}
-	ctx := c.Request.Context()
-
-	userID, err := uuid.FromBytes([]byte(c.Param("userID")))
-	if err != nil {
-		c.JSON(http.StatusNotAcceptable, gin.H{"error": err.Error()})
-	}
-
-	cart, err := usecase.Cart.GetCart(ctx, userID)
-	if err != nil {
-		c.JSON(http.StatusInsufficientStorage, gin.H{"error": err.Error()})
-	}
-
-	c.JSON(http.StatusOK, cart)
-}
-
-func (delivery *Delivery) CreateCart(c *gin.Context) {
-	delivery.logger.Debug("Enter in delivery CreateCart()")
-
-	if usecase.Cart == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": errors.New("cart object is nil")})
-	}
-	ctx := c.Request.Context()
-
-	userID, err := uuid.FromBytes([]byte(c.Param("userID")))
-	if err != nil {
-		c.JSON(http.StatusNotAcceptable, gin.H{"error": err.Error()})
-	}
-
-	cartID, err := usecase.Cart.Create(ctx, userID)
-	if err != nil {
-		c.JSON(http.StatusInsufficientStorage, gin.H{"error": err.Error()})
-	}
-
-	c.JSON(http.StatusOK, cartID)
-}
-
-func (delivery *Delivery) AddItemToCart(c *gin.Context) {
-	delivery.logger.Debug("Enter in delivery AddItemToCart()")
-
-	if usecase.Cart == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": errors.New("cart object is nil")})
-	}
-	ctx := c.Request.Context()
-
-	cartID, err := uuid.FromBytes([]byte(c.Param("cartID")))
-	if err != nil {
-		c.JSON(http.StatusNotAcceptable, gin.H{"error": err.Error()})
-	}
-
-	itemID, err := uuid.FromBytes([]byte(c.Param("itemID")))
-	if err != nil {
-		c.JSON(http.StatusNotAcceptable, gin.H{"error": err.Error()})
-	}
-
-	err = usecase.Cart.AddItemToCart(ctx, cartID, itemID)
-	if err != nil {
-		c.JSON(http.StatusInsufficientStorage, gin.H{"error": err.Error()})
-	}
-
-	c.JSON(http.StatusOK, gin.H{})
-}
-
-func (delivery *Delivery) DeleteCart(c *gin.Context) {
-	delivery.logger.Debug("Enter in delivery DeleteCart()")
-
-	if usecase.Cart == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": errors.New("cart object is nil")})
-	}
-	ctx := c.Request.Context()
-
-	cartID, err := uuid.FromBytes([]byte(c.Param("cartID")))
-	if err != nil {
-		c.JSON(http.StatusNotAcceptable, gin.H{"error": err.Error()})
-	}
-
-	err = usecase.Cart.DeleteCart(ctx, cartID)
-	if err != nil {
-		c.JSON(http.StatusInsufficientStorage, gin.H{"error": err.Error()})
-	}
-
-	c.JSON(http.StatusOK, gin.H{})
-}
-
-func (delivery *Delivery) DeleteItemFromCart(c *gin.Context) {
-	delivery.logger.Debug("Enter in delivery AddItemToCart()")
-
-	if usecase.Cart == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": errors.New("cart object is nil")})
-	}
-	ctx := c.Request.Context()
-
-	cartID, err := uuid.FromBytes([]byte(c.Param("cartID")))
-	if err != nil {
-		c.JSON(http.StatusNotAcceptable, gin.H{"error": err.Error()})
-	}
-
-	itemID, err := uuid.FromBytes([]byte(c.Param("itemID")))
-	if err != nil {
-		c.JSON(http.StatusNotAcceptable, gin.H{"error": err.Error()})
-	}
-
-	err = usecase.Cart.DeleteItemFromCart(ctx, cartID, itemID)
-	if err != nil {
-		c.JSON(http.StatusInsufficientStorage, gin.H{"error": err.Error()})
-	}
-
 	c.JSON(http.StatusOK, gin.H{})
 }
