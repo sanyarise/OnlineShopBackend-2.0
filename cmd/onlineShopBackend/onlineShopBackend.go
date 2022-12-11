@@ -10,10 +10,12 @@ import (
 	"OnlineShopBackend/internal/filestorage"
 	"OnlineShopBackend/internal/handlers"
 	"OnlineShopBackend/internal/repository"
+	"OnlineShopBackend/internal/repository/cash"
 	"OnlineShopBackend/internal/usecase"
 	"context"
 	"log"
 	"os"
+	"time"
 )
 
 func main() {
@@ -28,15 +30,27 @@ func main() {
 		log.Fatal("can't initialize configuration")
 	}
 	logger := logger.NewLogger(cfg.LogLevel)
+	lsug := logger.Logger.Sugar()
 	l := logger.Logger
-	store, err := repository.NewPgrepo(cfg.DSN, l)
+	pgstore, err := repository.NewPgxStorage(ctx, lsug, cfg.DSN)
 	if err != nil {
 		log.Fatalf("can't initalize storage: %v", err)
 	}
-	usecase := usecase.NewStorage(store, store, l)
-	handlers := handlers.NewHandlers(usecase, l)
-	filestorage := filestorage.NewInMemoryStorage(cfg.FsPath)
-	delivery := delivery.NewDelivery(handlers, l, filestorage)
+	itemStore := repository.NewItemRepo(pgstore, lsug)
+	categoryStore := repository.NewCategoryRepo(pgstore, lsug)
+	cash, err := cash.NewRedisCash(cfg.CashHost, cfg.CashPort, time.Duration(cfg.CashTTL), l)
+	if err != nil {
+		log.Fatalf("can't initialize cash: %v", err)
+	}
+
+	itemUsecase := usecase.NewItemUsecase(itemStore, cash, l)
+	categoryUsecase := usecase.NewCategoryUsecase(categoryStore, l)
+
+	itemHandlers := handlers.NewItemHandlers(itemUsecase, l)
+	categoryHandlers := handlers.NewCategoryHandlers(categoryUsecase, l)
+
+	filestorage := filestorage.NewOnDiskLocalStorage(cfg.ServerURL, cfg.FsPath, l)
+	delivery := delivery.NewDelivery(itemHandlers, categoryHandlers, l, filestorage)
 	router := router.NewRouter(delivery, l)
 	server := server.NewServer(ctx, cfg.Port, router, l)
 	err = server.Start(ctx)

@@ -2,7 +2,7 @@ package usecase
 
 import (
 	"OnlineShopBackend/internal/models"
-	"OnlineShopBackend/internal/usecase/mocks"
+	"OnlineShopBackend/internal/repository/mocks"
 	"context"
 	"fmt"
 	"testing"
@@ -19,8 +19,7 @@ func TestCreateCategory(t *testing.T) {
 	ctx := context.Background()
 	logger := zap.L()
 	categoryRepo := mocks.NewMockCategoryStore(ctrl)
-	itemRepo := mocks.NewMockItemStore(ctrl)
-	usecase := NewStorage(itemRepo, categoryRepo, logger)
+	usecase := NewCategoryUsecase(categoryRepo, logger)
 
 	testModelCategory := &models.Category{
 		Name:        "test name",
@@ -45,8 +44,7 @@ func TestGetCategoryList(t *testing.T) {
 	ctx := context.Background()
 	logger := zap.L()
 	categoryRepo := mocks.NewMockCategoryStore(ctrl)
-	itemRepo := mocks.NewMockItemStore(ctrl)
-	usecase := NewStorage(itemRepo, categoryRepo, logger)
+	usecase := NewCategoryUsecase(categoryRepo, logger)
 	id, _ := uuid.Parse("feb77bbc-1b8a-4739-bd68-d3b052af9a80")
 	testModelCategory := models.Category{
 		Id:          id,

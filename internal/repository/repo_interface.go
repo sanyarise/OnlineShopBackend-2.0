@@ -21,6 +21,23 @@ type CategoryStore interface {
 }
 
 type UserStore interface {
-	Create(ctx context.Context, user *models.User) (uuid.UUID, error)
-	Get(ctx context.Context, email string) (models.User, error)
+	Create(ctx context.Context, user *models.User) (*models.User, error)
+	GetUserByEmail(ctx context.Context, email string) (models.User, error)
+}
+
+type CartStore interface {
+	Create(ctx context.Context, cart *models.Cart) (*models.Cart, error)
+	//? Maybe add to item
+	AddItemToCart(ctx context.Context, cart *models.Cart, item *models.Item) error
+	DeleteCart(cxt context.Context, cart *models.Cart) error
+	DeleteItemFromCart(ctx context.Context, cart *models.Cart, item *models.Item) error
+}
+
+type OrderStore interface {
+	Create(ctx context.Context, order *models.Order) (*models.Order, error)
+	DeleteOrder(ctx context.Context, order *models.Order) error
+	ChangeAddress(ctx context.Context, order *models.Order, address models.UserAddress) error
+	ChangeStatus(ctx context.Context, order *models.Order, status models.Status) error
+	GetOrderByID(ctx context.Context, id uuid.UUID) (models.Order, error)
+	GetOrdersForUser(ctx context.Context, user *models.User) (chan models.Order, error)
 }

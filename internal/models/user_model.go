@@ -9,13 +9,14 @@
 
 package models
 
+import "github.com/google/uuid"
+
 type User struct {
-	Firstname string      `json:"firstname,omitempty"`
-	Lastname  string      `json:"lastname,omitempty"`
+	ID        uuid.UUID
+	Firstname string `json:"firstname,omitempty"`
+	Lastname  string `json:"lastname,omitempty"`
+	Password  string
 	Email     string      `json:"email,omitempty"`
-	Password  string   `json:"password,omitempty"`
-	Zipcode   int64  `json:"zipcode,omitempty"`
-	Country   string `json:"country,omitempty"`
-	City      string `json:"city,omitempty"`
-	Street    string `json:"street,omitempty"`
+	Address   UserAddress `json:"address,omitempty"`
+	Rights    Rights
 }
