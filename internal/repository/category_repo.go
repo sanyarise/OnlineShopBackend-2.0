@@ -31,6 +31,7 @@ func (repo *categoryRepo) CreateCategory(ctx context.Context, category *models.C
 	values ($1, $2) RETURNING id`,
 		category.Name,
 		category.Description,
+		category.Image,
 	)
 	if err := row.Scan(&id); err != nil {
 		repo.logger.Errorf("can't scan %s", err)
@@ -39,6 +40,25 @@ func (repo *categoryRepo) CreateCategory(ctx context.Context, category *models.C
 
 	repo.logger.Debugf("id is %v\n", id)
 	return id, nil
+}
+
+func (repo *categoryRepo) GetCategory(ctx context.Context, id uuid.UUID) (*models.Category, error) {
+	repo.logger.Debug("Enter in repository GetCategory()")
+	category := models.Category{}
+	pool := repo.storage.GetPool()
+	row := pool.QueryRow(ctx,
+		`SELECT id, name, description, picture FROM categories WHERE id = $1`, id)
+	err := row.Scan(
+		&category.Id,
+		&category.Name,
+		&category.Description,
+		&category.Image,
+	)
+	if err != nil {
+		repo.logger.Errorf("error in rows scan get category by id: %s", err)
+		return &models.Category{}, fmt.Errorf("error in rows scan get category by id: %w", err)
+	}
+	return &category, nil
 }
 
 func (repo *categoryRepo) GetCategoryList(ctx context.Context) (chan models.Category, error) {
@@ -63,6 +83,7 @@ func (repo *categoryRepo) GetCategoryList(ctx context.Context) (chan models.Cate
 				&category.Id,
 				&category.Name,
 				&category.Description,
+				&category.Image,
 			); err != nil {
 				repo.logger.Error(err.Error())
 				return

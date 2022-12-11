@@ -43,7 +43,7 @@ func (delivery *Delivery) GetCategory(c *gin.Context) {
 	id := c.Param("categoryID")
 	delivery.logger.Debug(fmt.Sprintf("Category id from request is %v", id))
 	ctx := c.Request.Context()
-	category, err := delivery.itemHandlers.GetCategory(ctx, id)
+	category, err := delivery.categoryHandlers.GetCategory(ctx, id)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

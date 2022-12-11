@@ -25,7 +25,8 @@ CREATE TABLE users (
 CREATE TABLE categories (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(256) NOT NULL UNIQUE, 
-    description TEXT NOT NULL
+    description TEXT NOT NULL,
+    picture TEXT
 );
 
 

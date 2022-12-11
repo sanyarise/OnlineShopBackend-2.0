@@ -31,6 +31,16 @@ func (usecase *CategoryUsecase) CreateCategory(ctx context.Context, category *mo
 	return id, nil
 }
 
+// GetCategory call database and returns *models.Category with given id or returns error
+func (usecase *CategoryUsecase) GetCategory(ctx context.Context, id uuid.UUID) (*models.Category, error) {
+	usecase.logger.Debug("Enter in usecase GetCategory()")
+	category, err := usecase.categoryStore.GetCategory(ctx, id)
+	if err != nil {
+		return &models.Category{}, fmt.Errorf("error on get category: %w", err)
+	}
+	return category, nil
+}
+
 // GetCategoryList call database method and returns chan with all models.Category or error
 func (usecase *CategoryUsecase) GetCategoryList(ctx context.Context) (chan models.Category, error) {
 	usecase.logger.Debug("Enter in usecase GetCategoryList()")

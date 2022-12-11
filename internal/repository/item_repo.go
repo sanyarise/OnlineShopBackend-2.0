@@ -69,13 +69,14 @@ func (repo *itemRepo) GetItem(ctx context.Context, id uuid.UUID) (*models.Item, 
 	item := models.Item{}
 	pool := repo.storage.GetPool()
 	row := pool.QueryRow(ctx,
-		`SELECT items.id, items.name, category, categories.name, categories.description, items.description, price, vendor, pictures FROM items INNER JOIN categories ON category=categories.id and items.id = $1`, id)
+		`SELECT items.id, items.name, category, categories.name, categories.description, categories.picture, items.description, price, vendor, pictures FROM items INNER JOIN categories ON category=categories.id and items.id = $1`, id)
 	err := row.Scan(
 		&item.Id,
 		&item.Title,
 		&item.Category.Id,
 		&item.Category.Name,
 		&item.Category.Description,
+		&item.Category.Image,
 		&item.Description,
 		&item.Price,
 		&item.Vendor,
@@ -96,7 +97,7 @@ func (repo *itemRepo) ItemsList(ctx context.Context) (chan models.Item, error) {
 
 		pool := repo.storage.GetPool()
 		rows, err := pool.Query(ctx, `
-		SELECT items.id, items.name, category, categories.name, categories.description, items.description, price, vendor, pictures FROM items INNER JOIN categories ON category=categories.id`)
+		SELECT items.id, items.name, category, categories.name, categories.description, categories.picture, items.description, price, vendor, pictures FROM items INNER JOIN categories ON category=categories.id`)
 		if err != nil {
 			msg := fmt.Errorf("error on items list query context: %w", err)
 			repo.logger.Error(msg.Error())
@@ -111,6 +112,7 @@ func (repo *itemRepo) ItemsList(ctx context.Context) (chan models.Item, error) {
 				&item.Category.Id,
 				&item.Category.Name,
 				&item.Category.Description,
+				&item.Category.Image,
 				&item.Description,
 				&item.Price,
 				&item.Vendor,
@@ -133,7 +135,7 @@ func (repo *itemRepo) SearchLine(ctx context.Context, param string) (chan models
 		item := &models.Item{}
 		pool := repo.storage.GetPool()
 		rows, err := pool.Query(ctx, `
-		SELECT items.id, items.name, category, categories.name, categories.description, items.description, price, vendor, pictures FROM items INNER JOIN categories ON category=categories.id WHERE items.name LIKE $1 OR items.description LIKE $1 OR vendor LIKE $1 OR categories.name LIKE $1`,
+		SELECT items.id, items.name, category, categories.name, categories.description,categories.picture, items.description, price, vendor, pictures FROM items INNER JOIN categories ON category=categories.id WHERE items.name LIKE $1 OR items.description LIKE $1 OR vendor LIKE $1 OR categories.name LIKE $1`,
 			"%"+param+"%")
 		if err != nil {
 			msg := fmt.Errorf("error on search line query context: %w", err)
@@ -149,6 +151,7 @@ func (repo *itemRepo) SearchLine(ctx context.Context, param string) (chan models
 				&item.Category.Id,
 				&item.Category.Name,
 				&item.Category.Description,
+				&item.Category.Image,
 				&item.Description,
 				&item.Price,
 				&item.Vendor,
@@ -157,7 +160,7 @@ func (repo *itemRepo) SearchLine(ctx context.Context, param string) (chan models
 				repo.logger.Error(err.Error())
 				return
 			}
-			repo.logger.Info(fmt.Sprintf("find item: %v",item))
+			repo.logger.Info(fmt.Sprintf("find item: %v", item))
 			itemChan <- *item
 		}
 	}()

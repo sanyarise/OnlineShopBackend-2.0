@@ -18,6 +18,7 @@ type ItemStore interface {
 type CategoryStore interface {
 	CreateCategory(ctx context.Context, category *models.Category) (uuid.UUID, error)
 	GetCategoryList(ctx context.Context) (chan models.Category, error)
+	GetCategory(ctx context.Context, id uuid.UUID) (*models.Category, error)
 }
 
 type UserStore interface {

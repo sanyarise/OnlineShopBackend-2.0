@@ -17,5 +17,6 @@ type IItemHandlers interface {
 
 type ICategoryHandlers interface {
 	CreateCategory(ctx context.Context, category Category) (uuid.UUID, error)
+	GetCategory(ctx context.Context, id string) (Category, error)
 	GetCategoryList(ctx context.Context) ([]Category, error)
 }
