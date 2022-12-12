@@ -66,6 +66,21 @@ func (mr *MockIItemHandlersMockRecorder) GetItem(ctx, id interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetItem", reflect.TypeOf((*MockIItemHandlers)(nil).GetItem), ctx, id)
 }
 
+// GetItemsByCategory mocks base method.
+func (m *MockIItemHandlers) GetItemsByCategory(ctx context.Context, categoryName string, offset, limit int) ([]handlers.Item, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetItemsByCategory", ctx, categoryName, offset, limit)
+	ret0, _ := ret[0].([]handlers.Item)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetItemsByCategory indicates an expected call of GetItemsByCategory.
+func (mr *MockIItemHandlersMockRecorder) GetItemsByCategory(ctx, categoryName, offset, limit interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetItemsByCategory", reflect.TypeOf((*MockIItemHandlers)(nil).GetItemsByCategory), ctx, categoryName, offset, limit)
+}
+
 // ItemsList mocks base method.
 func (m *MockIItemHandlers) ItemsList(ctx context.Context, offset, limit int) ([]handlers.Item, error) {
 	m.ctrl.T.Helper()
@@ -97,18 +112,18 @@ func (mr *MockIItemHandlersMockRecorder) ItemsQuantity(ctx interface{}) *gomock.
 }
 
 // SearchLine mocks base method.
-func (m *MockIItemHandlers) SearchLine(ctx context.Context, param string) ([]handlers.Item, error) {
+func (m *MockIItemHandlers) SearchLine(ctx context.Context, param string, offset, limit int) ([]handlers.Item, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SearchLine", ctx, param)
+	ret := m.ctrl.Call(m, "SearchLine", ctx, param, offset, limit)
 	ret0, _ := ret[0].([]handlers.Item)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // SearchLine indicates an expected call of SearchLine.
-func (mr *MockIItemHandlersMockRecorder) SearchLine(ctx, param interface{}) *gomock.Call {
+func (mr *MockIItemHandlersMockRecorder) SearchLine(ctx, param, offset, limit interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchLine", reflect.TypeOf((*MockIItemHandlers)(nil).SearchLine), ctx, param)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchLine", reflect.TypeOf((*MockIItemHandlers)(nil).SearchLine), ctx, param, offset, limit)
 }
 
 // UpdateItem mocks base method.
@@ -163,6 +178,21 @@ func (mr *MockICategoryHandlersMockRecorder) CreateCategory(ctx, category interf
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateCategory", reflect.TypeOf((*MockICategoryHandlers)(nil).CreateCategory), ctx, category)
 }
 
+// GetCategory mocks base method.
+func (m *MockICategoryHandlers) GetCategory(ctx context.Context, id string) (handlers.Category, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCategory", ctx, id)
+	ret0, _ := ret[0].(handlers.Category)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetCategory indicates an expected call of GetCategory.
+func (mr *MockICategoryHandlersMockRecorder) GetCategory(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCategory", reflect.TypeOf((*MockICategoryHandlers)(nil).GetCategory), ctx, id)
+}
+
 // GetCategoryList mocks base method.
 func (m *MockICategoryHandlers) GetCategoryList(ctx context.Context) ([]handlers.Category, error) {
 	m.ctrl.T.Helper()
@@ -176,4 +206,18 @@ func (m *MockICategoryHandlers) GetCategoryList(ctx context.Context) ([]handlers
 func (mr *MockICategoryHandlersMockRecorder) GetCategoryList(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCategoryList", reflect.TypeOf((*MockICategoryHandlers)(nil).GetCategoryList), ctx)
+}
+
+// UpdateCategory mocks base method.
+func (m *MockICategoryHandlers) UpdateCategory(ctx context.Context, category handlers.Category) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateCategory", ctx, category)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateCategory indicates an expected call of UpdateCategory.
+func (mr *MockICategoryHandlersMockRecorder) UpdateCategory(ctx, category interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateCategory", reflect.TypeOf((*MockICategoryHandlers)(nil).UpdateCategory), ctx, category)
 }

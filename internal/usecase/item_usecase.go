@@ -179,7 +179,7 @@ func (usecase *ItemUsecase) SearchLine(ctx context.Context, param string, offset
 func (usecase *ItemUsecase) GetItemsByCategory(ctx context.Context, categoryName string, offset, limit int) ([]models.Item, error) {
 	usecase.logger.Debug("Enter in usecase GetItemsByCategory()")
 	if ok := usecase.itemCash.CheckCash(ctx, categoryName); !ok {
-		itemIncomingChan, err := usecase.itemStore.SearchLine(ctx, categoryName)
+		itemIncomingChan, err := usecase.itemStore.GetItemsByCategory(ctx, categoryName)
 		if err != nil {
 			return nil, err
 		}
