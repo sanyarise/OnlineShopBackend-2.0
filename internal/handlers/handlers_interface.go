@@ -12,8 +12,8 @@ type IItemHandlers interface {
 	GetItem(ctx context.Context, id string) (Item, error)
 	ItemsList(ctx context.Context, offset, limit int) ([]Item, error)
 	ItemsQuantity(ctx context.Context) (int, error)
-	SearchLine(ctx context.Context, param string) ([]Item, error)
-	GetItemsByCategory(ctx context.Context, categoryName string) ([]Item, error)
+	SearchLine(ctx context.Context, param string, offset, limit int) ([]Item, error)
+	GetItemsByCategory(ctx context.Context, categoryName string, offset, limit int) ([]Item, error)
 }
 
 type ICategoryHandlers interface {

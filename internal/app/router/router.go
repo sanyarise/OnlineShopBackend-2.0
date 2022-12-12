@@ -103,9 +103,9 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 			delivery.GetItem,
 		},
 		{
-			"GetItemsByCategory",
+			"GetItemsByCategory", 
 			http.MethodGet,
-			"/items/:categoryName",
+			"/items/", //?param=categoryName&offset=20&limit=10
 			delivery.GetItemsByCategory,
 		},
 		{
@@ -141,7 +141,7 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 		{
 			"SearchLine",
 			http.MethodGet,
-			"/items/search/:searchRequest", //?offset=20&limit=10
+			"/items/search/", //?param=searchRequest&offset=20&limit=10
 			delivery.SearchLine,
 		},
 		{

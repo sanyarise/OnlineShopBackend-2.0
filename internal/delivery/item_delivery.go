@@ -26,6 +26,12 @@ type Options struct {
 	Limit  int `form:"limit"`
 }
 
+type SearchOptions struct {
+	Param string `form:"param"`
+	Offset int `form:"offset"`
+	Limit int `form:"limit"`
+}
+
 type ImageOptions struct {
 	Id   string `form:"id"`
 	Name string `form:"name"`
@@ -128,12 +134,27 @@ func (delivery *Delivery) ItemsQuantity(c *gin.Context) {
 // SearchLine - returns list of items with parameters
 func (delivery *Delivery) SearchLine(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery SearchLine()")
-	param := c.Param("searchRequest")
-	if param == "" {
+	
+	var options SearchOptions
+	err := c.Bind(&options)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if options.Param == "" {
 		delivery.logger.Sugar().Error("empty search request")
 		c.JSON(http.StatusBadRequest, gin.H{})
+		return
 	}
-	list, err := delivery.itemHandlers.SearchLine(c.Request.Context(), param)
+
+	delivery.logger.Debug(fmt.Sprintf("options is %v", options))
+
+	if options.Limit == 0 {
+		options.Limit = 10
+	}
+
+	delivery.logger.Debug("options limit is set in default value: 10")
+	list, err := delivery.itemHandlers.SearchLine(c.Request.Context(), options.Param, options.Offset, options.Limit)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -143,12 +164,27 @@ func (delivery *Delivery) SearchLine(c *gin.Context) {
 // GetItemsByCategory returns list of items in category
 func (delivery *Delivery) GetItemsByCategory(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery GetItemsByCategory()")
-	categoryName := c.Param("categoryName")
-	if categoryName == "" {
+	var options SearchOptions
+	err := c.Bind(&options)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if options.Param == "" {
 		delivery.logger.Sugar().Error("empty category name")
 		c.JSON(http.StatusBadRequest, gin.H{})
+		return
 	}
-	items, err := delivery.itemHandlers.GetItemsByCategory(c.Request.Context(), categoryName)
+
+	delivery.logger.Debug(fmt.Sprintf("options is %v", options))
+
+	if options.Limit == 0 {
+		options.Limit = 10
+	}
+
+	delivery.logger.Debug("options limit is set in default value: 10")
+
+	items, err := delivery.itemHandlers.GetItemsByCategory(c.Request.Context(), options.Param ,options.Offset, options.Limit)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
