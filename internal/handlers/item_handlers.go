@@ -185,7 +185,7 @@ func (handlers *ItemHandlers) SearchLine(ctx context.Context, param string, offs
 	return res, nil
 }
 
-// SearchLine returns list of Items in category
+// GetItemsByCategory returns list of Items in category
 func (handlers *ItemHandlers) GetItemsByCategory(ctx context.Context, categoryName string, offset, limit int) ([]Item, error) {
 	handlers.logger.Debug("Enter in handlers GetItemsByCategory()")
 	res := make([]Item, 0, limit)
