@@ -143,6 +143,7 @@ func (handlers *ItemHandlers) ItemsList(ctx context.Context, offset, limit int) 
 			Price:       item.Price,
 			Category:    handlersCategory,
 			Vendor:      item.Vendor,
+			Images:      item.Images,
 		})
 	}
 	return res, nil
@@ -180,6 +181,7 @@ func (handlers *ItemHandlers) SearchLine(ctx context.Context, param string, offs
 			Price:       item.Price,
 			Category:    handlersCategory,
 			Vendor:      item.Vendor,
+			Images:      item.Images,
 		})
 	}
 	return res, nil
@@ -208,6 +210,7 @@ func (handlers *ItemHandlers) GetItemsByCategory(ctx context.Context, categoryNa
 			Price:       item.Price,
 			Category:    handlersCategory,
 			Vendor:      item.Vendor,
+			Images:      item.Images,
 		})
 	}
 	return res, nil

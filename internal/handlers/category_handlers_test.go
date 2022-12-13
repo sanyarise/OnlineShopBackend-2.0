@@ -135,10 +135,11 @@ func TestGetCategoryList(t *testing.T) {
 	expect2 := make([]Category, 0, 100)
 	require.Error(t, err)
 	require.Equal(t, res, expect2)
-	ctx, _ = context.WithDeadline(context.Background(), <-time.After(1*time.Microsecond))
+	ctx, cancel := context.WithDeadline(context.Background(), <-time.After(1*time.Microsecond))
 	expect = make([]Category, 0, 100)
 	usecase.EXPECT().GetCategoryList(ctx).Return(testChan2, nil)
 	res, err = handlers.GetCategoryList(ctx)
 	require.Error(t, err)
 	require.Equal(t, res, expect)
+	cancel()
 }

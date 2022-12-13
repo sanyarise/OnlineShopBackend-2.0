@@ -111,6 +111,8 @@ func (usecase *ItemUsecase) ItemsList(ctx context.Context, offset, limit int) ([
 	return itemsWithLimit, nil
 }
 
+// ItemsQuantity check cash and if cash not exists call database
+// method and write in cash and returns quantity of all items
 func (usecase *ItemUsecase) ItemsQuantity(ctx context.Context) (int, error) {
 	usecase.logger.Debug("Enter in usecase ItemsQuantity()")
 	if ok := usecase.itemCash.CheckCash(ctx, itemsQuantityKey); !ok {
@@ -213,7 +215,7 @@ func (usecase *ItemUsecase) GetItemsByCategory(ctx context.Context, categoryName
 	return itemsWithLimit, nil
 }
 
-// updateCash updating cash when creating or updating item
+// UpdateCash updating cash when creating or updating item
 func (usecase *ItemUsecase) UpdateCash(ctx context.Context, id uuid.UUID, op string) error {
 	usecase.logger.Debug("Enter in usecase UpdateCash()")
 	if !usecase.itemCash.CheckCash(ctx, itemsListKey) {

@@ -21,8 +21,8 @@ var (
 		Id: testId,
 	}
 	emptyCategory = &models.Category{}
-	testId   = uuid.New()
-	testChan = make(chan models.Category, 2)
+	testId        = uuid.New()
+	testChan      = make(chan models.Category, 2)
 )
 
 func TestCreateCategory(t *testing.T) {

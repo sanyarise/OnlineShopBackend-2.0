@@ -31,7 +31,7 @@ func (imagestorage *OnDiskLocalStorage) PutItemImage(id string, filename string,
 	imagestorage.logger.Debug("Enter in filestorage PutItemImage()")
 	_, err = os.Stat(imagestorage.path + "items/" + id)
 	if os.IsNotExist(err) {
-		err = os.Mkdir(imagestorage.path+id, 0700)
+		err = os.Mkdir(imagestorage.path + "items/" + id, 0700)
 		if err != nil {
 			imagestorage.logger.Debug(fmt.Sprintf("error on create dir for save image %v", err))
 			return "", fmt.Errorf("error on create dir for save image: %w", err)

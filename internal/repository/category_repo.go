@@ -31,8 +31,8 @@ func (repo *categoryRepo) CreateCategory(ctx context.Context, category *models.C
 	default:
 		var id uuid.UUID
 		pool := repo.storage.GetPool()
-		row := pool.QueryRow(ctx, `INSERT INTO categories(name, description)
-	values ($1, $2) RETURNING id`,
+		row := pool.QueryRow(ctx, `INSERT INTO categories(name, description, picture)
+	values ($1, $2, $3) RETURNING id`,
 			category.Name,
 			category.Description,
 			category.Image,
@@ -105,7 +105,7 @@ func (repo *categoryRepo) GetCategoryList(ctx context.Context) (chan models.Cate
 
 			pool := repo.storage.GetPool()
 			rows, err := pool.Query(ctx, `
-		SELECT id, name, description FROM categories`)
+		SELECT id, name, description, picture FROM categories`)
 			if err != nil {
 				msg := fmt.Errorf("error on categories list query context: %w", err)
 				repo.logger.Error(msg.Error())

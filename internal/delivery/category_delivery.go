@@ -111,6 +111,7 @@ func (delivery *Delivery) UploadCategoryImage(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"status": "upload image success"})
 }
 
+// DeleteCategoryImage delete category image
 func (delivery *Delivery) DeleteCategoryImage(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery DeleteCategoryImage()")
 	var imageOptions ImageOptions

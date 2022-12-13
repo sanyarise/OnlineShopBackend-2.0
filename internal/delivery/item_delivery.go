@@ -27,9 +27,9 @@ type Options struct {
 }
 
 type SearchOptions struct {
-	Param string `form:"param"`
-	Offset int `form:"offset"`
-	Limit int `form:"limit"`
+	Param  string `form:"param"`
+	Offset int    `form:"offset"`
+	Limit  int    `form:"limit"`
 }
 
 type ImageOptions struct {
@@ -106,10 +106,19 @@ func (delivery *Delivery) ItemsList(c *gin.Context) {
 	delivery.logger.Debug(fmt.Sprintf("options is %v", options))
 
 	if options.Limit == 0 {
-		options.Limit = 10
+		quantity, err := delivery.itemHandlers.ItemsQuantity(c.Request.Context())
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		if quantity < 100 {
+			options.Limit = quantity
+		} else {
+			options.Limit = 20
+		}
 	}
 
-	delivery.logger.Debug("options limit is set in default value: 10")
+	delivery.logger.Debug("options limit is set in default value")
 
 	list, err := delivery.itemHandlers.ItemsList(c.Request.Context(), options.Offset, options.Limit)
 	if err != nil {
@@ -119,6 +128,7 @@ func (delivery *Delivery) ItemsList(c *gin.Context) {
 	c.JSON(http.StatusOK, list)
 }
 
+// ItemsQuantity returns quantity of all items
 func (delivery *Delivery) ItemsQuantity(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery ItemsQuantity()")
 	ctx := c.Request.Context()
@@ -134,7 +144,7 @@ func (delivery *Delivery) ItemsQuantity(c *gin.Context) {
 // SearchLine - returns list of items with parameters
 func (delivery *Delivery) SearchLine(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery SearchLine()")
-	
+
 	var options SearchOptions
 	err := c.Bind(&options)
 	if err != nil {
@@ -161,6 +171,7 @@ func (delivery *Delivery) SearchLine(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, list)
 }
+
 // GetItemsByCategory returns list of items in category
 func (delivery *Delivery) GetItemsByCategory(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery GetItemsByCategory()")
@@ -184,7 +195,7 @@ func (delivery *Delivery) GetItemsByCategory(c *gin.Context) {
 
 	delivery.logger.Debug("options limit is set in default value: 10")
 
-	items, err := delivery.itemHandlers.GetItemsByCategory(c.Request.Context(), options.Param ,options.Offset, options.Limit)
+	items, err := delivery.itemHandlers.GetItemsByCategory(c.Request.Context(), options.Param, options.Offset, options.Limit)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -243,6 +254,7 @@ func (delivery *Delivery) UploadItemImage(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"status": "upload image success"})
 }
 
+// DeleteItemImage delete an item image
 func (delivery *Delivery) DeleteItemImage(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery DeleteItemImage()")
 	var imageOptions ImageOptions

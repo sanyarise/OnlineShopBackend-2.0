@@ -115,13 +115,13 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 			delivery.UpdateItem,
 		},
 		{
-			"UploadImage",
+			"UploadItemImage",
 			http.MethodPost,
 			"/items/image/upload/:itemID",
 			delivery.UploadItemImage,
 		},
 		{
-			"DeleteImage",
+			"DeleteItemImage",
 			http.MethodDelete,
 			"/items/image/delete", //?id=25f32441-587a-452d-af8c-b3876ae29d45&name=20221209194557.jpeg
 			delivery.DeleteItemImage,
