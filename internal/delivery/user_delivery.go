@@ -35,6 +35,12 @@ func (delivery *Delivery) CreateUser(c *gin.Context) {
 		return
 	}
 
+	// Check if this a new user
+	if _, err := delivery.userHandlers.GetUserByEmail(ctx, deliveryUser.Email); err != nil {
+		return
+	}
+
+
 	if err := validationCheck(deliveryUser); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

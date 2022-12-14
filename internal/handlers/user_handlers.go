@@ -40,6 +40,9 @@ func NewUserHandlers(usecase usecase.IUserUsecase, logger *zap.Logger) *UserHand
 func (handlers *UserHandlers) CreateUser(ctx context.Context, user User) (uuid.UUID, error) {
 	handlers.logger.Debug("Enter in handlers CreateItem()")
 	rights, err := handlers.usecase.GetRightsId(ctx, models.Customer)
+	if err != nil {
+		return uuid.Nil, err
+	}
 	newUser := &models.User{
 		Firstname: user.FirstName,
 		Lastname:  user.LastName,
@@ -59,3 +62,12 @@ func (handlers *UserHandlers) CreateUser(ctx context.Context, user User) (uuid.U
 	return id, nil
 
 }
+
+func (handlers *UserHandlers) GetUserByEmail(ctx context.Context, email string) (*models.User, error) {
+	user, err := handlers.usecase.GetUserByEmail(ctx, email)
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+

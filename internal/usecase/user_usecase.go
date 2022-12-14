@@ -22,7 +22,6 @@ func NewUserUsecase(userStore repository.UserStore, logger *zap.Logger) IUserUse
 
 func (usecase *UserUsecase) CreateUser(ctx context.Context, user *models.User) (uuid.UUID, error) {
 	usecase.logger.Debug("Enter in usecase CreateUser()")
-	//Create a user with Right name "USER"
 
 	id, err := usecase.userStore.Create(ctx, user)
 	if err != nil {

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"OnlineShopBackend/internal/models"
 	"context"
 
 	"github.com/google/uuid"
@@ -22,4 +23,5 @@ type ICategoryHandlers interface {
 
 type IUserHandlers interface {
 	CreateUser(ctx context.Context, user User) (uuid.UUID, error)
+	GetUserByEmail(ctx context.Context, email string) (*models.User, error)
 }
