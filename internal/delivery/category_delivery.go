@@ -45,11 +45,14 @@ func (delivery *Delivery) CreateCategory(c *gin.Context) {
 func (delivery *Delivery) UpdateCategory(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery UpdateCategory()")
 	ctx := c.Request.Context()
+	id := c.Param("categoryID")
+	delivery.logger.Debug(fmt.Sprintf("Category id from request is %v", id))
 	var deliveryCategory handlers.Category
 	if err := c.ShouldBindJSON(&deliveryCategory); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	deliveryCategory.Id = id
 	err := delivery.categoryHandlers.UpdateCategory(ctx, deliveryCategory)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

@@ -75,7 +75,7 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 		{
 			"UpdateCategory",
 			http.MethodPut,
-			"/categories/update",
+			"/categories/:categoryID",
 			delivery.UpdateCategory,
 		},
 		{
