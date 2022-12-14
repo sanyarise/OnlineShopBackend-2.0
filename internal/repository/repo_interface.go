@@ -13,10 +13,13 @@ type ItemStore interface {
 	GetItem(ctx context.Context, id uuid.UUID) (*models.Item, error)
 	ItemsList(ctx context.Context) (chan models.Item, error)
 	SearchLine(ctx context.Context, param string) (chan models.Item, error)
+	GetItemsByCategory(ctx context.Context, categoryName string) (chan models.Item, error)
 }
 
 type CategoryStore interface {
 	CreateCategory(ctx context.Context, category *models.Category) (uuid.UUID, error)
+	UpdateCategory(ctx context.Context, category *models.Category) error
+	GetCategory(ctx context.Context, id uuid.UUID) (*models.Category, error)
 	GetCategoryList(ctx context.Context) (chan models.Category, error)
 }
 

@@ -80,10 +80,10 @@ func (usecase *ItemUsecase) ItemsList(ctx context.Context, offset, limit int) ([
 		}
 		items := make([]models.Item, 0, 100)
 		for item := range itemIncomingChan {
+			usecase.logger.Debug(fmt.Sprintf("item from channel is: %v", item))
 			items = append(items, item)
 		}
-		usecase.logger.Debug(fmt.Sprintf("items is: %v", items))
-		err = usecase.itemCash.CreateItemsListCash(ctx, items, itemsListKey)
+		err = usecase.itemCash.CreateItemsCash(ctx, items, itemsListKey)
 		if err != nil {
 			return nil, fmt.Errorf("error on create items list cash: %w", err)
 		}
@@ -92,7 +92,7 @@ func (usecase *ItemUsecase) ItemsList(ctx context.Context, offset, limit int) ([
 			return nil, fmt.Errorf("error on create items quantity cash: %w", err)
 		}
 	}
-	items, err := usecase.itemCash.GetItemsListCash(ctx, itemsListKey)
+	items, err := usecase.itemCash.GetItemsCash(ctx, itemsListKey)
 	if err != nil {
 		return nil, fmt.Errorf("error on get cash: %w", err)
 	}
@@ -111,6 +111,8 @@ func (usecase *ItemUsecase) ItemsList(ctx context.Context, offset, limit int) ([
 	return itemsWithLimit, nil
 }
 
+// ItemsQuantity check cash and if cash not exists call database
+// method and write in cash and returns quantity of all items
 func (usecase *ItemUsecase) ItemsQuantity(ctx context.Context) (int, error) {
 	usecase.logger.Debug("Enter in usecase ItemsQuantity()")
 	if ok := usecase.itemCash.CheckCash(ctx, itemsQuantityKey); !ok {
@@ -120,7 +122,7 @@ func (usecase *ItemUsecase) ItemsQuantity(ctx context.Context) (int, error) {
 				return -1, fmt.Errorf("error on create items list: %w", err)
 			}
 		} else {
-			items, err := usecase.itemCash.GetItemsListCash(ctx, itemsListKey)
+			items, err := usecase.itemCash.GetItemsCash(ctx, itemsListKey)
 			if err != nil {
 				return -1, fmt.Errorf("error on get items list cash: %w", err)
 			}
@@ -138,31 +140,82 @@ func (usecase *ItemUsecase) ItemsQuantity(ctx context.Context) (int, error) {
 }
 
 // SearchLine call database method and returns chan with all models.Item with given params or error
-func (usecase *ItemUsecase) SearchLine(ctx context.Context, param string) (chan models.Item, error) {
+func (usecase *ItemUsecase) SearchLine(ctx context.Context, param string, offset, limit int) ([]models.Item, error) {
 	usecase.logger.Debug("Enter in usecase SearchLine()")
-	itemIncomingChan, err := usecase.itemStore.SearchLine(ctx, param)
-	if err != nil {
-		return nil, err
-	}
-	itemOutChan := make(chan models.Item, 100)
-	go func() {
-		defer close(itemOutChan)
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			case item, ok := <-itemIncomingChan:
-				if !ok {
-					return
-				}
-				itemOutChan <- item
-			}
+	if ok := usecase.itemCash.CheckCash(ctx, param); !ok {
+		itemIncomingChan, err := usecase.itemStore.SearchLine(ctx, param)
+		if err != nil {
+			return nil, err
 		}
-	}()
-	return itemOutChan, nil
+		items := make([]models.Item, 0, 100)
+		for item := range itemIncomingChan {
+			usecase.logger.Debug(fmt.Sprintf("item from channel is: %v", item))
+			items = append(items, item)
+		}
+		err = usecase.itemCash.CreateItemsCash(ctx, items, param)
+		if err != nil {
+			return nil, fmt.Errorf("error on create search list cash: %w", err)
+		}
+	}
+
+	items, err := usecase.itemCash.GetItemsCash(ctx, param)
+	if err != nil {
+		return nil, fmt.Errorf("error on get cash: %w", err)
+	}
+	if offset > len(items) {
+		return nil, fmt.Errorf("error: offset bigger than lenght of items, offset: %d, lenght of items: %d", offset, len(items))
+	}
+	itemsWithLimit := make([]models.Item, 0, limit)
+	var counter = 0
+	for i := offset; i < len(items); i++ {
+		if counter == limit {
+			break
+		}
+		itemsWithLimit = append(itemsWithLimit, items[i])
+		counter++
+	}
+	return itemsWithLimit, nil
 }
 
-// updateCash updating cash when creating or updating item
+// GetItemsByCategory call database method and returns chan with all models.Item in category or error
+func (usecase *ItemUsecase) GetItemsByCategory(ctx context.Context, categoryName string, offset, limit int) ([]models.Item, error) {
+	usecase.logger.Debug("Enter in usecase GetItemsByCategory()")
+	if ok := usecase.itemCash.CheckCash(ctx, categoryName); !ok {
+		itemIncomingChan, err := usecase.itemStore.GetItemsByCategory(ctx, categoryName)
+		if err != nil {
+			return nil, err
+		}
+		items := make([]models.Item, 0, 100)
+		for item := range itemIncomingChan {
+			usecase.logger.Debug(fmt.Sprintf("item from channel is: %v", item))
+			items = append(items, item)
+		}
+		err = usecase.itemCash.CreateItemsCash(ctx, items, categoryName)
+		if err != nil {
+			return nil, fmt.Errorf("error on create search list cash: %w", err)
+		}
+	}
+
+	items, err := usecase.itemCash.GetItemsCash(ctx, categoryName)
+	if err != nil {
+		return nil, fmt.Errorf("error on get cash: %w", err)
+	}
+	if offset > len(items) {
+		return nil, fmt.Errorf("error: offset bigger than lenght of items, offset: %d, lenght of items: %d", offset, len(items))
+	}
+	itemsWithLimit := make([]models.Item, 0, limit)
+	var counter = 0
+	for i := offset; i < len(items); i++ {
+		if counter == limit {
+			break
+		}
+		itemsWithLimit = append(itemsWithLimit, items[i])
+		counter++
+	}
+	return itemsWithLimit, nil
+}
+
+// UpdateCash updating cash when creating or updating item
 func (usecase *ItemUsecase) UpdateCash(ctx context.Context, id uuid.UUID, op string) error {
 	usecase.logger.Debug("Enter in usecase UpdateCash()")
 	if !usecase.itemCash.CheckCash(ctx, itemsListKey) {
@@ -172,7 +225,7 @@ func (usecase *ItemUsecase) UpdateCash(ctx context.Context, id uuid.UUID, op str
 	if err != nil {
 		return fmt.Errorf("error on get item: %w", err)
 	}
-	items, err := usecase.itemCash.GetItemsListCash(ctx, itemsListKey)
+	items, err := usecase.itemCash.GetItemsCash(ctx, itemsListKey)
 	if err != nil {
 		return fmt.Errorf("error on get cash: %w", err)
 	}
@@ -192,5 +245,5 @@ func (usecase *ItemUsecase) UpdateCash(ctx context.Context, id uuid.UUID, op str
 		}
 	}
 
-	return usecase.itemCash.CreateItemsListCash(ctx, items, itemsListKey)
+	return usecase.itemCash.CreateItemsCash(ctx, items, itemsListKey)
 }

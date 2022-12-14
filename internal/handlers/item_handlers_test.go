@@ -75,6 +75,10 @@ var (
 		Vendor:      "TestVendor",
 	}
 	testParam = "est"
+	testSlice = []models.Item{*testModelItemWithId}
+	testSlice2 = []Item{testHandlersItemWithId}
+	emptyHandlersSlice = []Item{}
+	emptyModelsSlice = []models.Item{}
 )
 
 func TestCreateItem(t *testing.T) {
@@ -206,21 +210,36 @@ func TestSearchLine(t *testing.T) {
 	usecase := mocks.NewMockIItemUsecase(ctrl)
 	handlers := NewItemHandlers(usecase, logger)
 
-	testChan := make(chan models.Item, 1)
-	testChan <- *testModelItemWithId
-	close(testChan)
-	testSlice := make([]Item, 0, 100)
-	testSlice = append(testSlice, testHandlersItemWithId)
-	usecase.EXPECT().SearchLine(ctx, testParam).Return(testChan, nil)
-	res, err := handlers.SearchLine(ctx, testParam)
+	usecase.EXPECT().SearchLine(ctx, testParam, 0, 1).Return(testSlice, nil)
+	res, err := handlers.SearchLine(ctx, testParam, 0, 1)
 	require.NoError(t, err)
 	require.NotNil(t, res)
-	require.Equal(t, res, testSlice)
+	require.Equal(t, res, testSlice2)
 
 	err = fmt.Errorf("error on search line()")
-	testSlice2 := make([]Item, 0, 100)
-	usecase.EXPECT().SearchLine(ctx, testParam).Return(testChan, err)
-	res, err = handlers.SearchLine(ctx, testParam)
+	usecase.EXPECT().SearchLine(ctx, testParam, 0, 1).Return(emptyModelsSlice, err)
+	res, err = handlers.SearchLine(ctx, testParam, 0, 1)
 	require.Error(t, err)
+	require.Equal(t, res, emptyHandlersSlice)
+}
+
+func TestGetItemsByCategory(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	ctx := context.Background()
+	logger := zap.L()
+	usecase := mocks.NewMockIItemUsecase(ctrl)
+	handlers := NewItemHandlers(usecase, logger)
+
+	usecase.EXPECT().GetItemsByCategory(ctx, testParam, 0, 1).Return(testSlice, nil)
+	res, err := handlers.GetItemsByCategory(ctx, testParam, 0, 1)
+	require.NoError(t, err)
+	require.NotNil(t, res)
 	require.Equal(t, res, testSlice2)
+
+	err = fmt.Errorf("error")
+	usecase.EXPECT().GetItemsByCategory(ctx, testParam, 0, 1).Return(emptyModelsSlice, err)
+	res, err = handlers.GetItemsByCategory(ctx, testParam, 0, 1)
+	require.Error(t, err)
+	require.Equal(t, res, emptyHandlersSlice)
 }

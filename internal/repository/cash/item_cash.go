@@ -71,7 +71,7 @@ func (cash *RedisCash) CheckCash(ctx context.Context, key string) bool {
 }
 
 // CreateCash add data in the cash
-func (cash *RedisCash) CreateItemsListCash(ctx context.Context, res []models.Item, key string) error {
+func (cash *RedisCash) CreateItemsCash(ctx context.Context, res []models.Item, key string) error {
 	cash.logger.Debug("Enter in cash CreateItemsListCash()")
 	in := results{
 		Responses: res,
@@ -97,8 +97,9 @@ func (cash *RedisCash) CreateItemsQuantityCash(ctx context.Context, value int, k
 	return nil
 }
 
+
 // GetCash retrieves data from the cache
-func (cash *RedisCash) GetItemsListCash(ctx context.Context, key string) ([]models.Item, error) {
+func (cash *RedisCash) GetItemsCash(ctx context.Context, key string) ([]models.Item, error) {
 	cash.logger.Debug("Enter in cash GetItemsListCash()")
 	res := results{}
 	data, err := cash.Get(ctx, key).Bytes()
