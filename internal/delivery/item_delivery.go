@@ -26,6 +26,12 @@ type Options struct {
 	Limit  int `form:"limit"`
 }
 
+type SearchOptions struct {
+	Param  string `form:"param"`
+	Offset int    `form:"offset"`
+	Limit  int    `form:"limit"`
+}
+
 type ImageOptions struct {
 	Id   string `form:"id"`
 	Name string `form:"name"`
@@ -35,20 +41,41 @@ type ItemsQuantity struct {
 	Quantity int `json:"quantity"`
 }
 
+type DeliveryItem struct {
+	Id          string   `json:"id,omitempty"`
+	Title       string   `json:"title,omitempty"`
+	Description string   `json:"description,omitempty"`
+	Price       int32    `json:"price,omitempty"`
+	Category    string   `json:"category,omitempty"`
+	Vendor      string   `json:"vendor,omitempty"`
+	Images      []string `json:"image,omitempty"`
+}
+
 // CreateItem - create a new item
 func (delivery *Delivery) CreateItem(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery CreateItem()")
 	ctx := c.Request.Context()
-	var deliveryItem handlers.Item
+	var deliveryItem DeliveryItem
 	if err := c.ShouldBindJSON(&deliveryItem); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	if deliveryItem.Title == "" && deliveryItem.Description == "" && deliveryItem.Category.Id == "" && deliveryItem.Category.Name == "" && deliveryItem.Category.Description == "" && deliveryItem.Price == 0 && deliveryItem.Vendor == "" {
+	if deliveryItem.Title == "" && deliveryItem.Description == "" && deliveryItem.Category == "" && deliveryItem.Price == 0 && deliveryItem.Vendor == "" {
 		c.JSON(http.StatusBadRequest, "empty item is not correct")
 		return
 	}
-	id, err := delivery.itemHandlers.CreateItem(ctx, deliveryItem)
+	item := handlers.Item{
+		Id:          deliveryItem.Id,
+		Title:       deliveryItem.Title,
+		Description: deliveryItem.Description,
+		Price:       deliveryItem.Price,
+		Category: handlers.Category{
+			Id: deliveryItem.Category,
+		},
+		Vendor: deliveryItem.Vendor,
+		Images: deliveryItem.Images,
+	}
+	id, err := delivery.itemHandlers.CreateItem(ctx, item)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -100,10 +127,19 @@ func (delivery *Delivery) ItemsList(c *gin.Context) {
 	delivery.logger.Debug(fmt.Sprintf("options is %v", options))
 
 	if options.Limit == 0 {
-		options.Limit = 10
+		quantity, err := delivery.itemHandlers.ItemsQuantity(c.Request.Context())
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		if quantity < 100 {
+			options.Limit = quantity
+		} else {
+			options.Limit = 20
+		}
 	}
 
-	delivery.logger.Debug("options limit is set in default value: 10")
+	delivery.logger.Debug("options limit is set in default value")
 
 	list, err := delivery.itemHandlers.ItemsList(c.Request.Context(), options.Offset, options.Limit)
 	if err != nil {
@@ -113,6 +149,7 @@ func (delivery *Delivery) ItemsList(c *gin.Context) {
 	c.JSON(http.StatusOK, list)
 }
 
+// ItemsQuantity returns quantity of all items
 func (delivery *Delivery) ItemsQuantity(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery ItemsQuantity()")
 	ctx := c.Request.Context()
@@ -128,8 +165,27 @@ func (delivery *Delivery) ItemsQuantity(c *gin.Context) {
 // SearchLine - returns list of items with parameters
 func (delivery *Delivery) SearchLine(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery SearchLine()")
-	param := c.Param("searchRequest")
-	list, err := delivery.itemHandlers.SearchLine(c.Request.Context(), param)
+
+	var options SearchOptions
+	err := c.Bind(&options)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if options.Param == "" {
+		delivery.logger.Sugar().Error("empty search request")
+		c.JSON(http.StatusBadRequest, gin.H{})
+		return
+	}
+
+	delivery.logger.Debug(fmt.Sprintf("options is %v", options))
+
+	if options.Limit == 0 {
+		options.Limit = 10
+	}
+
+	delivery.logger.Debug("options limit is set in default value: 10")
+	list, err := delivery.itemHandlers.SearchLine(c.Request.Context(), options.Param, options.Offset, options.Limit)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -137,8 +193,40 @@ func (delivery *Delivery) SearchLine(c *gin.Context) {
 	c.JSON(http.StatusOK, list)
 }
 
-// UploadFile - upload an image
-func (delivery *Delivery) UploadImage(c *gin.Context) {
+// GetItemsByCategory returns list of items in category
+func (delivery *Delivery) GetItemsByCategory(c *gin.Context) {
+	delivery.logger.Debug("Enter in delivery GetItemsByCategory()")
+	var options SearchOptions
+	err := c.Bind(&options)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if options.Param == "" {
+		delivery.logger.Sugar().Error("empty category name")
+		c.JSON(http.StatusBadRequest, gin.H{})
+		return
+	}
+
+	delivery.logger.Debug(fmt.Sprintf("options is %v", options))
+
+	if options.Limit == 0 {
+		options.Limit = 10
+	}
+
+	delivery.logger.Debug("options limit is set in default value: 10")
+
+	items, err := delivery.itemHandlers.GetItemsByCategory(c.Request.Context(), options.Param, options.Offset, options.Limit)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, items)
+}
+
+// UploadItemImage - upload an image
+func (delivery *Delivery) UploadItemImage(c *gin.Context) {
+	delivery.logger.Debug("Enter in delivery UploadItemImage()")
 	ctx := c.Request.Context()
 	id := c.Param("itemID")
 	if id == "" {
@@ -166,7 +254,7 @@ func (delivery *Delivery) UploadImage(c *gin.Context) {
 
 	delivery.logger.Info("Read id", zap.String("id", id))
 	delivery.logger.Info("File len=", zap.Int32("len", int32(len(file))))
-	path, err := delivery.filestorage.PutImage(id, name, file)
+	path, err := delivery.filestorage.PutItemImage(id, name, file)
 	if err != nil {
 		c.JSON(http.StatusInsufficientStorage, gin.H{})
 		return
@@ -187,8 +275,9 @@ func (delivery *Delivery) UploadImage(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"status": "upload image success"})
 }
 
-func (delivery *Delivery) DeleteImage(c *gin.Context) {
-	delivery.logger.Debug("Enter in delivery ItemsList()")
+// DeleteItemImage delete an item image
+func (delivery *Delivery) DeleteItemImage(c *gin.Context) {
+	delivery.logger.Debug("Enter in delivery DeleteItemImage()")
 	var imageOptions ImageOptions
 	err := c.Bind(&imageOptions)
 	if err != nil {
@@ -202,7 +291,7 @@ func (delivery *Delivery) DeleteImage(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Errorf("empty item id or file name")})
 		return
 	}
-	err = delivery.filestorage.DeleteImage(imageOptions.Id, imageOptions.Name)
+	err = delivery.filestorage.DeleteItemImage(imageOptions.Id, imageOptions.Name)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

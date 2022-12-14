@@ -66,6 +66,21 @@ func (mr *MockItemStoreMockRecorder) GetItem(ctx, id interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetItem", reflect.TypeOf((*MockItemStore)(nil).GetItem), ctx, id)
 }
 
+// GetItemsByCategory mocks base method.
+func (m *MockItemStore) GetItemsByCategory(ctx context.Context, categoryName string) (chan models.Item, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetItemsByCategory", ctx, categoryName)
+	ret0, _ := ret[0].(chan models.Item)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetItemsByCategory indicates an expected call of GetItemsByCategory.
+func (mr *MockItemStoreMockRecorder) GetItemsByCategory(ctx, categoryName interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetItemsByCategory", reflect.TypeOf((*MockItemStore)(nil).GetItemsByCategory), ctx, categoryName)
+}
+
 // ItemsList mocks base method.
 func (m *MockItemStore) ItemsList(ctx context.Context) (chan models.Item, error) {
 	m.ctrl.T.Helper()
@@ -148,6 +163,21 @@ func (mr *MockCategoryStoreMockRecorder) CreateCategory(ctx, category interface{
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateCategory", reflect.TypeOf((*MockCategoryStore)(nil).CreateCategory), ctx, category)
 }
 
+// GetCategory mocks base method.
+func (m *MockCategoryStore) GetCategory(ctx context.Context, id uuid.UUID) (*models.Category, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCategory", ctx, id)
+	ret0, _ := ret[0].(*models.Category)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetCategory indicates an expected call of GetCategory.
+func (mr *MockCategoryStoreMockRecorder) GetCategory(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCategory", reflect.TypeOf((*MockCategoryStore)(nil).GetCategory), ctx, id)
+}
+
 // GetCategoryList mocks base method.
 func (m *MockCategoryStore) GetCategoryList(ctx context.Context) (chan models.Category, error) {
 	m.ctrl.T.Helper()
@@ -161,6 +191,20 @@ func (m *MockCategoryStore) GetCategoryList(ctx context.Context) (chan models.Ca
 func (mr *MockCategoryStoreMockRecorder) GetCategoryList(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCategoryList", reflect.TypeOf((*MockCategoryStore)(nil).GetCategoryList), ctx)
+}
+
+// UpdateCategory mocks base method.
+func (m *MockCategoryStore) UpdateCategory(ctx context.Context, category *models.Category) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateCategory", ctx, category)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateCategory indicates an expected call of UpdateCategory.
+func (mr *MockCategoryStoreMockRecorder) UpdateCategory(ctx, category interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateCategory", reflect.TypeOf((*MockCategoryStore)(nil).UpdateCategory), ctx, category)
 }
 
 // MockUserStore is a mock of UserStore interface.

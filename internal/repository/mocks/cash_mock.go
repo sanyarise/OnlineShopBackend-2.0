@@ -49,18 +49,18 @@ func (mr *MockCashMockRecorder) CheckCash(ctx, key interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckCash", reflect.TypeOf((*MockCash)(nil).CheckCash), ctx, key)
 }
 
-// CreateItemsListCash mocks base method.
-func (m *MockCash) CreateItemsListCash(ctx context.Context, res []models.Item, key string) error {
+// CreateItemsCash mocks base method.
+func (m *MockCash) CreateItemsCash(ctx context.Context, res []models.Item, key string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateItemsListCash", ctx, res, key)
+	ret := m.ctrl.Call(m, "CreateItemsCash", ctx, res, key)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// CreateItemsListCash indicates an expected call of CreateItemsListCash.
-func (mr *MockCashMockRecorder) CreateItemsListCash(ctx, res, key interface{}) *gomock.Call {
+// CreateItemsCash indicates an expected call of CreateItemsCash.
+func (mr *MockCashMockRecorder) CreateItemsCash(ctx, res, key interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateItemsListCash", reflect.TypeOf((*MockCash)(nil).CreateItemsListCash), ctx, res, key)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateItemsCash", reflect.TypeOf((*MockCash)(nil).CreateItemsCash), ctx, res, key)
 }
 
 // CreateItemsQuantityCash mocks base method.
@@ -77,19 +77,19 @@ func (mr *MockCashMockRecorder) CreateItemsQuantityCash(ctx, value, key interfac
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateItemsQuantityCash", reflect.TypeOf((*MockCash)(nil).CreateItemsQuantityCash), ctx, value, key)
 }
 
-// GetItemsListCash mocks base method.
-func (m *MockCash) GetItemsListCash(ctx context.Context, key string) ([]models.Item, error) {
+// GetItemsCash mocks base method.
+func (m *MockCash) GetItemsCash(ctx context.Context, key string) ([]models.Item, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetItemsListCash", ctx, key)
+	ret := m.ctrl.Call(m, "GetItemsCash", ctx, key)
 	ret0, _ := ret[0].([]models.Item)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetItemsListCash indicates an expected call of GetItemsListCash.
-func (mr *MockCashMockRecorder) GetItemsListCash(ctx, key interface{}) *gomock.Call {
+// GetItemsCash indicates an expected call of GetItemsCash.
+func (mr *MockCashMockRecorder) GetItemsCash(ctx, key interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetItemsListCash", reflect.TypeOf((*MockCash)(nil).GetItemsListCash), ctx, key)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetItemsCash", reflect.TypeOf((*MockCash)(nil).GetItemsCash), ctx, key)
 }
 
 // GetItemsQuantityCash mocks base method.

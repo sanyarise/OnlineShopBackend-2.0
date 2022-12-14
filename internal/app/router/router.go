@@ -12,12 +12,13 @@ package router
 import (
 	"OnlineShopBackend/internal/delivery"
 	"fmt"
+
+	"net/http"
+
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/thinkerou/favicon"
 	"go.uber.org/zap"
-	"net/http"
-	"time"
 )
 
 // Route is the information for every URI.
@@ -46,18 +47,7 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 	logger.Debug("Enter in NewRouter()")
 	router := gin.Default()
 	router.Use(favicon.New("./favicon.ico"))
-
-	router.Use(cors.New(cors.Config{
-		//AllowOrigins: []string{"http://localhost:3000"},
-		AllowMethods:     []string{"GET", "POST", "OPTIONS", "PUT", "DELETE"},
-		AllowHeaders:     []string{"Access-Control-Allow-Origin", "*"},
-		ExposeHeaders:    []string{"Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With"},
-		AllowCredentials: true,
-		AllowAllOrigins:  false,
-		AllowOriginFunc:  func(origin string) bool { return true },
-		MaxAge:           12 * time.Hour,
-	}))
-
+	router.Use(cors.Default())
 	router.Static("/files", "./storage/files")
 	routes := Routes{
 		{
@@ -73,10 +63,34 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 			delivery.CreateCategory,
 		},
 		{
+			"GetCategory",
+			http.MethodGet,
+			"/categories/:categoryID",
+			delivery.GetCategory,
+		},
+		{
 			"GetCategoryList",
 			http.MethodGet,
 			"/categories/list",
 			delivery.GetCategoryList,
+		},
+		{
+			"UpdateCategory",
+			http.MethodPut,
+			"/categories/:categoryID",
+			delivery.UpdateCategory,
+		},
+		{
+			"UploadCategoryImage",
+			http.MethodPost,
+			"/categories/image/upload/:categoryID",
+			delivery.UploadCategoryImage,
+		},
+		{
+			"DeleteCategoryImage",
+			http.MethodDelete,
+			"/category/image/delete", //?id=25f32441-587a-452d-af8c-b3876ae29d45&name=20221209194557.jpeg
+			delivery.DeleteCategoryImage,
 		},
 		{
 			"CreateItem",
@@ -84,32 +98,35 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 			"/items/create",
 			delivery.CreateItem,
 		},
-
 		{
 			"GetItem",
 			http.MethodGet,
 			"/items/:itemID",
 			delivery.GetItem,
 		},
-
+		{
+			"GetItemsByCategory",
+			http.MethodGet,
+			"/items/", //?param=categoryName&offset=20&limit=10
+			delivery.GetItemsByCategory,
+		},
 		{
 			"UpdateItem",
 			http.MethodPut,
 			"/items/update",
 			delivery.UpdateItem,
 		},
-
 		{
-			"UploadImage",
+			"UploadItemImage",
 			http.MethodPost,
 			"/items/image/upload/:itemID",
-			delivery.UploadImage,
+			delivery.UploadItemImage,
 		},
 		{
-			"DeleteImage",
+			"DeleteItemImage",
 			http.MethodDelete,
 			"/items/image/delete", //?id=25f32441-587a-452d-af8c-b3876ae29d45&name=20221209194557.jpeg
-			delivery.DeleteImage,
+			delivery.DeleteItemImage,
 		},
 		{
 			"ItemsQuantity",
@@ -126,7 +143,7 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 		{
 			"SearchLine",
 			http.MethodGet,
-			"/items/search/:searchRequest",
+			"/items/search/", //?param=searchRequest&offset=20&limit=10
 			delivery.SearchLine,
 		},
 		{
