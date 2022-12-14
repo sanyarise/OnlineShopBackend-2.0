@@ -41,20 +41,41 @@ type ItemsQuantity struct {
 	Quantity int `json:"quantity"`
 }
 
+type DeliveryItem struct {
+	Id          string   `json:"id,omitempty"`
+	Title       string   `json:"title,omitempty"`
+	Description string   `json:"description,omitempty"`
+	Price       int32    `json:"price,omitempty"`
+	Category    string   `json:"category,omitempty"`
+	Vendor      string   `json:"vendor,omitempty"`
+	Images      []string `json:"image,omitempty"`
+}
+
 // CreateItem - create a new item
 func (delivery *Delivery) CreateItem(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery CreateItem()")
 	ctx := c.Request.Context()
-	var deliveryItem handlers.Item
+	var deliveryItem DeliveryItem
 	if err := c.ShouldBindJSON(&deliveryItem); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	if deliveryItem.Title == "" && deliveryItem.Description == "" && deliveryItem.Category.Id == "" && deliveryItem.Category.Name == "" && deliveryItem.Category.Description == "" && deliveryItem.Price == 0 && deliveryItem.Vendor == "" {
+	if deliveryItem.Title == "" && deliveryItem.Description == "" && deliveryItem.Category == "" && deliveryItem.Price == 0 && deliveryItem.Vendor == "" {
 		c.JSON(http.StatusBadRequest, "empty item is not correct")
 		return
 	}
-	id, err := delivery.itemHandlers.CreateItem(ctx, deliveryItem)
+	item := handlers.Item{
+		Id:          deliveryItem.Id,
+		Title:       deliveryItem.Title,
+		Description: deliveryItem.Description,
+		Price:       deliveryItem.Price,
+		Category: handlers.Category{
+			Id: deliveryItem.Category,
+		},
+		Vendor: deliveryItem.Vendor,
+		Images: deliveryItem.Images,
+	}
+	id, err := delivery.itemHandlers.CreateItem(ctx, item)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
