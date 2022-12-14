@@ -42,15 +42,20 @@ func main() {
 	if err != nil {
 		log.Fatalf("can't initialize cash: %v", err)
 	}
+	userStore := repository.NewUser(pgstore, lsug)
 
 	itemUsecase := usecase.NewItemUsecase(itemStore, cash, l)
 	categoryUsecase := usecase.NewCategoryUsecase(categoryStore, l)
+	userUsecase := usecase.NewUserUsecase(userStore, l)
 
 	itemHandlers := handlers.NewItemHandlers(itemUsecase, l)
 	categoryHandlers := handlers.NewCategoryHandlers(categoryUsecase, l)
+	userHandlers := handlers.NewUserHandlers(userUsecase, l)
+
+
 
 	filestorage := filestorage.NewOnDiskLocalStorage(cfg.ServerURL, cfg.FsPath, l)
-	delivery := delivery.NewDelivery(itemHandlers, categoryHandlers, l, filestorage)
+	delivery := delivery.NewDelivery(itemHandlers, categoryHandlers, userHandlers, l, filestorage)
 	router := router.NewRouter(delivery, l)
 	server := server.NewServer(ctx, cfg.Port, router, l)
 	err = server.Start(ctx)

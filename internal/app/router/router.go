@@ -12,14 +12,12 @@ package router
 import (
 	"OnlineShopBackend/internal/delivery"
 	"fmt"
-	"time"
-
-	"net/http"
-
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/thinkerou/favicon"
 	"go.uber.org/zap"
+	"net/http"
+	"time"
 )
 
 // Route is the information for every URI.
@@ -48,12 +46,16 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 	logger.Debug("Enter in NewRouter()")
 	router := gin.Default()
 	router.Use(favicon.New("./favicon.ico"))
+
 	router.Use(cors.New(cors.Config{
-		AllowOrigins: []string{"http://localhost:3000"},
-		AllowMethods: []string{"PUT", "GET", "POST"},
-		AllowHeaders: []string{"*"},
-		ExposeHeaders: []string{"Content-Length"},
-		MaxAge: 12 * time.Hour,
+		//AllowOrigins: []string{"http://localhost:3000"},
+		AllowMethods:     []string{"GET", "POST", "OPTIONS", "PUT", "DELETE"},
+		AllowHeaders:     []string{"Access-Control-Allow-Origin", "*"},
+		ExposeHeaders:    []string{"Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With"},
+		AllowCredentials: true,
+		AllowAllOrigins:  false,
+		AllowOriginFunc:  func(origin string) bool { return true },
+		MaxAge:           12 * time.Hour,
 	}))
 
 	router.Static("/files", "./storage/files")

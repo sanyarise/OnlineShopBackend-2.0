@@ -19,3 +19,7 @@ type ICategoryHandlers interface {
 	CreateCategory(ctx context.Context, category Category) (uuid.UUID, error)
 	GetCategoryList(ctx context.Context) ([]Category, error)
 }
+
+type IUserHandlers interface {
+	CreateUser(ctx context.Context, user User) (uuid.UUID, error)
+}

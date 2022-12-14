@@ -18,9 +18,9 @@ import (
 	//"github.com/dghubble/gologin/v2/google"
 	//"github.com/dghubble/sessions"
 	"golang.org/x/oauth2"
+	og2 "golang.org/x/oauth2/google"
 	"net/http"
 	"unicode"
-	og2 "golang.org/x/oauth2/google"
 
 	"github.com/gin-gonic/gin"
 )
@@ -40,7 +40,7 @@ func (delivery *Delivery) CreateUser(c *gin.Context) {
 		return
 	}
 
-	id, err := delivery.handlers.CreateUser(ctx, deliveryUser)
+	id, err := delivery.userHandlers.CreateUser(ctx, deliveryUser)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
@@ -85,7 +85,7 @@ func (delivery *Delivery) LoginUserYandex(c *gin.Context) {
 func (delivery *Delivery) CallbackGoogle(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery LogoutUser()")
 
-	c.Redirect(http.StatusTemporaryRedirect, "http://localhost:8000")
+	c.Redirect(http.StatusTemporaryRedirect, "http://localhost:3000")
 }
 
 // CallbackYandex -

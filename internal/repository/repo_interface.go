@@ -23,6 +23,7 @@ type CategoryStore interface {
 type UserStore interface {
 	Create(ctx context.Context, user *models.User) (*models.User, error)
 	GetUserByEmail(ctx context.Context, email string) (models.User, error)
+	GetRightsId(ctx context.Context, name string) (models.Rights, error)
 }
 
 type CartStore interface {

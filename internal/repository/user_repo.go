@@ -60,6 +60,23 @@ func (u *user) GetUserByEmail(ctx context.Context, email string) (models.User, e
 		if err != nil {
 			return models.User{}, fmt.Errorf("can't get user from database: %w", err)
 		}
-		return user, err
+		return user, nil
+	}
+}
+
+func (u *user) GetRightsId(ctx context.Context, name string) (models.Rights, error) {
+	select {
+	case <-ctx.Done():
+		return models.Rights{}, fmt.Errorf("context is closed")
+	default:
+		pool := u.storage.GetPool()
+		row := pool.QueryRow(ctx, `SELECT id, name, rules FROM rights WHERE name=$1`, name)
+		var rights = models.Rights{}
+		err := row.Scan(&rights.ID, &rights.Name, &rights.Rules)
+		if err != nil {
+			return models.Rights{}, fmt.Errorf("can't get rights from database: %w", err)
+		}
+		return rights, nil
+
 	}
 }

@@ -21,3 +21,9 @@ type ICategoryUsecase interface {
 	CreateCategory(ctx context.Context, category *models.Category) (uuid.UUID, error)
 	GetCategoryList(ctx context.Context) (chan models.Category, error)
 }
+
+type IUserUsecase interface {
+	CreateUser(ctx context.Context, user *models.User) (uuid.UUID, error)
+	GetUserByEmail(ctx context.Context, email string) (models.User, error)
+	GetRightsId(ctx context.Context, name string) (*models.Rights, error)
+}

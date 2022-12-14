@@ -9,7 +9,7 @@ import (
 type Storage struct {
 	itemStore     repository.ItemStore
 	categoryStore repository.CategoryStore
-	userStore repository.UserStore
+	userStore     repository.UserStore
 	logger        *zap.Logger
 }
 

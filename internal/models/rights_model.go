@@ -8,10 +8,9 @@ import "github.com/google/uuid"
 
 // TODO: create type
 const (
-	Admin    = "admin"
-	Customer = "customer"
-	Seller   = "seller"
-	Vendor   = "vendor"
+	Admin    = "Admin"
+	Customer = "Customer"
+	Seller   = "Seller"
 )
 
 type Rights struct {
