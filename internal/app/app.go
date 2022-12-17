@@ -1,6 +1,6 @@
 package app
 
-import (
+/*import (
 	"OnlineShopBackend/config"
 	"context"
 	"fmt"
@@ -68,3 +68,4 @@ func (app *App) Start() {
 
 	time.Sleep(time.Duration(cfg.Timeout) * time.Second)
 }
+*/

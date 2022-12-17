@@ -8,3 +8,7 @@ timeout = 5
 log_level = "debug"
 
 fs_path = "./storage/files/"
+
+read_timeout = 50
+write_timeout = 50
+read_header_timeout = 50

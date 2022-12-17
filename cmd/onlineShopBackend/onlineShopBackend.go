@@ -19,12 +19,7 @@ import (
 )
 
 func main() {
-	defer func() {
-		if r := recover(); r != nil {
-			os.Exit(1)
-		}
-	}()
-	ctx := context.Background()
+	log.Println("Start load configuration...")
 	cfg, err := config.NewConfig()
 	if err != nil {
 		log.Fatal("can't initialize configuration")
@@ -32,6 +27,10 @@ func main() {
 	logger := logger.NewLogger(cfg.LogLevel)
 	lsug := logger.Logger.Sugar()
 	l := logger.Logger
+	defer l.Sync()
+	defer lsug.Sync()
+
+	l.Info("Configuration sucessfully load")
 	pgstore, err := repository.NewPgxStorage(ctx, lsug, cfg.DSN)
 	if err != nil {
 		log.Fatalf("can't initalize storage: %v", err)

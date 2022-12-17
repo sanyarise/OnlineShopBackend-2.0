@@ -1,44 +1,44 @@
 package server
 
 import (
-	//sw "OnlineShopBackend/cmd/app"
-	"OnlineShopBackend/internal/app/router"
 	"context"
-	"fmt"
+	"net/http"
+	"time"
 
 	"go.uber.org/zap"
-	//"reflect"
 )
 
-type HttpServer struct {
-	ctx    context.Context
-	port   string
-	router *router.Router
+type Server struct {
+	srv    http.Server
 	logger *zap.Logger
 }
 
-func NewServer(ctx context.Context, port string, router *router.Router, logger *zap.Logger) *HttpServer {
+// NewServer returns new server with configured parameters
+func NewServer(addr string, handler http.Handler, logger *zap.Logger, timeouts map[string]int) *Server {
 	logger.Debug("Enter in NewServer()")
-	return &HttpServer{ctx: ctx, port: port, router: router, logger: logger}
+	server := &Server{}
+
+	server.srv = http.Server{
+		Addr:              addr,
+		Handler:           handler,
+		ReadTimeout:       time.Duration(timeouts["ReadTimeout"]) * time.Second,
+		WriteTimeout:      time.Duration(timeouts["WriteTimeout"]) * time.Second,
+		ReadHeaderTimeout: time.Duration(timeouts["ReadHeaderTimeout"]) * time.Second,
+	}
+	server.logger = logger
+	return server
 }
 
-func (server *HttpServer) GetName() string {
-	server.logger.Debug("Enter in server GetName()")
-	return "http server"
-}
-
-func (server *HttpServer) Start(ctx context.Context) error {
+// Start begin server work
+func (server *Server) Start() {
 	server.logger.Debug("Enter in server Start()")
-	server.ctx = ctx
-	fmt.Println(server.port)
-
-	err := server.router.Run(server.port)
-
-	return err
+	go server.srv.ListenAndServe()
 }
 
-func (server *HttpServer) ShutDown() error {
+// ShutDown stop the server
+func (server *Server) ShutDown(ctx context.Context, timeout int) {
 	server.logger.Debug("Enter in server ShubDown()")
-	//TODO implement me
-	panic("implement me")
+	ctxWithTimiout, cancel := context.WithTimeout(ctx, time.Duration(timeout)*time.Second)
+	server.srv.Shutdown(ctxWithTimiout)
+	cancel()
 }
