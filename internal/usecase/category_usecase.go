@@ -12,6 +12,10 @@ import (
 
 var _ ICategoryUsecase = &CategoryUsecase{}
 
+var (
+	categoriesListKey = "CategoriesList"
+)
+
 type CategoryUsecase struct {
 	categoryStore repository.CategoryStore
 	logger        *zap.Logger
@@ -52,27 +56,26 @@ func (usecase *CategoryUsecase) GetCategory(ctx context.Context, id uuid.UUID) (
 }
 
 // GetCategoryList call database method and returns chan with all models.Category or error
-func (usecase *CategoryUsecase) GetCategoryList(ctx context.Context) (chan models.Category, error) {
+func (usecase *CategoryUsecase) GetCategoryList(ctx context.Context) ([]models.Category, error) {
 	usecase.logger.Debug("Enter in usecase GetCategoryList()")
-	categoryIncomingChan, err := usecase.categoryStore.GetCategoryList(ctx)
-	if err != nil {
-		return nil, err
-	}
-	categoryOutChan := make(chan models.Category, 100)
-	go func() {
-		defer close(categoryOutChan)
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			case category, ok := <-categoryIncomingChan:
-				if !ok {
-					return
-				}
-				categoryOutChan <- category
-			}
+	if ok := usecase.categoryCash.CheckCash(ctx, categoriesListKey); !ok {
+		categoryIncomingChan, err := usecase.categoryStore.GetCategoryList(ctx)
+		if err != nil {
+			return nil, err
 		}
-	}()
-	return categoryOutChan, nil
-
+		categories := make([]models.Category, 0, 100)
+		for category := range categoryIncomingChan {
+			usecase.logger.Debug(fmt.Sprintf("category from channel is: %v", category))
+			categories = append(categories, category)
+		}
+		err = usecase.categoryCash.CreateCategoryCash(ctx, categories, categoriesListKey)
+		if err != nil {
+			return nil, fmt.Errorf("error on create categories list cash: %w", err)
+		}
+	}
+	categories, err := usecase.categoryCash.GetCategoryCash(ctx, categoriesListKey)
+	if err != nil {
+		return nil, fmt.Errorf("error on get cash: %w", err)
+	}
+	return categories, nil
 }

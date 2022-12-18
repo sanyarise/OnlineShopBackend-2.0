@@ -115,12 +115,3 @@ func (imagestorage *OnDiskLocalStorage) GetFileList() ([]FileInStorageInfo, erro
 	}
 	return result, nil
 }
-
-/* var files []string
-err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
- if !info.IsDir() {
-  files = append(files, path)
- }
- return nil
-})
-return files, err*/
