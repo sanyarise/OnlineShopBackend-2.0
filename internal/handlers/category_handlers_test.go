@@ -6,7 +6,6 @@ import (
 	"context"
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
@@ -25,22 +24,25 @@ var (
 		Description: "test",
 	}
 	testModelCategoryWithId = models.Category{
-		Id: testCatId,
-		Name: "test",
+		Id:          testCatId,
+		Name:        "test",
 		Description: "test",
-		Image: "test",
+		Image:       "test",
 	}
 	testCategoryWithId = Category{
-		Id: testCatId.String(),
-		Name: "test",
+		Id:          testCatId.String(),
+		Name:        "test",
 		Description: "test",
-		Image: "test",
+		Image:       "test",
 	}
 	testCategoryInvalidId = Category{
 		Id: "invalid Id",
 	}
-	emptyCategory = Category{}
+	emptyCategory      = Category{}
 	emptyModelCategory = models.Category{}
+	emptyCategories    = make([]Category, 0, 100)
+	categories         = []models.Category{testModelCategoryWithId}
+	resCategories      = []Category{testCategoryWithId}
 )
 
 func TestCreateCategory(t *testing.T) {
@@ -96,7 +98,6 @@ func TestGetCategory(t *testing.T) {
 	require.Error(t, err)
 	require.Equal(t, res, emptyCategory)
 
-
 	usecase.EXPECT().GetCategory(ctx, testCatId).Return(&testModelCategoryWithId, nil)
 	res, err = handlers.GetCategory(ctx, testCatId.String())
 	require.NoError(t, err)
@@ -116,30 +117,13 @@ func TestGetCategoryList(t *testing.T) {
 	usecase := mocks.NewMockICategoryUsecase(ctrl)
 	handlers := NewCategoryHandlers(usecase, logger)
 
-
-	testChan := make(chan models.Category, 2)
-	testChan <- testModelCategoryWithId
-	close(testChan)
-	testChan2 := make(chan models.Category, 1)
-
-	expect := make([]Category, 0, 100)
-	expect = append(expect, testCategoryWithId)
-	usecase.EXPECT().GetCategoryList(ctx).Return(testChan, nil)
+	usecase.EXPECT().GetCategoryList(ctx).Return(nil, fmt.Errorf("error"))
 	res, err := handlers.GetCategoryList(ctx)
-	require.NoError(t, err)
-	require.NotNil(t, res)
-	require.Equal(t, res, expect)
+	require.Error(t, err)
+	require.Equal(t, res, emptyCategories)
 
-	usecase.EXPECT().GetCategoryList(ctx).Return(testChan2, fmt.Errorf("error on categories list query context"))
+	usecase.EXPECT().GetCategoryList(ctx).Return(categories, nil)
 	res, err = handlers.GetCategoryList(ctx)
-	expect2 := make([]Category, 0, 100)
-	require.Error(t, err)
-	require.Equal(t, res, expect2)
-	ctx, cancel := context.WithDeadline(context.Background(), <-time.After(1*time.Microsecond))
-	expect = make([]Category, 0, 100)
-	usecase.EXPECT().GetCategoryList(ctx).Return(testChan2, nil)
-	res, err = handlers.GetCategoryList(ctx)
-	require.Error(t, err)
-	require.Equal(t, res, expect)
-	cancel()
+	require.NoError(t, err)
+	require.Equal(t, res, resCategories)
 }

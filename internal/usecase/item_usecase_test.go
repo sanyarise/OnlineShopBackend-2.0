@@ -57,7 +57,7 @@ func TestCreateItem(t *testing.T) {
 	defer ctrl.Finish()
 	logger := zap.L()
 	itemRepo := mocks.NewMockItemStore(ctrl)
-	cash := mocks.NewMockCash(ctrl)
+	cash := mocks.NewMockIItemsCash(ctrl)
 	usecase := NewItemUsecase(itemRepo, cash, logger)
 	ctx := context.Background()
 
@@ -91,7 +91,7 @@ func TestUpdateItem(t *testing.T) {
 	defer ctrl.Finish()
 	logger := zap.L()
 	itemRepo := mocks.NewMockItemStore(ctrl)
-	cash := mocks.NewMockCash(ctrl)
+	cash := mocks.NewMockIItemsCash(ctrl)
 	usecase := NewItemUsecase(itemRepo, cash, logger)
 	ctx := context.Background()
 
@@ -119,7 +119,7 @@ func TestGetItem(t *testing.T) {
 	defer ctrl.Finish()
 	logger := zap.L()
 	itemRepo := mocks.NewMockItemStore(ctrl)
-	cash := mocks.NewMockCash(ctrl)
+	cash := mocks.NewMockIItemsCash(ctrl)
 	usecase := NewItemUsecase(itemRepo, cash, logger)
 	ctx := context.Background()
 
@@ -141,7 +141,7 @@ func TestItemsList(t *testing.T) {
 	defer ctrl.Finish()
 	logger := zap.L()
 	itemRepo := mocks.NewMockItemStore(ctrl)
-	cash := mocks.NewMockCash(ctrl)
+	cash := mocks.NewMockIItemsCash(ctrl)
 	usecase := NewItemUsecase(itemRepo, cash, logger)
 	ctx := context.Background()
 	testItemChan := make(chan models.Item, 1)
@@ -226,7 +226,7 @@ func TestSearchLine(t *testing.T) {
 	defer ctrl.Finish()
 	logger := zap.L()
 	itemRepo := mocks.NewMockItemStore(ctrl)
-	cash := mocks.NewMockCash(ctrl)
+	cash := mocks.NewMockIItemsCash(ctrl)
 	usecase := NewItemUsecase(itemRepo, cash, logger)
 	ctx := context.Background()
 
@@ -298,7 +298,7 @@ func TestGetItemByCategory(t *testing.T) {
 	defer ctrl.Finish()
 	logger := zap.L()
 	itemRepo := mocks.NewMockItemStore(ctrl)
-	cash := mocks.NewMockCash(ctrl)
+	cash := mocks.NewMockIItemsCash(ctrl)
 	usecase := NewItemUsecase(itemRepo, cash, logger)
 	ctx := context.Background()
 
@@ -370,7 +370,7 @@ func TestItemsQuantity(t *testing.T) {
 	defer ctrl.Finish()
 	logger := zap.L()
 	itemRepo := mocks.NewMockItemStore(ctrl)
-	cash := mocks.NewMockCash(ctrl)
+	cash := mocks.NewMockIItemsCash(ctrl)
 	usecase := NewItemUsecase(itemRepo, cash, logger)
 	ctx := context.Background()
 
@@ -440,7 +440,7 @@ func TestUpdateCash(t *testing.T) {
 	defer ctrl.Finish()
 	logger := zap.L()
 	itemRepo := mocks.NewMockItemStore(ctrl)
-	cash := mocks.NewMockCash(ctrl)
+	cash := mocks.NewMockIItemsCash(ctrl)
 	usecase := NewItemUsecase(itemRepo, cash, logger)
 	ctx := context.Background()
 
