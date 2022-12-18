@@ -99,3 +99,13 @@ func (handlers *CategoryHandlers) GetCategoryList(ctx context.Context) ([]Catego
 	}
 	return res, nil
 }
+
+// DeleteCategory calls usecase method for delete category by id
+func (handlers *CategoryHandlers) DeleteCategory(ctx context.Context, id uuid.UUID) (string, error) {
+	handlers.logger.Debug("Enter in handlers DeleteCategory()")
+	deletedCategoryName, err := handlers.usecase.DeleteCategory(ctx, id)
+	if err != nil {
+		return "", err
+	}
+	return deletedCategoryName, nil
+}

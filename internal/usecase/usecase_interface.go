@@ -24,4 +24,5 @@ type ICategoryUsecase interface {
 	GetCategory(ctx context.Context, id uuid.UUID) (*models.Category, error)
 	GetCategoryList(ctx context.Context) ([]models.Category, error)
 	UpdateCash(ctx context.Context, id uuid.UUID, op string) error
+	DeleteCategory(ctx context.Context, id uuid.UUID) (string, error)
 }

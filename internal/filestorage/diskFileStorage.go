@@ -14,6 +14,7 @@ type FileStorager interface {
 	PutCategoryImage(id string, filename string, file []byte) (string, error)
 	DeleteItemImage(id string, filename string) error
 	DeleteCategoryImage(id string, filename string) error
+	DeleteCategoryImageById(id string) error
 }
 
 type FileInStorageInfo struct {
@@ -95,6 +96,26 @@ func (imagestorage *OnDiskLocalStorage) DeleteCategoryImage(id string, filename 
 	return nil
 }
 
+func (imagestorage *OnDiskLocalStorage) DeleteCategoryImageById(id string) error {
+	imagestorage.logger.Debug("Enter in filestorage DeleteCategoryImageById()")
+	err := filepath.Walk(imagestorage.path+"/"+id, func(path string, info os.FileInfo, err error) error {
+		if !info.IsDir() {
+			err := imagestorage.DeleteCategoryImage(id, info.Name())
+			if err != nil {
+				imagestorage.logger.Error(fmt.Sprintf("error on delete category image: %v", err))
+				return err
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		imagestorage.logger.Error(fmt.Sprintf("error no filepath.Walk: %v", err))
+		return err
+	}
+	imagestorage.logger.Debug(fmt.Sprintf("images of category with id %s deleted success", id))
+	return nil
+}
+
 func (imagestorage *OnDiskLocalStorage) GetFileList() ([]FileInStorageInfo, error) {
 	imagestorage.logger.Debug("Enter in filestorage GetFileList()")
 	result := make([]FileInStorageInfo, 0)
@@ -102,7 +123,7 @@ func (imagestorage *OnDiskLocalStorage) GetFileList() ([]FileInStorageInfo, erro
 		if !info.IsDir() {
 			result = append(result, FileInStorageInfo{
 				Name:       info.Name(),
-				Path: path,
+				Path:       path,
 				CreateDate: info.ModTime().String(),
 				ModifyDate: info.ModTime().String(),
 			})

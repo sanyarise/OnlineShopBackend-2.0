@@ -21,4 +21,5 @@ type ICategoryHandlers interface {
 	UpdateCategory(ctx context.Context, category Category) error
 	GetCategory(ctx context.Context, id string) (Category, error)
 	GetCategoryList(ctx context.Context) ([]Category, error)
+	DeleteCategory(ctx context.Context, id uuid.UUID)(string, error)
 }

@@ -101,6 +101,12 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 			delivery.DeleteCategoryImage,
 		},
 		{
+			"DeleteCategory",
+			http.MethodDelete,
+			"/categories/delete/:categoryID",
+			delivery.DeleteCategory,
+		},
+		{
 			"CreateItem",
 			http.MethodPost,
 			"/items/create",

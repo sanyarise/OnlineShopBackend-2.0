@@ -18,6 +18,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-module/carbon/v2"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
@@ -175,4 +176,59 @@ func (delivery *Delivery) GetCategoryList(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
 	c.JSON(http.StatusOK, list)
+}
+
+// DeleteCategory deleted category by id
+func (delivery *Delivery) DeleteCategory(c *gin.Context) {
+	delivery.logger.Debug("Enter in delivery DeleteCategory()")
+	ctx := c.Request.Context()
+	stringId := c.Param("categoryID")
+	id, err := uuid.Parse(stringId)
+	if err != nil {
+		delivery.logger.Error(fmt.Sprintf("error on parsing uuid: %v", err))
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	deletedCategoryName, err := delivery.categoryHandlers.DeleteCategory(ctx, id)
+	if err != nil {
+		delivery.logger.Debug(fmt.Sprintf("error on delete category: %v", err))
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	}
+	err = delivery.filestorage.DeleteCategoryImageById(stringId)
+	if err != nil {
+		delivery.logger.Error(fmt.Sprintf("error on delete category images: %v", err))
+	}
+	quantity, err := delivery.itemHandlers.ItemsQuantity(ctx)
+	if err != nil {
+		delivery.logger.Error(fmt.Sprintf("error on get items quantity: %v", err))
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	items, err := delivery.itemHandlers.GetItemsByCategory(ctx, deletedCategoryName, 0, quantity)
+	if err != nil {
+		delivery.logger.Error(fmt.Sprintf("error on get items by category: %v", err))
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	noCategory := handlers.Category{
+		Name:        "NoCategory",
+		Description: "Category for items from deleting categories",
+	}
+
+	noCategoryId, err := delivery.categoryHandlers.CreateCategory(ctx, noCategory)
+	if err != nil {
+		delivery.logger.Error(fmt.Sprintf("error on create no category: %v", err))
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	noCategory.Id = noCategoryId.String()
+	for _, item := range items {
+		item.Category = noCategory
+		err := delivery.itemHandlers.UpdateItem(ctx, item)
+		if err != nil {
+			delivery.logger.Error(fmt.Sprintf("error on update item: %v", err))
+		}
+	}
+	c.JSON(http.StatusOK, gin.H{"status": "deleted success"})
 }
