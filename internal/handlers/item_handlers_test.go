@@ -51,7 +51,7 @@ var (
 		Id: "invalid id",
 	}
 	testModelItem = &models.Item{
-		Name:        "TestTitle",
+		Title:       "TestTitle",
 		Description: "TestDescription",
 		Category:    testModelCategory,
 		Price:       1,
@@ -68,17 +68,17 @@ var (
 	}
 	testModelItemWithId = &models.Item{
 		Id:          testNewId,
-		Name:        "TestTitle",
+		Title:       "TestTitle",
 		Description: "TestDescription",
 		Category:    testModelCategory,
 		Price:       1,
 		Vendor:      "TestVendor",
 	}
-	testParam = "est"
-	testSlice = []models.Item{*testModelItemWithId}
-	testSlice2 = []Item{testHandlersItemWithId}
+	testParam          = "est"
+	testSlice          = []models.Item{*testModelItemWithId}
+	testSlice2         = []Item{testHandlersItemWithId}
 	emptyHandlersSlice = []Item{}
-	emptyModelsSlice = []models.Item{}
+	emptyModelsSlice   = []models.Item{}
 )
 
 func TestCreateItem(t *testing.T) {

@@ -21,7 +21,6 @@ type IItemUsecase interface {
 type ICategoryUsecase interface {
 	CreateCategory(ctx context.Context, category *models.Category) (uuid.UUID, error)
 	UpdateCategory(ctx context.Context, category *models.Category) error
-	GetCategory(ctx context.Context, id uuid.UUID) (*models.Category, error)
 	GetCategoryList(ctx context.Context) (chan models.Category, error)
 	GetCategory(ctx context.Context, id uuid.UUID) (*models.Category, error)
 }

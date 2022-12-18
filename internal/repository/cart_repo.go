@@ -131,7 +131,7 @@ func (c *cart) SelectItemsFromCart(ctx context.Context, cart *models.Cart) ([]*m
 			}
 			i := models.Item{
 				Id:          v[0].(uuid.UUID),
-				Name:        v[1].(string),
+				Title:       v[1].(string),
 				Description: v[3].(string),
 				Price:       v[4].(int32),
 				Category: models.Category{
