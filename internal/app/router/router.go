@@ -11,7 +11,6 @@ package router
 
 import (
 	"OnlineShopBackend/internal/delivery"
-	"fmt"
 
 	"net/http"
 
@@ -36,7 +35,7 @@ type Route struct {
 type Routes []Route
 
 type Router struct {
-	router   *gin.Engine
+	*gin.Engine
 	delivery *delivery.Delivery
 	logger   *zap.Logger
 }
@@ -44,9 +43,14 @@ type Router struct {
 // NewRouter returns a new router.
 func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 	logger.Debug("Enter in NewRouter()")
-	router := gin.Default()
-	router.Use(cors.Default())
-	router.Static("/files", "./storage/files")
+	gin := gin.Default()
+	gin.Use(cors.Default())
+	gin.Static("/files", "./storage/files")
+	router := &Router{
+		delivery: delivery,
+		logger:   logger,
+	}
+
 	routes := Routes{
 		{
 			"Index",
@@ -87,7 +91,7 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 		{
 			"DeleteCategoryImage",
 			http.MethodDelete,
-			"/category/image/delete", //?id=25f32441-587a-452d-af8c-b3876ae29d45&name=20221209194557.jpeg
+			"/categories/image/delete", //?id=25f32441-587a-452d-af8c-b3876ae29d45&name=20221209194557.jpeg
 			delivery.DeleteCategoryImage,
 		},
 		{
@@ -103,7 +107,7 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 			delivery.GetItem,
 		},
 		{
-			"GetItemsByCategory", 
+			"GetItemsByCategory",
 			http.MethodGet,
 			"/items/", //?param=categoryName&offset=20&limit=10
 			delivery.GetItemsByCategory,
@@ -175,21 +179,17 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 	for _, route := range routes {
 		switch route.Method {
 		case http.MethodGet:
-			router.GET(route.Pattern, route.HandlerFunc)
+			gin.GET(route.Pattern, route.HandlerFunc)
 		case http.MethodPost:
-			router.POST(route.Pattern, route.HandlerFunc)
+			gin.POST(route.Pattern, route.HandlerFunc)
 		case http.MethodPut:
-			router.PUT(route.Pattern, route.HandlerFunc)
+			gin.PUT(route.Pattern, route.HandlerFunc)
 		case http.MethodPatch:
-			router.PATCH(route.Pattern, route.HandlerFunc)
+			gin.PATCH(route.Pattern, route.HandlerFunc)
 		case http.MethodDelete:
-			router.DELETE(route.Pattern, route.HandlerFunc)
+			gin.DELETE(route.Pattern, route.HandlerFunc)
 		}
 	}
-	return &Router{router: router, delivery: delivery, logger: logger}
-}
-
-func (router *Router) Run(port string) error {
-	router.logger.Debug(fmt.Sprintf("Enter in router Run(), port: %s", port))
-	return router.router.Run(port)
+	router.Engine = gin
+	return router
 }

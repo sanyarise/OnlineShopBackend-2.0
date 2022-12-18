@@ -129,6 +129,7 @@ func (repo *itemRepo) ItemsList(ctx context.Context) (chan models.Item, error) {
 }
 
 func (repo *itemRepo) SearchLine(ctx context.Context, param string) (chan models.Item, error) {
+	repo.logger.Debug("Enter in repository SearchLine()")
 	itemChan := make(chan models.Item, 100)
 	go func() {
 		defer close(itemChan)

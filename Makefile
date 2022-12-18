@@ -126,3 +126,12 @@ mock_usecase:
 
 mock_handlers:
 	mockgen -source=internal/handlers/handlers_interface.go -destination=internal/handlers/mocks/handlers_mock.go -package=mocks
+
+up:
+	docker-compose up -d
+
+down:
+	docker-compose down
+
+run:
+	go run ./cmd/onlineShopBackend/onlineShopBackend.go

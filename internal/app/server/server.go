@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -36,9 +37,13 @@ func (server *Server) Start() {
 }
 
 // ShutDown stop the server
-func (server *Server) ShutDown(ctx context.Context, timeout int) {
-	server.logger.Debug("Enter in server ShubDown()")
-	ctxWithTimiout, cancel := context.WithTimeout(ctx, time.Duration(timeout)*time.Second)
-	server.srv.Shutdown(ctxWithTimiout)
-	cancel()
+func (server *Server) ShutDown(timeout int) {
+	server.logger.Debug("Enter in server ShutDown()")
+	ctxWithTimiout, cancel := context.WithTimeout(context.Background(), time.Duration(timeout)*time.Second)
+	defer cancel()
+	err := server.srv.Shutdown(ctxWithTimiout)
+	if err != nil {
+		server.logger.Warn(fmt.Sprintf("error on server shutdown: %v", err))
+		return
+	}
 }

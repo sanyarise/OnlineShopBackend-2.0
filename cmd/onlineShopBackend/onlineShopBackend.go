@@ -2,7 +2,6 @@ package main
 
 import (
 	"OnlineShopBackend/config"
-	"OnlineShopBackend/internal/app"
 	"OnlineShopBackend/internal/app/logger"
 	"OnlineShopBackend/internal/app/router"
 	"OnlineShopBackend/internal/app/server"
@@ -13,8 +12,10 @@ import (
 	"OnlineShopBackend/internal/repository/cash"
 	"OnlineShopBackend/internal/usecase"
 	"context"
+	"fmt"
 	"log"
 	"os"
+	"os/signal"
 	"time"
 )
 
@@ -31,6 +32,8 @@ func main() {
 	defer lsug.Sync()
 
 	l.Info("Configuration sucessfully load")
+
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	pgstore, err := repository.NewPgxStorage(ctx, lsug, cfg.DSN)
 	if err != nil {
 		log.Fatalf("can't initalize storage: %v", err)
@@ -51,15 +54,24 @@ func main() {
 	filestorage := filestorage.NewOnDiskLocalStorage(cfg.ServerURL, cfg.FsPath, l)
 	delivery := delivery.NewDelivery(itemHandlers, categoryHandlers, l, filestorage)
 	router := router.NewRouter(delivery, l)
-	server := server.NewServer(ctx, cfg.Port, router, l)
-	err = server.Start(ctx)
-	if err != nil {
-		log.Fatalf("can't start server: %v", err)
+	serverOptions := map[string]int{
+		"ReadTimeout":       cfg.ReadTimeout,
+		"WriteTimeout":      cfg.WriteTimeout,
+		"ReadHeaderTimeout": cfg.ReadHeaderTimeout,
 	}
-	var services []app.Service
+	server := server.NewServer(cfg.Port, router, l, serverOptions)
+	server.Start()
+	l.Info(fmt.Sprintf("Server start successful on port: %v", cfg.Port))
 
-	services = append(services, server)
-	a := app.NewApp(l, services)
-	log.Printf("Server started")
-	a.Start()
+	<-ctx.Done()
+
+	pgstore.ShutDown(cfg.Timeout)
+	l.Info("Database connection stopped sucessful")
+
+	cash.ShutDown(cfg.Timeout)
+	l.Info("Cash connection stopped successful")
+
+	server.ShutDown(cfg.Timeout)
+	l.Info("Server stopped successful")
+	cancel()
 }

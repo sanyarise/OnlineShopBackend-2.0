@@ -97,7 +97,6 @@ func (cash *RedisCash) CreateItemsQuantityCash(ctx context.Context, value int, k
 	return nil
 }
 
-
 // GetCash retrieves data from the cache
 func (cash *RedisCash) GetItemsCash(ctx context.Context, key string) ([]models.Item, error) {
 	cash.logger.Debug("Enter in cash GetItemsListCash()")
@@ -123,4 +122,16 @@ func (cash *RedisCash) GetItemsQuantityCash(ctx context.Context, key string) (in
 		return data, err
 	}
 	return data, nil
+}
+
+func (cash *RedisCash) ShutDown(timeout int) {
+	cash.logger.Debug("Enter in cash ShutDown()")
+	ctxWithTimiout, cancel := context.WithTimeout(context.Background(), time.Duration(timeout)*time.Second)
+	defer cancel()
+	status := cash.Shutdown(ctxWithTimiout)
+	_, err := status.Result()
+	if err != nil {
+		cash.logger.Warn(fmt.Sprintf("cash shutdown error: %v", err))
+		return
+	}
 }
