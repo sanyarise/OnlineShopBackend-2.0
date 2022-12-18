@@ -59,6 +59,12 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 			delivery.Index,
 		},
 		{
+			"GetFileList",
+			http.MethodGet,
+			"/images/list",
+			delivery.GetFileList,
+		},
+		{
 			"CreateCategory",
 			http.MethodPost,
 			"/categories/create",
