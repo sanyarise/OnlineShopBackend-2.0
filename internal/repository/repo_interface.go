@@ -30,10 +30,10 @@ type UserStore interface {
 
 type CartStore interface {
 	Create(ctx context.Context, cart *models.Cart) (*models.Cart, error)
-	//? Maybe add to item
 	AddItemToCart(ctx context.Context, cart *models.Cart, item *models.Item) error
-	DeleteCart(cxt context.Context, cart *models.Cart) error
+	DeleteCart(ctx context.Context, cart *models.Cart) error
 	DeleteItemFromCart(ctx context.Context, cart *models.Cart, item *models.Item) error
+	SelectItemsFromCart(ctx context.Context, cart *models.Cart) ([]*models.Item, error)
 }
 
 type OrderStore interface {

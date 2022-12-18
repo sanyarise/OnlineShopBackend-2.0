@@ -22,3 +22,6 @@ type ICategoryHandlers interface {
 	GetCategory(ctx context.Context, id string) (Category, error)
 	GetCategoryList(ctx context.Context) ([]Category, error)
 }
+
+type ICartHandlers interface {
+}

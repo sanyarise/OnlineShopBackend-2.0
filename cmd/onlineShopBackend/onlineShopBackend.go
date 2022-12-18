@@ -36,6 +36,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("can't initalize storage: %v", err)
 	}
+
+	cartStore := repository.NewCartStore(pgstore, lsug)
 	itemStore := repository.NewItemRepo(pgstore, lsug)
 	categoryStore := repository.NewCategoryRepo(pgstore, lsug)
 	cash, err := cash.NewRedisCash(cfg.CashHost, cfg.CashPort, time.Duration(cfg.CashTTL), l)
@@ -43,6 +45,7 @@ func main() {
 		log.Fatalf("can't initialize cash: %v", err)
 	}
 
+	usecase.NewCartUseCase(&cartStore, l)
 	itemUsecase := usecase.NewItemUsecase(itemStore, cash, l)
 	categoryUsecase := usecase.NewCategoryUsecase(categoryStore, l)
 

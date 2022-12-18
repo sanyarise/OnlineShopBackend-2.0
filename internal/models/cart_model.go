@@ -19,6 +19,6 @@ type Cart struct {
 	ID     uuid.UUID
 	UserID uuid.UUID `json:"userID,omitempty"`
 	// Date     string `json:"date,omitempty"`
-	Items    []Item `json:"products,omitempty"`
+	Items    []*Item `json:"products,omitempty"`
 	ExpireAt time.Time
 }
