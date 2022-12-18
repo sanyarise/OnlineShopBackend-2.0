@@ -40,13 +40,15 @@ func main() {
 	}
 	itemStore := repository.NewItemRepo(pgstore, lsug)
 	categoryStore := repository.NewCategoryRepo(pgstore, lsug)
-	cash, err := cash.NewRedisCash(cfg.CashHost, cfg.CashPort, time.Duration(cfg.CashTTL), l)
+	redis, err := cash.NewRedisCash(cfg.CashHost, cfg.CashPort, time.Duration(cfg.CashTTL), l)
 	if err != nil {
 		log.Fatalf("can't initialize cash: %v", err)
 	}
+	itemsCash := cash.NewItemsCash(redis, l)
+	categoriesCash := cash.NewCategoriesCash(redis, l)
 
-	itemUsecase := usecase.NewItemUsecase(itemStore, cash, l)
-	categoryUsecase := usecase.NewCategoryUsecase(categoryStore, l)
+	itemUsecase := usecase.NewItemUsecase(itemStore, itemsCash, l)
+	categoryUsecase := usecase.NewCategoryUsecase(categoryStore, categoriesCash, l)
 
 	itemHandlers := handlers.NewItemHandlers(itemUsecase, l)
 	categoryHandlers := handlers.NewCategoryHandlers(categoryUsecase, l)
@@ -68,7 +70,7 @@ func main() {
 	pgstore.ShutDown(cfg.Timeout)
 	l.Info("Database connection stopped sucessful")
 
-	cash.ShutDown(cfg.Timeout)
+	redis.ShutDown(cfg.Timeout)
 	l.Info("Cash connection stopped successful")
 
 	server.ShutDown(cfg.Timeout)

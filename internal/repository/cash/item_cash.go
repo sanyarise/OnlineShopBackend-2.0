@@ -21,8 +21,27 @@ type results struct {
 	Responses []models.Item
 }
 
-func NewItemsCash(cash *RedisCash, logger *zap.Logger) *ItemsCash {
+func NewItemsCash(cash *RedisCash, logger *zap.Logger) IItemsCash {
 	return &ItemsCash{cash, logger}
+}
+
+// CheckCash checks for data in the cache
+func (cash *ItemsCash) CheckCash(ctx context.Context, key string) bool {
+	cash.logger.Debug("Enter in cash CheckCash()")
+	check := cash.Exists(ctx, key)
+	result, err := check.Result()
+	if err != nil {
+		cash.logger.Error(fmt.Errorf("error on check cash: %w", err).Error())
+		return false
+	}
+	cash.logger.Debug(fmt.Sprintf("Check Cash with key: %s is %v", key, result))
+	if result == 0 {
+		cash.logger.Debug(fmt.Sprintf("Redis: get record %q not exist", key))
+		return false
+	} else {
+		cash.logger.Debug(fmt.Sprintf("Key %q in cash found success", key))
+		return true
+	}
 }
 
 // CreateCash add data in the cash

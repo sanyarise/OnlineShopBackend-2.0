@@ -20,11 +20,11 @@ const (
 
 type ItemUsecase struct {
 	itemStore repository.ItemStore
-	itemCash  cash.Cash
+	itemCash  cash.IItemsCash
 	logger    *zap.Logger
 }
 
-func NewItemUsecase(itemStore repository.ItemStore, itemCash cash.Cash, logger *zap.Logger) IItemUsecase {
+func NewItemUsecase(itemStore repository.ItemStore, itemCash cash.IItemsCash, logger *zap.Logger) IItemUsecase {
 	return &ItemUsecase{itemStore: itemStore, itemCash: itemCash, logger: logger}
 }
 

@@ -6,6 +6,7 @@ import (
 )
 
 type IItemsCash interface {
+	CheckCash(ctx context.Context, key string) bool
 	CreateItemsCash(ctx context.Context, res []models.Item, key string) error
 	CreateItemsQuantityCash(ctx context.Context, value int, key string) error
 	GetItemsCash(ctx context.Context, key string) ([]models.Item, error)
@@ -13,6 +14,7 @@ type IItemsCash interface {
 }
 
 type ICategoriesCash interface {
+	CheckCash(ctx context.Context, key string) bool
 	CreateCategoriesListCash(ctx context.Context, categories []models.Category, key string) error
 	GetCategoriesListCash(ctx context.Context, key string) ([]models.Category, error)
 }

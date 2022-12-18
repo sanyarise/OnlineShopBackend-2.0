@@ -89,20 +89,13 @@ func (handlers *CategoryHandlers) GetCategoryList(ctx context.Context) ([]Catego
 	if err != nil {
 		return res, err
 	}
-	for {
-		select {
-		case <-ctx.Done():
-			return res, ctx.Err()
-		case category, ok := <-categories:
-			if !ok {
-				return res, nil
-			}
-			res = append(res, Category{
-				Id:          category.Id.String(),
-				Name:        category.Name,
-				Description: category.Description,
-				Image:       category.Image,
-			})
-		}
+	for _, category := range categories {
+		res = append(res, Category{
+			Id:          category.Id.String(),
+			Name:        category.Name,
+			Description: category.Description,
+			Image:       category.Image,
+		})
 	}
+	return res, nil
 }

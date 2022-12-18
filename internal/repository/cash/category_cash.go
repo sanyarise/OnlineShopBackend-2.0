@@ -10,6 +10,7 @@ import (
 	"go.uber.org/zap"
 )
 
+var _ ICategoriesCash = &CategoriesCash{}
 type CategoriesCash struct {
 	*RedisCash
 	logger *zap.Logger
@@ -19,8 +20,27 @@ type categoriesData struct {
 	Categories []models.Category `json:"categories"`
 }
 
-func NewCategoriesCash(cash *RedisCash, logger *zap.Logger) *CategoriesCash {
+func NewCategoriesCash(cash *RedisCash, logger *zap.Logger) ICategoriesCash {
 	return &CategoriesCash{cash, logger}
+}
+
+// CheckCash checks for data in the cache
+func (cash *CategoriesCash) CheckCash(ctx context.Context, key string) bool {
+	cash.logger.Debug("Enter in cash CheckCash()")
+	check := cash.Exists(ctx, key)
+	result, err := check.Result()
+	if err != nil {
+		cash.logger.Error(fmt.Errorf("error on check cash: %w", err).Error())
+		return false
+	}
+	cash.logger.Debug(fmt.Sprintf("Check Cash with key: %s is %v", key, result))
+	if result == 0 {
+		cash.logger.Debug(fmt.Sprintf("Redis: get record %q not exist", key))
+		return false
+	} else {
+		cash.logger.Debug(fmt.Sprintf("Key %q in cash found success", key))
+		return true
+	}
 }
 
 func (cash *CategoriesCash) CreateCategoriesListCash(ctx context.Context, categories []models.Category, key string) error {
