@@ -19,6 +19,7 @@ var (
 	}
 	testModelCategoryWithId = &models.Category{
 		Id: testId,
+		Name: "test name",
 	}
 	emptyCategory = &models.Category{}
 	testId        = uuid.New()
@@ -206,4 +207,52 @@ func TestUpdateCategoryCash(t *testing.T) {
 	cash.EXPECT().CreateCategoriesListCash(ctx, categories, categoriesListKey).Return(nil)
 	err = usecase.UpdateCash(ctx, testId, "update")
 	require.NoError(t, err)
+}
+
+func TestDeleteCategory(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	ctx := context.Background()
+	logger := zap.L()
+	categoryRepo := mocks.NewMockCategoryStore(ctrl)
+	cash := mocks.NewMockICategoriesCash(ctrl)
+	usecase := NewCategoryUsecase(categoryRepo, cash, logger)
+
+	categoryRepo.EXPECT().DeleteCategory(ctx, testId).Return(fmt.Errorf("error"))
+	err := usecase.DeleteCategory(ctx, testId)
+	require.Error(t, err)
+
+	categoryRepo.EXPECT().DeleteCategory(ctx, testId).Return(nil)
+	cash.EXPECT().CheckCash(ctx, categoriesListKey).Return(true)
+	categoryRepo.EXPECT().GetCategory(ctx, testId).Return(testModelCategoryWithId, nil)
+	cash.EXPECT().GetCategoriesListCash(ctx, categoriesListKey).Return(categories, nil)
+	cash.EXPECT().CreateCategoriesListCash(ctx, []models.Category{}, categoriesListKey).Return(nil)
+	err = usecase.DeleteCategory(ctx, testId)
+	require.NoError(t, err)
+
+	categoryRepo.EXPECT().DeleteCategory(ctx, testId).Return(nil)
+	cash.EXPECT().CheckCash(ctx, categoriesListKey).Return(false)
+	err = usecase.DeleteCategory(ctx, testId)
+	require.NoError(t, err)
+}
+
+func TestGetCategoryByName(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	ctx := context.Background()
+	logger := zap.L()
+	categoryRepo := mocks.NewMockCategoryStore(ctrl)
+	cash := mocks.NewMockICategoriesCash(ctrl)
+	usecase := NewCategoryUsecase(categoryRepo, cash, logger)
+
+	categoryRepo.EXPECT().GetCategoryByName(ctx, testModelCategoryWithId.Name).Return(nil, fmt.Errorf("error"))
+	res, err := usecase.GetCategoryByName(ctx, testModelCategoryWithId.Name)
+	require.Error(t, err)
+	require.Nil(t, res)
+
+	categoryRepo.EXPECT().GetCategoryByName(ctx, testModelCategoryWithId.Name).Return(testModelCategoryWithId, nil)
+	res, err = usecase.GetCategoryByName(ctx, testModelCategoryWithId.Name)
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	require.Equal(t, res, testModelCategoryWithId)
 }

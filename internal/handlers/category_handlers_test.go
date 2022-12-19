@@ -127,3 +127,39 @@ func TestGetCategoryList(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, res, resCategories)
 }
+
+func TestDeleteCategory(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	ctx := context.Background()
+	logger := zap.L()
+	usecase := mocks.NewMockICategoryUsecase(ctrl)
+	handlers := NewCategoryHandlers(usecase, logger)
+
+	usecase.EXPECT().DeleteCategory(ctx, testCatId).Return(fmt.Errorf("error"))
+	err := handlers.DeleteCategory(ctx, testCatId)
+	require.Error(t, err)
+
+	usecase.EXPECT().DeleteCategory(ctx, testCatId).Return(nil)
+	err = handlers.DeleteCategory(ctx, testCatId)
+	require.NoError(t, err)
+}
+
+func TestGetCategoryByName(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	ctx := context.Background()
+	logger := zap.L()
+	usecase := mocks.NewMockICategoryUsecase(ctrl)
+	handlers := NewCategoryHandlers(usecase, logger)
+
+	usecase.EXPECT().GetCategoryByName(ctx, testModelCategoryWithId.Name).Return(nil, fmt.Errorf("error"))
+	res, err := handlers.GetCategoryByName(ctx, testModelCategoryWithId.Name)
+	require.Error(t, err)
+	require.Equal(t, res, emptyCategory)
+
+	usecase.EXPECT().GetCategoryByName(ctx, testModelCategoryWithId.Name).Return(&testModelCategoryWithId, nil)
+	res, err = handlers.GetCategoryByName(ctx, testModelCategoryWithId.Name)
+	require.NoError(t, err)
+	require.Equal(t, res, testCategoryWithId)
+}
