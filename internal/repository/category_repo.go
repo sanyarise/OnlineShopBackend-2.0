@@ -126,22 +126,18 @@ func (repo *categoryRepo) GetCategoryList(ctx context.Context) (chan models.Cate
 	return categoryChan, nil
 }
 
-func (repo *categoryRepo) DeleteCategory(ctx context.Context, id uuid.UUID) (deletedCategoryName string, err error) {
+func (repo *categoryRepo) DeleteCategory(ctx context.Context, id uuid.UUID) error {
 	repo.logger.Debug("Enter in repository DeleteCategory()")
 	pool := repo.storage.GetPool()
-	repoCategory, err := repo.GetCategory(ctx, id)
-	if err != nil {
-		repo.logger.Errorf("error on get category: %v", err)
-		return "", err
-	}
-	_, err = pool.Exec(ctx, `UPDATE categories SET deleted_at=$1 WHERE id=$2`,
+
+	_, err := pool.Exec(ctx, `UPDATE categories SET deleted_at=$1 WHERE id=$2`,
 		time.Now(), id)
 	if err != nil {
 		repo.logger.Errorf("error on delete category %s: %s", id, err)
-		return "", fmt.Errorf("error on delete category %s: %w", id, err)
+		return fmt.Errorf("error on delete category %s: %w", id, err)
 	}
 	repo.logger.Infof("category %s successfully deleted", id)
-	return repoCategory.Name, nil
+	return nil
 }
 
 func (repo *categoryRepo) GetCategoryByName(ctx context.Context, name string) (*models.Category, error) {

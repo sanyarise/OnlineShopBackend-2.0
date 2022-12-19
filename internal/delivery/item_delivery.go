@@ -212,9 +212,10 @@ func (delivery *Delivery) GetItemsByCategory(c *gin.Context) {
 
 	if options.Limit == 0 {
 		options.Limit = 10
+		delivery.logger.Debug("options limit is set in default value")
 	}
 
-	delivery.logger.Debug("options limit is set in default value: 10")
+
 
 	items, err := delivery.itemHandlers.GetItemsByCategory(c.Request.Context(), options.Param, options.Offset, options.Limit)
 	if err != nil {

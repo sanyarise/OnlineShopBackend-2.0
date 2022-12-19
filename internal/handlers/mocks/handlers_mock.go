@@ -178,6 +178,20 @@ func (mr *MockICategoryHandlersMockRecorder) CreateCategory(ctx, category interf
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateCategory", reflect.TypeOf((*MockICategoryHandlers)(nil).CreateCategory), ctx, category)
 }
 
+// DeleteCategory mocks base method.
+func (m *MockICategoryHandlers) DeleteCategory(ctx context.Context, id uuid.UUID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteCategory", ctx, id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteCategory indicates an expected call of DeleteCategory.
+func (mr *MockICategoryHandlersMockRecorder) DeleteCategory(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteCategory", reflect.TypeOf((*MockICategoryHandlers)(nil).DeleteCategory), ctx, id)
+}
+
 // GetCategory mocks base method.
 func (m *MockICategoryHandlers) GetCategory(ctx context.Context, id string) (handlers.Category, error) {
 	m.ctrl.T.Helper()
@@ -191,6 +205,21 @@ func (m *MockICategoryHandlers) GetCategory(ctx context.Context, id string) (han
 func (mr *MockICategoryHandlersMockRecorder) GetCategory(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCategory", reflect.TypeOf((*MockICategoryHandlers)(nil).GetCategory), ctx, id)
+}
+
+// GetCategoryByName mocks base method.
+func (m *MockICategoryHandlers) GetCategoryByName(ctx context.Context, name string) (handlers.Category, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCategoryByName", ctx, name)
+	ret0, _ := ret[0].(handlers.Category)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetCategoryByName indicates an expected call of GetCategoryByName.
+func (mr *MockICategoryHandlersMockRecorder) GetCategoryByName(ctx, name interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCategoryByName", reflect.TypeOf((*MockICategoryHandlers)(nil).GetCategoryByName), ctx, name)
 }
 
 // GetCategoryList mocks base method.

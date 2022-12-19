@@ -96,18 +96,18 @@ func (usecase *CategoryUsecase) GetCategoryList(ctx context.Context) ([]models.C
 	return categories, nil
 }
 
-// DeleteCategory call database method for deleting category and returns name of this category or error
-func (usecase *CategoryUsecase) DeleteCategory(ctx context.Context, id uuid.UUID) (string, error) {
+// DeleteCategory call database method for deleting category
+func (usecase *CategoryUsecase) DeleteCategory(ctx context.Context, id uuid.UUID) error {
 	usecase.logger.Debug("Enter in usecase DeleteCategory()")
-	deletedCategoryName, err := usecase.categoryStore.DeleteCategory(ctx, id)
+	err := usecase.categoryStore.DeleteCategory(ctx, id)
 	if err != nil {
-		return "", err
+		return err
 	}
 	err = usecase.UpdateCash(ctx, id, "delete")
 	if err != nil {
 		usecase.logger.Error(fmt.Sprintf("error on update cast: %v", err))
 	}
-	return deletedCategoryName, nil
+	return nil
 }
 
 func (usecase *CategoryUsecase) GetCategoryByName(ctx context.Context, name string) (*models.Category, error) {

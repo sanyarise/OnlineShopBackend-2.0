@@ -189,22 +189,36 @@ func (delivery *Delivery) DeleteCategory(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	deletedCategoryName, err := delivery.categoryHandlers.DeleteCategory(ctx, id)
+	deletedCategory, err := delivery.categoryHandlers.GetCategory(ctx, stringId)
+	if err != nil {
+		delivery.logger.Debug(fmt.Sprintf("error on get deleted category: %v", err))
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	delivery.logger.Debug(fmt.Sprintf("deletedCategory: %v", deletedCategory))
+	
+	err = delivery.categoryHandlers.DeleteCategory(ctx, id)
 	if err != nil {
 		delivery.logger.Debug(fmt.Sprintf("error on delete category: %v", err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
-	err = delivery.filestorage.DeleteCategoryImageById(stringId)
-	if err != nil {
-		delivery.logger.Error(fmt.Sprintf("error on delete category images: %v", err))
+
+	if deletedCategory.Image != "" {
+		err = delivery.filestorage.DeleteCategoryImageById(stringId)
+		if err != nil {
+			delivery.logger.Error(fmt.Sprintf("error on delete category images: %v", err))
+		}
 	}
+
 	quantity, err := delivery.itemHandlers.ItemsQuantity(ctx)
 	if err != nil {
 		delivery.logger.Error(fmt.Sprintf("error on get items quantity: %v", err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	items, err := delivery.itemHandlers.GetItemsByCategory(ctx, deletedCategoryName, 0, quantity)
+
+	items, err := delivery.itemHandlers.GetItemsByCategory(ctx, deletedCategory.Name, 0, quantity)
 	if err != nil {
 		delivery.logger.Error(fmt.Sprintf("error on get items by category: %v", err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
