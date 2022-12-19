@@ -110,6 +110,15 @@ func (usecase *CategoryUsecase) DeleteCategory(ctx context.Context, id uuid.UUID
 	return deletedCategoryName, nil
 }
 
+func (usecase *CategoryUsecase) GetCategoryByName(ctx context.Context, name string) (*models.Category, error) {
+	usecase.logger.Debug("Enter in usecase GetCategoryByName()")
+	category, err := usecase.categoryStore.GetCategoryByName(ctx, name)
+	if err != nil {
+		return nil, err
+	}
+	return category, nil
+}
+
 // UpdateCash updating cash when creating or updating category
 func (usecase *CategoryUsecase) UpdateCash(ctx context.Context, id uuid.UUID, op string) error {
 	usecase.logger.Debug("Enter in usecase UpdateCash()")

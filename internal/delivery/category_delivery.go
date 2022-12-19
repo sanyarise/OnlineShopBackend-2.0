@@ -211,18 +211,30 @@ func (delivery *Delivery) DeleteCategory(c *gin.Context) {
 		return
 	}
 
-	noCategory := handlers.Category{
-		Name:        "NoCategory",
-		Description: "Category for items from deleting categories",
-	}
-
-	noCategoryId, err := delivery.categoryHandlers.CreateCategory(ctx, noCategory)
+	noCategory, err := delivery.categoryHandlers.GetCategoryByName(ctx, "noCategory")
 	if err != nil {
-		delivery.logger.Error(fmt.Sprintf("error on create no category: %v", err))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		delivery.logger.Error(fmt.Sprintf("error on get category by name: %v", err))
+		noCategory := handlers.Category{
+			Name:        "NoCategory",
+			Description: "Category for items from deleting categories",
+		}
+		noCategoryId, err := delivery.categoryHandlers.CreateCategory(ctx, noCategory)
+		if err != nil {
+			delivery.logger.Error(fmt.Sprintf("error on create no category: %v", err))
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		noCategory.Id = noCategoryId.String()
+		for _, item := range items {
+			item.Category = noCategory
+			err := delivery.itemHandlers.UpdateItem(ctx, item)
+			if err != nil {
+				delivery.logger.Error(fmt.Sprintf("error on update item: %v", err))
+			}
+		}
+		c.JSON(http.StatusOK, gin.H{"status": "deleted success"})
 		return
 	}
-	noCategory.Id = noCategoryId.String()
 	for _, item := range items {
 		item.Category = noCategory
 		err := delivery.itemHandlers.UpdateItem(ctx, item)

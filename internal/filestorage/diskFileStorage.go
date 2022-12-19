@@ -98,7 +98,7 @@ func (imagestorage *OnDiskLocalStorage) DeleteCategoryImage(id string, filename 
 
 func (imagestorage *OnDiskLocalStorage) DeleteCategoryImageById(id string) error {
 	imagestorage.logger.Debug("Enter in filestorage DeleteCategoryImageById()")
-	err := filepath.Walk(imagestorage.path+"/"+id, func(path string, info os.FileInfo, err error) error {
+	err := filepath.Walk(imagestorage.path+"/categories/"+id, func(path string, info os.FileInfo, err error) error {
 		if !info.IsDir() {
 			err := imagestorage.DeleteCategoryImage(id, info.Name())
 			if err != nil {

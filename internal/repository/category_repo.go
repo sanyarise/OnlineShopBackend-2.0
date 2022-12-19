@@ -20,8 +20,6 @@ type Category struct {
 	Name        string
 	Description string
 	Image       string
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
 	DeletedAt   *time.Time
 }
 
@@ -40,18 +38,14 @@ func (repo *categoryRepo) CreateCategory(ctx context.Context, category *models.C
 		Name:        category.Name,
 		Description: category.Description,
 		Image:       category.Image,
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
 	}
 	var id uuid.UUID
 	pool := repo.storage.GetPool()
-	row := pool.QueryRow(ctx, `INSERT INTO categories(name, description, picture, created_at, updated_at, deleted_at)
-	values ($1, $2, $3, $4, $5, $6) RETURNING id`,
+	row := pool.QueryRow(ctx, `INSERT INTO categories(name, description, picture, deleted_at)
+	values ($1, $2, $3, $4) RETURNING id`,
 		repoCategory.Name,
 		repoCategory.Description,
 		repoCategory.Image,
-		repoCategory.CreatedAt,
-		repoCategory.UpdatedAt,
 		nil,
 	)
 	if err := row.Scan(&id); err != nil {
@@ -66,12 +60,11 @@ func (repo *categoryRepo) CreateCategory(ctx context.Context, category *models.C
 func (repo *categoryRepo) UpdateCategory(ctx context.Context, category *models.Category) error {
 	repo.logger.Debug("Enter in repository UpdateCategory()")
 	pool := repo.storage.GetPool()
-	_, err := pool.Exec(ctx, `UPDATE categories SET name=$1, description=$2, picture=$3, updated_at=$4 WHERE id=$4`,
+	_, err := pool.Exec(ctx, `UPDATE categories SET name=$1, description=$2, picture=$3 WHERE id=$4`,
 		category.Name,
 		category.Description,
 		category.Image,
-		category.Id,
-		time.Now())
+		category.Id)
 	if err != nil {
 		repo.logger.Errorf("error on update category %s: %s", category.Id, err)
 		return fmt.Errorf("error on update category %s: %w", category.Id, err)
@@ -82,26 +75,21 @@ func (repo *categoryRepo) UpdateCategory(ctx context.Context, category *models.C
 
 func (repo *categoryRepo) GetCategory(ctx context.Context, id uuid.UUID) (*models.Category, error) {
 	repo.logger.Debug("Enter in repository GetCategory()")
-	select {
-	case <-ctx.Done():
-		return nil, fmt.Errorf("context closed")
-	default:
-		category := models.Category{}
-		pool := repo.storage.GetPool()
-		row := pool.QueryRow(ctx,
-			`SELECT id, name, description, picture FROM categories WHERE id = $1`, id)
-		err := row.Scan(
-			&category.Id,
-			&category.Name,
-			&category.Description,
-			&category.Image,
-		)
-		if err != nil {
-			repo.logger.Errorf("error in rows scan get category by id: %s", err)
-			return &models.Category{}, fmt.Errorf("error in rows scan get category by id: %w", err)
-		}
-		return &category, nil
+	category := models.Category{}
+	pool := repo.storage.GetPool()
+	row := pool.QueryRow(ctx,
+		`SELECT id, name, description, picture FROM categories WHERE id = $1`, id)
+	err := row.Scan(
+		&category.Id,
+		&category.Name,
+		&category.Description,
+		&category.Image,
+	)
+	if err != nil {
+		repo.logger.Errorf("error in rows scan get category by id: %s", err)
+		return &models.Category{}, fmt.Errorf("error in rows scan get category by id: %w", err)
 	}
+	return &category, nil
 }
 
 func (repo *categoryRepo) GetCategoryList(ctx context.Context) (chan models.Category, error) {
@@ -154,4 +142,23 @@ func (repo *categoryRepo) DeleteCategory(ctx context.Context, id uuid.UUID) (del
 	}
 	repo.logger.Infof("category %s successfully deleted", id)
 	return repoCategory.Name, nil
+}
+
+func (repo *categoryRepo) GetCategoryByName(ctx context.Context, name string) (*models.Category, error) {
+	repo.logger.Debug("Enter in repository GetCategoryByName()")
+	category := models.Category{}
+	pool := repo.storage.GetPool()
+	row := pool.QueryRow(ctx,
+		`SELECT id, name, description, picture FROM categories WHERE name = $1`, name)
+	err := row.Scan(
+		&category.Id,
+		&category.Name,
+		&category.Description,
+		&category.Image,
+	)
+	if err != nil {
+		repo.logger.Errorf("error in rows scan get category by name: %s", err)
+		return &models.Category{}, fmt.Errorf("error in rows scan get category by name: %w", err)
+	}
+	return &category, nil
 }

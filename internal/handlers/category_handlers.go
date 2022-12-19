@@ -109,3 +109,17 @@ func (handlers *CategoryHandlers) DeleteCategory(ctx context.Context, id uuid.UU
 	}
 	return deletedCategoryName, nil
 }
+
+func (handlers *CategoryHandlers) GetCategoryByName(ctx context.Context, name string) (Category, error) {
+	handlers.logger.Debug("Enter in handlers GetCategoryByName()")
+	category, err := handlers.usecase.GetCategoryByName(ctx, name)
+	if err != nil {
+		return Category{}, err
+	}
+	return Category{
+		Id:          category.Id.String(),
+		Name:        category.Name,
+		Description: category.Description,
+		Image:       category.Image,
+	}, nil
+}
