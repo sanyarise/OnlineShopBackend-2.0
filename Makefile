@@ -127,6 +127,9 @@ mock_usecase:
 mock_handlers:
 	mockgen -source=internal/handlers/handlers_interface.go -destination=internal/handlers/mocks/handlers_mock.go -package=mocks
 
+mock_filestorage:
+	mockgen -source=internal/filestorage/diskFileStorage.go -destination=internal/filestorage/mocks/filestorage_mock.go -package=mocks FileStorager
+
 up:
 	docker-compose up -d
 

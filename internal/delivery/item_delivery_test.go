@@ -1,0 +1,772 @@
+package delivery
+
+import (
+	fs "OnlineShopBackend/internal/filestorage/mocks"
+	"OnlineShopBackend/internal/handlers"
+	"OnlineShopBackend/internal/handlers/mocks"
+	"bytes"
+	"context"
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
+	"net/http/httptest"
+	"net/url"
+	"testing"
+
+	"github.com/gin-gonic/gin"
+	"github.com/golang-module/carbon/v2"
+	"github.com/golang/mock/gomock"
+	"github.com/google/uuid"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
+)
+
+var (
+	testId                    = uuid.New()
+	testDeliveryItemWithoutId = DeliveryItem{
+		Title:    "testTitle",
+		Category: testId.String(),
+	}
+	testHandlersItemWithoutId = handlers.Item{
+		Title: "testTitle",
+		Category: handlers.Category{
+			Id: testDeliveryItemWithoutId.Category,
+		},
+	}
+	testDeliveryItemWithId = DeliveryItem{
+		Id:       testId.String(),
+		Title:    "testTitle",
+		Category: uuid.NewString(),
+	}
+	testHandlersItemWithId = handlers.Item{
+		Id:    testId.String(),
+		Title: "testTitle",
+		Category: handlers.Category{
+			Id: testDeliveryItemWithId.Category,
+		},
+	}
+	testHandlersItemWithImage = handlers.Item{
+		Id:    testId.String(),
+		Title: "testTitle",
+		Category: handlers.Category{
+			Id: testDeliveryItemWithId.Category,
+		},
+		Images: []string{"testName"},
+	}
+	testHandlersItemWithImage2 = handlers.Item{
+		Id:    testId.String(),
+		Title: "testTitle",
+		Category: handlers.Category{
+			Id: testDeliveryItemWithId.Category,
+		},
+		Images: []string{"testName.jpeg"},
+	}
+	testEmptyItem = DeliveryItem{}
+	post          = "POST"
+	put           = "PUT"
+	testItems     = []handlers.Item{testHandlersItemWithId}
+	testFile      = []byte{0xff, 0xd8, 0xff, 0xe0, 0x0, 0x10, 0x4a, 0x46, 0x49, 0x46, 0x0, 0x1, 0x1, 0x1, 0x0, 0x48, 0x0, 0x48, 0x0, 0x0, 0xff, 0xe1, 0x0, 0x22, 0x45, 0x78, 0x69, 0x66, 0x0, 0x0, 0x4d, 0x4d, 0x0, 0x2a, 0x0, 0x0, 0x0, 0x8, 0x0, 0x1, 0x1, 0x12, 0x0, 0x3, 0x0, 0x0, 0x0, 0x1, 0x0, 0x1, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0xff, 0xfe, 0x0, 0xd, 0x53, 0x65, 0x63, 0x6c, 0x75, 0x62, 0x2e, 0x6f, 0x72, 0x67, 0x0, 0xff, 0xdb, 0x0, 0x43, 0x0, 0x2, 0x1, 0x1, 0x2, 0x1, 0x1, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x3, 0x5, 0x3, 0x3, 0x3, 0x3, 0x3, 0x6, 0x4, 0x4, 0x3, 0x5, 0x7, 0x6, 0x7, 0x7, 0x7, 0x6, 0x7, 0x7, 0x8, 0x9, 0xb, 0x9, 0x8, 0x8, 0xa, 0x8, 0x7, 0x7, 0xa, 0xd, 0xa, 0xa, 0xb, 0xc, 0xc, 0xc, 0xc, 0x7, 0x9, 0xe, 0xf, 0xd, 0xc, 0xe, 0xb, 0xc, 0xc, 0xc, 0xff, 0xdb, 0x0, 0x43, 0x1, 0x2, 0x2, 0x2, 0x3, 0x3, 0x3, 0x6, 0x3, 0x3, 0x6, 0xc, 0x8, 0x7, 0x8, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xff, 0xc0, 0x0, 0x11, 0x8, 0x0, 0x1, 0x0, 0x1, 0x3, 0x1, 0x22, 0x0, 0x2, 0x11, 0x1, 0x3, 0x11, 0x1, 0xff, 0xc4, 0x0, 0x1f, 0x0, 0x0, 0x1, 0x5, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0xa, 0xb, 0xff, 0xc4, 0x0, 0xb5, 0x10, 0x0, 0x2, 0x1, 0x3, 0x3, 0x2, 0x4, 0x3, 0x5, 0x5, 0x4, 0x4, 0x0, 0x0, 0x1, 0x7d, 0x1, 0x2, 0x3, 0x0, 0x4, 0x11, 0x5, 0x12, 0x21, 0x31, 0x41, 0x6, 0x13, 0x51, 0x61, 0x7, 0x22, 0x71, 0x14, 0x32, 0x81, 0x91, 0xa1, 0x8, 0x23, 0x42, 0xb1, 0xc1, 0x15, 0x52, 0xd1, 0xf0, 0x24, 0x33, 0x62, 0x72, 0x82, 0x9, 0xa, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2a, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x3a, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48, 0x49, 0x4a, 0x53, 0x54, 0x55, 0x56, 0x57, 0x58, 0x59, 0x5a, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68, 0x69, 0x6a, 0x73, 0x74, 0x75, 0x76, 0x77, 0x78, 0x79, 0x7a, 0x83, 0x84, 0x85, 0x86, 0x87, 0x88, 0x89, 0x8a, 0x92,
+		0x93, 0x94, 0x95, 0x96, 0x97, 0x98, 0x99, 0x9a, 0xa2, 0xa3, 0xa4, 0xa5, 0xa6, 0xa7, 0xa8, 0xa9, 0xaa, 0xb2, 0xb3, 0xb4, 0xb5, 0xb6, 0xb7, 0xb8, 0xb9, 0xba, 0xc2, 0xc3, 0xc4, 0xc5, 0xc6, 0xc7, 0xc8, 0xc9, 0xca, 0xd2, 0xd3, 0xd4, 0xd5, 0xd6, 0xd7, 0xd8, 0xd9, 0xda, 0xe1, 0xe2, 0xe3, 0xe4, 0xe5, 0xe6, 0xe7, 0xe8, 0xe9, 0xea, 0xf1, 0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 0xf8, 0xf9, 0xfa, 0xff, 0xc4, 0x0, 0x1f, 0x1, 0x0, 0x3, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0xa, 0xb, 0xff, 0xc4, 0x0, 0xb5, 0x11, 0x0, 0x2, 0x1, 0x2, 0x4, 0x4, 0x3, 0x4, 0x7, 0x5, 0x4, 0x4, 0x0, 0x1, 0x2, 0x77, 0x0, 0x1, 0x2, 0x3, 0x11, 0x4, 0x5, 0x21, 0x31, 0x6, 0x12, 0x41, 0x51, 0x7, 0x61, 0x71, 0x13, 0x22, 0x32, 0x81, 0x8, 0x14, 0x42, 0x91, 0xa1, 0xb1, 0xc1, 0x9, 0x23, 0x33, 0x52, 0xf0, 0x15, 0x62, 0x72, 0xd1, 0xa, 0x16, 0x24, 0x34, 0xe1, 0x25, 0xf1, 0x17, 0x18, 0x19, 0x1a, 0x26, 0x27, 0x28, 0x29, 0x2a, 0x35, 0x36, 0x37, 0x38, 0x39, 0x3a, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48, 0x49, 0x4a, 0x53, 0x54, 0x55, 0x56, 0x57, 0x58, 0x59, 0x5a, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68, 0x69, 0x6a, 0x73, 0x74, 0x75, 0x76, 0x77, 0x78, 0x79, 0x7a, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87, 0x88, 0x89, 0x8a, 0x92, 0x93, 0x94, 0x95, 0x96, 0x97, 0x98, 0x99, 0x9a, 0xa2, 0xa3, 0xa4, 0xa5, 0xa6, 0xa7, 0xa8, 0xa9, 0xaa, 0xb2, 0xb3, 0xb4, 0xb5, 0xb6, 0xb7, 0xb8, 0xb9, 0xba, 0xc2, 0xc3, 0xc4, 0xc5, 0xc6, 0xc7, 0xc8, 0xc9, 0xca, 0xd2, 0xd3, 0xd4, 0xd5, 0xd6, 0xd7, 0xd8, 0xd9, 0xda, 0xe2, 0xe3, 0xe4, 0xe5, 0xe6, 0xe7, 0xe8, 0xe9, 0xea, 0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 0xf8, 0xf9, 0xfa, 0xff, 0xda, 0x0, 0xc, 0x3, 0x1, 0x0, 0x2, 0x11, 0x3, 0x11, 0x0, 0x3f, 0x0, 0xfc, 0x8b, 0xa2, 0x8a, 0x2b, 0xf3, 0xb3, 0xf6, 0x83, 0xff, 0xd9}
+)
+
+func MockJson(c *gin.Context, content interface{}, method string) {
+	if method == "POST" {
+		c.Request.Method = "POST"
+	}
+	if method == "PUT" {
+		c.Request.Method = "PUT"
+	}
+
+	c.Request.Header.Set("Content-Type", "application/json")
+
+	jsonbytes, err := json.Marshal(content)
+	if err != nil {
+		panic(err)
+	}
+	c.Request.Body = io.NopCloser(bytes.NewBuffer(jsonbytes))
+}
+
+func MockFile(c *gin.Context, fileType string, file []byte) {
+	c.Request.Method = "POST"
+	if fileType == "jpeg" {
+		c.Request.Header.Set("Content-Type", "image/jpeg")
+	} else {
+		c.Request.Header.Set("Content-Type", "image/png")
+	}
+	c.Request.Body = io.NopCloser(bytes.NewBuffer(file))
+}
+func TestCreateItem(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	ctx := context.Background()
+	logger := zap.L()
+	itemHandlers := mocks.NewMockIItemHandlers(ctrl)
+	categoryHandlers := mocks.NewMockICategoryHandlers(ctrl)
+	filestorage := fs.NewMockFileStorager(ctrl)
+	delivery := NewDelivery(itemHandlers, categoryHandlers, logger, filestorage)
+
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	MockJson(c, testDeliveryItemWithoutId, post)
+	res := gin.H{"success": testId.String()}
+	bytesRes, _ := json.Marshal(&res)
+	itemHandlers.EXPECT().CreateItem(ctx, testHandlersItemWithoutId).Return(testId, nil)
+	delivery.CreateItem(c)
+	require.Equal(t, 200, w.Code)
+	require.Equal(t, bytesRes, w.Body.Bytes())
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	MockJson(c, testHandlersItemWithoutId, post)
+	delivery.CreateItem(c)
+	require.Equal(t, 400, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	MockJson(c, testEmptyItem, post)
+	delivery.CreateItem(c)
+	require.Equal(t, 400, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	MockJson(c, testDeliveryItemWithoutId, post)
+	itemHandlers.EXPECT().CreateItem(ctx, testHandlersItemWithoutId).Return(uuid.Nil, fmt.Errorf("error"))
+	delivery.CreateItem(c)
+	require.Equal(t, 500, w.Code)
+}
+
+func TestGetItem(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	ctx := context.Background()
+	logger := zap.L()
+	itemHandlers := mocks.NewMockIItemHandlers(ctrl)
+	categoryHandlers := mocks.NewMockICategoryHandlers(ctrl)
+	filestorage := fs.NewMockFileStorager(ctrl)
+	delivery := NewDelivery(itemHandlers, categoryHandlers, logger, filestorage)
+
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Params = []gin.Param{
+		{
+			Key:   "itemID",
+			Value: testId.String(),
+		},
+	}
+	bytesRes, _ := json.Marshal(&testHandlersItemWithId)
+	itemHandlers.EXPECT().GetItem(ctx, testId.String()).Return(testHandlersItemWithId, nil)
+	delivery.GetItem(c)
+	require.Equal(t, 200, w.Code)
+	require.Equal(t, bytesRes, w.Body.Bytes())
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Params = []gin.Param{
+		{
+			Key:   "itemID",
+			Value: testId.String(),
+		},
+	}
+	itemHandlers.EXPECT().GetItem(ctx, testId.String()).Return(handlers.Item{}, fmt.Errorf("error"))
+	delivery.GetItem(c)
+	require.Equal(t, 400, w.Code)
+}
+
+func TestUpdateItem(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	ctx := context.Background()
+	logger := zap.L()
+	itemHandlers := mocks.NewMockIItemHandlers(ctrl)
+	categoryHandlers := mocks.NewMockICategoryHandlers(ctrl)
+	filestorage := fs.NewMockFileStorager(ctrl)
+	delivery := NewDelivery(itemHandlers, categoryHandlers, logger, filestorage)
+
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	MockJson(c, testHandlersItemWithId, put)
+	itemHandlers.EXPECT().UpdateItem(ctx, testHandlersItemWithId).Return(nil)
+	delivery.UpdateItem(c)
+	require.Equal(t, 200, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	MockJson(c, testHandlersItemWithId, put)
+	itemHandlers.EXPECT().UpdateItem(ctx, testHandlersItemWithId).Return(fmt.Errorf("error"))
+	delivery.UpdateItem(c)
+	require.Equal(t, 400, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	MockJson(c, testDeliveryItemWithId, put)
+	delivery.UpdateItem(c)
+	require.Equal(t, 400, w.Code)
+}
+
+func TestItemsList(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	ctx := context.Background()
+	logger := zap.L()
+	itemHandlers := mocks.NewMockIItemHandlers(ctrl)
+	categoryHandlers := mocks.NewMockICategoryHandlers(ctrl)
+	filestorage := fs.NewMockFileStorager(ctrl)
+	delivery := NewDelivery(itemHandlers, categoryHandlers, logger, filestorage)
+
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Request.URL, _ = url.Parse("?offset=0&limit=1")
+
+	bytesRes, _ := json.Marshal(&testItems)
+	itemHandlers.EXPECT().ItemsList(ctx, 0, 1).Return(testItems, nil)
+	delivery.ItemsList(c)
+	require.Equal(t, 200, w.Code)
+	require.Equal(t, bytesRes, w.Body.Bytes())
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Request.URL, _ = url.Parse("?offset=0&limit=1")
+
+	itemHandlers.EXPECT().ItemsList(ctx, 0, 1).Return([]handlers.Item{}, fmt.Errorf("error"))
+	delivery.ItemsList(c)
+	require.Equal(t, 400, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Request.URL, _ = url.Parse("?offset=0&limit=k")
+
+	delivery.ItemsList(c)
+	require.Equal(t, 400, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+
+	bytesRes, _ = json.Marshal(&testItems)
+	itemHandlers.EXPECT().ItemsQuantity(ctx).Return(1, nil)
+	itemHandlers.EXPECT().ItemsList(ctx, 0, 1).Return(testItems, nil)
+	delivery.ItemsList(c)
+	require.Equal(t, 200, w.Code)
+	require.Equal(t, bytesRes, w.Body.Bytes())
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+
+	itemHandlers.EXPECT().ItemsQuantity(ctx).Return(-1, fmt.Errorf("error"))
+	delivery.ItemsList(c)
+	require.Equal(t, 400, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+
+	bytesRes, _ = json.Marshal(&testItems)
+	itemHandlers.EXPECT().ItemsQuantity(ctx).Return(100, nil)
+	itemHandlers.EXPECT().ItemsList(ctx, 0, 20).Return(testItems, nil)
+	delivery.ItemsList(c)
+	require.Equal(t, 200, w.Code)
+	require.Equal(t, bytesRes, w.Body.Bytes())
+}
+
+func TestItemsQuantity(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	ctx := context.Background()
+	logger := zap.L()
+	itemHandlers := mocks.NewMockIItemHandlers(ctrl)
+	categoryHandlers := mocks.NewMockICategoryHandlers(ctrl)
+	filestorage := fs.NewMockFileStorager(ctrl)
+	delivery := NewDelivery(itemHandlers, categoryHandlers, logger, filestorage)
+
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+
+	testQuantity := ItemsQuantity{
+		Quantity: 1,
+	}
+	bytesRes, _ := json.Marshal(&testQuantity)
+	itemHandlers.EXPECT().ItemsQuantity(ctx).Return(1, nil)
+	delivery.ItemsQuantity(c)
+	require.Equal(t, 200, w.Code)
+	require.Equal(t, bytesRes, w.Body.Bytes())
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	itemHandlers.EXPECT().ItemsQuantity(ctx).Return(-1, fmt.Errorf("error"))
+	delivery.ItemsQuantity(c)
+	require.Equal(t, 500, w.Code)
+}
+
+func TestSearchLine(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	ctx := context.Background()
+	logger := zap.L()
+	itemHandlers := mocks.NewMockIItemHandlers(ctrl)
+	categoryHandlers := mocks.NewMockICategoryHandlers(ctrl)
+	filestorage := fs.NewMockFileStorager(ctrl)
+	delivery := NewDelivery(itemHandlers, categoryHandlers, logger, filestorage)
+
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Request.URL, _ = url.Parse("?param=test&offset=0&limit=1")
+
+	bytesRes, _ := json.Marshal(&testItems)
+	itemHandlers.EXPECT().SearchLine(ctx, "test", 0, 1).Return(testItems, nil)
+	delivery.SearchLine(c)
+	require.Equal(t, 200, w.Code)
+	require.Equal(t, bytesRes, w.Body.Bytes())
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Request.URL, _ = url.Parse("?param=test&offset=0&limit=1")
+
+	itemHandlers.EXPECT().SearchLine(ctx, "test", 0, 1).Return([]handlers.Item{}, fmt.Errorf("error"))
+	delivery.SearchLine(c)
+	require.Equal(t, 400, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Request.URL, _ = url.Parse("?param=test&offset=0&limit=k")
+
+	delivery.SearchLine(c)
+	require.Equal(t, 400, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Request.URL, _ = url.Parse("?offset=0&limit=1")
+
+	delivery.SearchLine(c)
+	require.Equal(t, 400, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Request.URL, _ = url.Parse("?param=test&offset=0&limit=0")
+
+	itemHandlers.EXPECT().ItemsQuantity(ctx).Return(-1, fmt.Errorf("error"))
+	delivery.SearchLine(c)
+	require.Equal(t, 500, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Request.URL, _ = url.Parse("?param=test&offset=0&limit=0")
+
+	itemHandlers.EXPECT().ItemsQuantity(ctx).Return(1, nil)
+	itemHandlers.EXPECT().SearchLine(ctx, "test", 0, 1).Return(testItems, nil)
+	delivery.SearchLine(c)
+	require.Equal(t, 200, w.Code)
+	require.Equal(t, bytesRes, w.Body.Bytes())
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Request.URL, _ = url.Parse("?param=test&offset=0&limit=0")
+
+	itemHandlers.EXPECT().ItemsQuantity(ctx).Return(100, nil)
+	itemHandlers.EXPECT().SearchLine(ctx, "test", 0, 20).Return(testItems, nil)
+	delivery.SearchLine(c)
+	require.Equal(t, 200, w.Code)
+	require.Equal(t, bytesRes, w.Body.Bytes())
+}
+
+func TestGetItemsByCategory(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	ctx := context.Background()
+	logger := zap.L()
+	itemHandlers := mocks.NewMockIItemHandlers(ctrl)
+	categoryHandlers := mocks.NewMockICategoryHandlers(ctrl)
+	filestorage := fs.NewMockFileStorager(ctrl)
+	delivery := NewDelivery(itemHandlers, categoryHandlers, logger, filestorage)
+
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Request.URL, _ = url.Parse("?param=test&offset=0&limit=1")
+
+	bytesRes, _ := json.Marshal(&testItems)
+	itemHandlers.EXPECT().GetItemsByCategory(ctx, "test", 0, 1).Return(testItems, nil)
+	delivery.GetItemsByCategory(c)
+	require.Equal(t, 200, w.Code)
+	require.Equal(t, bytesRes, w.Body.Bytes())
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Request.URL, _ = url.Parse("?param=test&offset=0&limit=1")
+
+	itemHandlers.EXPECT().GetItemsByCategory(ctx, "test", 0, 1).Return([]handlers.Item{}, fmt.Errorf("error"))
+	delivery.GetItemsByCategory(c)
+	require.Equal(t, 400, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Request.URL, _ = url.Parse("?param=test&offset=0&limit=k")
+
+	delivery.GetItemsByCategory(c)
+	require.Equal(t, 400, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Request.URL, _ = url.Parse("?offset=0&limit=1")
+
+	delivery.GetItemsByCategory(c)
+	require.Equal(t, 400, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Request.URL, _ = url.Parse("?param=test&offset=0&limit=0")
+
+	itemHandlers.EXPECT().ItemsQuantity(ctx).Return(-1, fmt.Errorf("error"))
+	delivery.GetItemsByCategory(c)
+	require.Equal(t, 500, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Request.URL, _ = url.Parse("?param=test&offset=0&limit=0")
+
+	itemHandlers.EXPECT().ItemsQuantity(ctx).Return(1, nil)
+	itemHandlers.EXPECT().GetItemsByCategory(ctx, "test", 0, 1).Return(testItems, nil)
+	delivery.GetItemsByCategory(c)
+	require.Equal(t, 200, w.Code)
+	require.Equal(t, bytesRes, w.Body.Bytes())
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Request.URL, _ = url.Parse("?param=test&offset=0&limit=0")
+
+	itemHandlers.EXPECT().ItemsQuantity(ctx).Return(100, nil)
+	itemHandlers.EXPECT().GetItemsByCategory(ctx, "test", 0, 20).Return(testItems, nil)
+	delivery.GetItemsByCategory(c)
+	require.Equal(t, 200, w.Code)
+	require.Equal(t, bytesRes, w.Body.Bytes())
+}
+
+func TestUploadItemImage(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	ctx := context.Background()
+	logger := zap.L()
+	itemHandlers := mocks.NewMockIItemHandlers(ctrl)
+	categoryHandlers := mocks.NewMockICategoryHandlers(ctrl)
+	filestorage := fs.NewMockFileStorager(ctrl)
+	delivery := NewDelivery(itemHandlers, categoryHandlers, logger, filestorage)
+
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	delivery.UploadItemImage(c)
+	require.Equal(t, 400, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Params = []gin.Param{
+		{
+			Key:   "itemID",
+			Value: testId.String(),
+		},
+	}
+	delivery.UploadItemImage(c)
+	require.Equal(t, 415, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Params = []gin.Param{
+		{
+			Key:   "itemID",
+			Value: testId.String(),
+		},
+	}
+	MockFile(c, "jpeg", testFile)
+	filestorage.EXPECT().PutItemImage(testId.String(), carbon.Now().ToShortDateTimeString()+".jpeg", testFile).Return("", fmt.Errorf("error"))
+	delivery.UploadItemImage(c)
+	require.Equal(t, 507, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Params = []gin.Param{
+		{
+			Key:   "itemID",
+			Value: testId.String(),
+		},
+	}
+
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Params = []gin.Param{
+		{
+			Key:   "itemID",
+			Value: testId.String(),
+		},
+	}
+	MockFile(c, "png", testFile)
+	filestorage.EXPECT().PutItemImage(testId.String(), carbon.Now().ToShortDateTimeString()+".png", testFile).Return("", fmt.Errorf("error"))
+	delivery.UploadItemImage(c)
+	require.Equal(t, 507, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Params = []gin.Param{
+		{
+			Key:   "itemID",
+			Value: testId.String(),
+		},
+	}
+	MockFile(c, "jpeg", testFile)
+	filestorage.EXPECT().PutItemImage(testId.String(), carbon.Now().ToShortDateTimeString()+".jpeg", testFile).Return("testName", nil)
+	itemHandlers.EXPECT().GetItem(ctx, testId.String()).Return(handlers.Item{}, fmt.Errorf("error"))
+	delivery.UploadItemImage(c)
+	require.Equal(t, 500, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Params = []gin.Param{
+		{
+			Key:   "itemID",
+			Value: testId.String(),
+		},
+	}
+	MockFile(c, "jpeg", testFile)
+	filestorage.EXPECT().PutItemImage(testId.String(), carbon.Now().ToShortDateTimeString()+".jpeg", testFile).Return("testName", nil)
+	itemHandlers.EXPECT().GetItem(ctx, testId.String()).Return(testHandlersItemWithId, nil)
+	itemHandlers.EXPECT().UpdateItem(ctx, testHandlersItemWithImage).Return(fmt.Errorf("error"))
+	delivery.UploadItemImage(c)
+	require.Equal(t, 500, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Params = []gin.Param{
+		{
+			Key:   "itemID",
+			Value: testId.String(),
+		},
+	}
+	MockFile(c, "jpeg", testFile)
+	filestorage.EXPECT().PutItemImage(testId.String(), carbon.Now().ToShortDateTimeString()+".jpeg", testFile).Return("testName", nil)
+	itemHandlers.EXPECT().GetItem(ctx, testId.String()).Return(testHandlersItemWithId, nil)
+	itemHandlers.EXPECT().UpdateItem(ctx, testHandlersItemWithImage).Return(nil)
+	delivery.UploadItemImage(c)
+	require.Equal(t, 201, w.Code)
+}
+
+func TestDeleteItemImage(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	ctx := context.Background()
+	logger := zap.L()
+	itemHandlers := mocks.NewMockIItemHandlers(ctrl)
+	categoryHandlers := mocks.NewMockICategoryHandlers(ctrl)
+	filestorage := fs.NewMockFileStorager(ctrl)
+	delivery := NewDelivery(itemHandlers, categoryHandlers, logger, filestorage)
+
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	delivery.DeleteItemImage(c)
+	require.Equal(t, 400, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Request.URL, _ = url.Parse(fmt.Sprintf("?id=%s&name=testName.jpg", testId.String()))
+	filestorage.EXPECT().DeleteItemImage(testId.String(), "testName.jpg").Return(fmt.Errorf("error"))
+	delivery.DeleteItemImage(c)
+	require.Equal(t, 500, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Request.URL, _ = url.Parse(fmt.Sprintf("?id=%s&name=testName.jpeg", testId.String()))
+	filestorage.EXPECT().DeleteItemImage(testId.String(), "testName.jpeg").Return(nil)
+	itemHandlers.EXPECT().GetItem(ctx, testId.String()).Return(handlers.Item{}, fmt.Errorf("error"))
+	delivery.DeleteItemImage(c)
+	require.Equal(t, 500, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Request.URL, _ = url.Parse(fmt.Sprintf("?id=%s&name=testName.jpeg", testId.String()))
+	filestorage.EXPECT().DeleteItemImage(testId.String(), "testName.jpeg").Return(nil)
+	itemHandlers.EXPECT().GetItem(ctx, testId.String()).Return(testHandlersItemWithImage2, nil)
+	testHandlersItemWithImage2.Images=[]string{}
+	itemHandlers.EXPECT().UpdateItem(ctx, testHandlersItemWithImage2).Return(fmt.Errorf("error"))
+	delivery.DeleteItemImage(c)
+	require.Equal(t, 500, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Request.URL, _ = url.Parse(fmt.Sprintf("?id=%s&name=testName.jpeg", testId.String()))
+	filestorage.EXPECT().DeleteItemImage(testId.String(), "testName.jpeg").Return(nil)
+	itemHandlers.EXPECT().GetItem(ctx, testId.String()).Return(testHandlersItemWithImage2, nil)
+	testHandlersItemWithImage2.Images=[]string{}
+	itemHandlers.EXPECT().UpdateItem(ctx, testHandlersItemWithImage2).Return(nil)
+	delivery.DeleteItemImage(c)
+	require.Equal(t, 200, w.Code)
+
+
+}

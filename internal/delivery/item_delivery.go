@@ -11,6 +11,7 @@ package delivery
 
 import (
 	"OnlineShopBackend/internal/handlers"
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -54,13 +55,16 @@ type DeliveryItem struct {
 // CreateItem - create a new item
 func (delivery *Delivery) CreateItem(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery CreateItem()")
-	ctx := c.Request.Context()
+	ctx := context.Background() //c.Request.Context()
+	fmt.Println(fmt.Sprintln(c))
 	var deliveryItem DeliveryItem
 	if err := c.ShouldBindJSON(&deliveryItem); err != nil {
+		delivery.logger.Error(fmt.Sprintf("error on bind json from request: %v", err))
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 	if deliveryItem.Title == "" && deliveryItem.Description == "" && deliveryItem.Category == "" && deliveryItem.Price == 0 && deliveryItem.Vendor == "" {
+		delivery.logger.Error("empty item in request")
 		c.JSON(http.StatusBadRequest, "empty item is not correct")
 		return
 	}
@@ -77,7 +81,7 @@ func (delivery *Delivery) CreateItem(c *gin.Context) {
 	}
 	id, err := delivery.itemHandlers.CreateItem(ctx, item)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"success": id.String()})
@@ -119,7 +123,9 @@ func (delivery *Delivery) ItemsList(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery ItemsList()")
 	var options Options
 	err := c.Bind(&options)
+	fmt.Println(options)
 	if err != nil {
+		fmt.Println(err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -138,8 +144,7 @@ func (delivery *Delivery) ItemsList(c *gin.Context) {
 			options.Limit = 20
 		}
 	}
-
-	delivery.logger.Debug("options limit is set in default value")
+	delivery.logger.Sugar().Debugf("options limit is set in default value: %d", options.Limit)
 
 	list, err := delivery.itemHandlers.ItemsList(c.Request.Context(), options.Offset, options.Limit)
 	if err != nil {
@@ -172,19 +177,27 @@ func (delivery *Delivery) SearchLine(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	delivery.logger.Debug(fmt.Sprintf("options is %v", options))
 	if options.Param == "" {
 		delivery.logger.Sugar().Error("empty search request")
 		c.JSON(http.StatusBadRequest, gin.H{})
 		return
 	}
 
-	delivery.logger.Debug(fmt.Sprintf("options is %v", options))
-
 	if options.Limit == 0 {
-		options.Limit = 10
+		quantity, err := delivery.itemHandlers.ItemsQuantity(c.Request.Context())
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		if quantity < 100 {
+			options.Limit = quantity
+		} else {
+			options.Limit = 20
+		}
 	}
+	delivery.logger.Sugar().Debugf("options limit is set in default value: %d", options.Limit)
 
-	delivery.logger.Debug("options limit is set in default value: 10")
 	list, err := delivery.itemHandlers.SearchLine(c.Request.Context(), options.Param, options.Offset, options.Limit)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -202,20 +215,25 @@ func (delivery *Delivery) GetItemsByCategory(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	delivery.logger.Debug(fmt.Sprintf("options is %v", options))
 	if options.Param == "" {
 		delivery.logger.Sugar().Error("empty category name")
 		c.JSON(http.StatusBadRequest, gin.H{})
 		return
 	}
-
-	delivery.logger.Debug(fmt.Sprintf("options is %v", options))
-
 	if options.Limit == 0 {
-		options.Limit = 10
-		delivery.logger.Debug("options limit is set in default value")
+		quantity, err := delivery.itemHandlers.ItemsQuantity(c.Request.Context())
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		if quantity < 100 {
+			options.Limit = quantity
+		} else {
+			options.Limit = 20
+		}
 	}
-
-
+	delivery.logger.Sugar().Debugf("options limit is set in default value: %d", options.Limit)
 
 	items, err := delivery.itemHandlers.GetItemsByCategory(c.Request.Context(), options.Param, options.Offset, options.Limit)
 	if err != nil {
@@ -246,8 +264,8 @@ func (delivery *Delivery) UploadItemImage(c *gin.Context) {
 		return
 	}
 
-	file, err := io.ReadAll(c.Request.Body)
 
+	file, err := io.ReadAll(c.Request.Body)
 	if err != nil {
 		c.JSON(http.StatusUnsupportedMediaType, gin.H{})
 		return
@@ -263,14 +281,14 @@ func (delivery *Delivery) UploadItemImage(c *gin.Context) {
 
 	item, err := delivery.itemHandlers.GetItem(ctx, id)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	item.Images = append(item.Images, path)
 
 	err = delivery.itemHandlers.UpdateItem(ctx, item)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	c.JSON(http.StatusCreated, gin.H{"status": "upload image success"})
@@ -289,6 +307,7 @@ func (delivery *Delivery) DeleteItemImage(c *gin.Context) {
 	delivery.logger.Debug(fmt.Sprintf("image options is %v", imageOptions))
 
 	if imageOptions.Id == "" || imageOptions.Name == "" {
+		fmt.Println("empty item")
 		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Errorf("empty item id or file name")})
 		return
 	}
@@ -301,7 +320,7 @@ func (delivery *Delivery) DeleteItemImage(c *gin.Context) {
 	ctx := c.Request.Context()
 	item, err := delivery.itemHandlers.GetItem(ctx, imageOptions.Id)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	for idx, imagePath := range item.Images {
@@ -312,7 +331,7 @@ func (delivery *Delivery) DeleteItemImage(c *gin.Context) {
 	}
 	err = delivery.itemHandlers.UpdateItem(ctx, item)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"status": "delete image success"})
