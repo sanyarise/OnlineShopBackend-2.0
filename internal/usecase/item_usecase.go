@@ -127,7 +127,7 @@ func (usecase *ItemUsecase) ItemsQuantity(ctx context.Context) (int, error) {
 				return -1, fmt.Errorf("error on get items list cash: %w", err)
 			}
 			if items == nil {
-				return -1, fmt.Errorf("items list is not exists")
+				items = []models.Item{}
 			}
 			err = usecase.itemCash.CreateItemsQuantityCash(ctx, len(items), itemsQuantityKey)
 			if err != nil {
