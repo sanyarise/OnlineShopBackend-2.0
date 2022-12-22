@@ -2,9 +2,9 @@ package filestorage
 
 import (
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"go.uber.org/zap"
 )
@@ -85,6 +85,7 @@ func (imagestorage *OnDiskLocalStorage) DeleteItemImage(id string, filename stri
 		imagestorage.logger.Debug(fmt.Sprintf("error on delete file: %v", err))
 		return fmt.Errorf("error on delete file: %w", err)
 	}
+	imagestorage.logger.Info("Item image delete success")
 	return nil
 }
 
@@ -96,38 +97,26 @@ func (imagestorage *OnDiskLocalStorage) DeleteCategoryImage(id string, filename 
 		imagestorage.logger.Debug(fmt.Sprintf("error on delete file: %v", err))
 		return fmt.Errorf("error on delete file: %w", err)
 	}
+	imagestorage.logger.Info("Category image delete success")
 	return nil
 }
 
-func (imagestorage *OnDiskLocalStorage) DeleteCategoryImageById(id string) error {
+func (imagestorage *OnDiskLocalStorage) DeleteCategoryImageById(folderName string) error {
 	imagestorage.logger.Debug("Enter in filestorage DeleteCategoryImageById()")
-	imagestorage.logger.Debug(fmt.Sprintf("path is: %s", imagestorage.path+"categories/"+id))
-	err := filepath.Walk(imagestorage.path+"categories/"+id, func(path string, info os.FileInfo, err error) error {
-		imagestorage.logger.Debug(fmt.Sprintf("isDir: %t, name: %s", info.IsDir(), info.Name()))
-		if !info.IsDir() {
-			if strings.Contains(info.Name(), ".jpeg") || strings.Contains(info.Name(), ".png") || strings.Contains(info.Name(), ".jpg") {
-				imagestorage.logger.Debug(fmt.Sprintf("find file, name is: %s", info.Name()))
-				err := imagestorage.DeleteCategoryImage(id, info.Name())
-				if err != nil {
-					imagestorage.logger.Error(fmt.Sprintf("error on delete category image: %v", err))
-					return err
-				}
-			}
-		}
-		return nil
-	})
+	imagestorage.logger.Debug(fmt.Sprintf("name of deleting folder: %s", folderName))
+	err := os.RemoveAll(imagestorage.path + "categories/" + folderName)
 	if err != nil {
-		imagestorage.logger.Error(fmt.Sprintf("error on filepath.Walk: %v", err))
-		return err
+		imagestorage.logger.Debug(fmt.Sprintf("error on delete folder: %v", err))
+		return fmt.Errorf("error on delete folder: %w", err)
 	}
-	imagestorage.logger.Debug(fmt.Sprintf("images of category with id %s deleted success", id))
+	imagestorage.logger.Info("Category folder delete success")
 	return nil
 }
 
 func (imagestorage *OnDiskLocalStorage) GetFileList() ([]FileInStorageInfo, error) {
 	imagestorage.logger.Debug("Enter in filestorage GetFileList()")
 	result := make([]FileInStorageInfo, 0)
-	err := filepath.Walk(imagestorage.path, func(path string, info os.FileInfo, err error) error {
+	err := filepath.Walk(imagestorage.path, func(path string, info fs.FileInfo, err error) error {
 		if !info.IsDir() {
 			result = append(result, FileInStorageInfo{
 				Name:       info.Name(),
