@@ -30,10 +30,10 @@ func (delivery *Delivery) Index(c *gin.Context) {
 
 func (delivery *Delivery) GetFileList(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery GetFileList()")
-	files, err := delivery.filestorage.GetFileList()
+	fileInfos, err := delivery.filestorage.GetFileList()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
 		return
 	}
-	c.JSON(http.StatusOK, files)
+	c.JSON(http.StatusOK, fileInfos)
 }
