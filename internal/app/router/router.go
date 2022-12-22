@@ -10,12 +10,16 @@
 package router
 
 import (
+	"OnlineShopBackend/internal/delivery/swagger/docs"
 	"OnlineShopBackend/internal/delivery"
 
 	"net/http"
 
 	"github.com/gin-contrib/cors"
+	ginzap "github.com/gin-contrib/zap"
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"go.uber.org/zap"
 )
 
@@ -45,7 +49,10 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 	logger.Debug("Enter in NewRouter()")
 	gin := gin.Default()
 	gin.Use(cors.Default())
+	gin.Use(ginzap.RecoveryWithZap(logger, true))
 	gin.Static("/files", "./storage/files")
+	docs.SwaggerInfo.BasePath = "/"
+	gin.Group("/docs").Any("/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	router := &Router{
 		delivery: delivery,
 		logger:   logger,

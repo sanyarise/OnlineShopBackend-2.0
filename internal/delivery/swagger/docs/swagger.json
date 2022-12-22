@@ -1,0 +1,138 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Backend service for online store",
+        "title": "onlineShopBackend",
+        "contact": {
+            "email": "example@mail.com"
+        },
+        "license": {
+            "name": "MIT"
+        },
+        "version": "1.0"
+    },
+    "basePath": "/",
+    "paths": {
+        "/items/create": {
+            "post": {
+                "description": "Method provides to create store item",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "items"
+                ],
+                "summary": "Method provides to create store item",
+                "parameters": [
+                    {
+                        "description": "Data for creating item",
+                        "name": "item",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ShortDelivery"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ItemResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "404 Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "delivery.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "errors": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "info": {},
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "delivery.ItemResponse": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "example": "00000000-0000-0000-0000-000000000000"
+                }
+            }
+        },
+        "delivery.ShortDelivery": {
+            "type": "object",
+            "required": [
+                "category",
+                "description",
+                "title"
+            ],
+            "properties": {
+                "category": {
+                    "type": "string",
+                    "format": "uuid",
+                    "example": "00000000-0000-0000-0000-000000000000"
+                },
+                "description": {
+                    "type": "string",
+                    "example": "Description of item"
+                },
+                "title": {
+                    "type": "string",
+                    "example": "Title of item"
+                },
+                "total": {
+                    "type": "integer",
+                    "default": 0,
+                    "minimum": 0,
+                    "example": 10
+                },
+                "vendor": {
+                    "type": "string",
+                    "example": "Vendor of item"
+                }
+            }
+        }
+    }
+}

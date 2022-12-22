@@ -138,3 +138,6 @@ down:
 
 run:
 	go run ./cmd/onlineShopBackend/onlineShopBackend.go
+
+swag:
+	swag init -d ./internal/delivery -g delivery.go -o ./internal/delivery/swagger/docs

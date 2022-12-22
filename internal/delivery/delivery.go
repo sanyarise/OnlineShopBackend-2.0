@@ -9,6 +9,15 @@ import (
 	"go.uber.org/zap"
 )
 
+// @title onlineShopBackend
+// @version 1.0
+// @description Backend service for online store
+// @license.name MIT
+
+// @contact.email example@mail.com
+
+// @BasePath /
+
 type Delivery struct {
 	itemHandlers     handlers.IItemHandlers
 	categoryHandlers handlers.ICategoryHandlers
@@ -27,6 +36,7 @@ func (delivery *Delivery) Index(c *gin.Context) {
 	delivery.logger.Debug("Enter in Index")
 	c.String(http.StatusOK, "Hello World!")
 }
+
 
 func (delivery *Delivery) GetFileList(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery GetFileList()")

@@ -1,0 +1,94 @@
+basePath: /
+definitions:
+  delivery.ErrorResponse:
+    properties:
+      errors:
+        items:
+          type: string
+        type: array
+      id:
+        type: string
+      info: {}
+      message:
+        type: string
+    type: object
+  delivery.ItemResponse:
+    properties:
+      id:
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        type: string
+    required:
+    - id
+    type: object
+  delivery.ShortDelivery:
+    properties:
+      category:
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        type: string
+      description:
+        example: Description of item
+        type: string
+      title:
+        example: Title of item
+        type: string
+      total:
+        default: 0
+        example: 10
+        minimum: 0
+        type: integer
+      vendor:
+        example: Vendor of item
+        type: string
+    required:
+    - category
+    - description
+    - title
+    type: object
+info:
+  contact:
+    email: example@mail.com
+  description: Backend service for online store
+  license:
+    name: MIT
+  title: onlineShopBackend
+  version: "1.0"
+paths:
+  /items/create:
+    post:
+      consumes:
+      - application/json
+      description: Method provides to create store item
+      parameters:
+      - description: Data for creating item
+        in: body
+        name: item
+        required: true
+        schema:
+          $ref: '#/definitions/delivery.ShortDelivery'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/delivery.ItemResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Method provides to create store item
+      tags:
+      - items
+swagger: "2.0"
