@@ -28,16 +28,21 @@ func (delivery *Delivery) CreateCategory(c *gin.Context) {
 	ctx := c.Request.Context()
 	var deliveryCategory handlers.Category
 	if err := c.ShouldBindJSON(&deliveryCategory); err != nil {
+		delivery.logger.Sugar().Errorf("error on bind json: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	delivery.logger.Sugar().Debugf("Binded struct: %v", deliveryCategory)
 	if deliveryCategory.Name == "" && deliveryCategory.Description == "" {
+		delivery.logger.Debug("Empty category")
 		c.JSON(http.StatusBadRequest, "empty category is not correct")
+		return
 	}
 
 	id, err := delivery.categoryHandlers.CreateCategory(ctx, deliveryCategory)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		delivery.logger.Sugar().Errorf("error on handlers.CreateCategory: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 	c.JSON(http.StatusOK, gin.H{"success": id.String()})
 }
@@ -48,6 +53,10 @@ func (delivery *Delivery) UpdateCategory(c *gin.Context) {
 	ctx := c.Request.Context()
 	id := c.Param("categoryID")
 	delivery.logger.Debug(fmt.Sprintf("Category id from request is %v", id))
+	if id == "" {
+		delivery.logger.Sugar().Error("empty id in request")
+		c.JSON(http.StatusBadRequest, "empty id")
+	}
 	var deliveryCategory handlers.Category
 	if err := c.ShouldBindJSON(&deliveryCategory); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -56,7 +65,7 @@ func (delivery *Delivery) UpdateCategory(c *gin.Context) {
 	deliveryCategory.Id = id
 	err := delivery.categoryHandlers.UpdateCategory(ctx, deliveryCategory)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{})
@@ -85,7 +94,6 @@ func (delivery *Delivery) UploadCategoryImage(c *gin.Context) {
 	}
 
 	file, err := io.ReadAll(c.Request.Body)
-
 	if err != nil {
 		c.JSON(http.StatusUnsupportedMediaType, gin.H{})
 		return
@@ -102,14 +110,14 @@ func (delivery *Delivery) UploadCategoryImage(c *gin.Context) {
 	category, err := delivery.categoryHandlers.GetCategory(ctx, id)
 	if err != nil {
 		delivery.logger.Sugar().Errorf("error on get category: %w", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	category.Image = path
 
 	err = delivery.categoryHandlers.UpdateCategory(ctx, category)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	c.JSON(http.StatusCreated, gin.H{"status": "upload image success"})
@@ -140,7 +148,7 @@ func (delivery *Delivery) DeleteCategoryImage(c *gin.Context) {
 	ctx := c.Request.Context()
 	category, err := delivery.categoryHandlers.GetCategory(ctx, imageOptions.Id)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	if strings.Contains(category.Image, imageOptions.Name) {
@@ -148,7 +156,7 @@ func (delivery *Delivery) DeleteCategoryImage(c *gin.Context) {
 	}
 	err = delivery.categoryHandlers.UpdateCategory(ctx, category)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"status": "delete image success"})
@@ -159,10 +167,15 @@ func (delivery *Delivery) GetCategory(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery GetCategory()")
 	id := c.Param("categoryID")
 	delivery.logger.Debug(fmt.Sprintf("Category id from request is %v", id))
+	if id == "" {
+		delivery.logger.Sugar().Error("empty id from request")
+		c.JSON(http.StatusBadRequest, "empty id is not correct")
+		return
+	}
 	ctx := c.Request.Context()
 	category, err := delivery.categoryHandlers.GetCategory(ctx, id)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, category)
@@ -173,7 +186,7 @@ func (delivery *Delivery) GetCategoryList(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery GetCategoryList()")
 	list, err := delivery.categoryHandlers.GetCategoryList(c.Request.Context())
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 	c.JSON(http.StatusOK, list)
 }
@@ -183,6 +196,10 @@ func (delivery *Delivery) DeleteCategory(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery DeleteCategory()")
 	ctx := c.Request.Context()
 	stringId := c.Param("categoryID")
+	if stringId == "" {
+		delivery.logger.Sugar().Error("recieved empty category id")
+		c.JSON(http.StatusBadRequest, "empty id is not correct")
+	}
 	id, err := uuid.Parse(stringId)
 	if err != nil {
 		delivery.logger.Error(fmt.Sprintf("error on parsing uuid: %v", err))
@@ -196,7 +213,7 @@ func (delivery *Delivery) DeleteCategory(c *gin.Context) {
 		return
 	}
 	delivery.logger.Debug(fmt.Sprintf("deletedCategory: %v", deletedCategory))
-	
+
 	err = delivery.categoryHandlers.DeleteCategory(ctx, id)
 	if err != nil {
 		delivery.logger.Debug(fmt.Sprintf("error on delete category: %v", err))
@@ -225,7 +242,7 @@ func (delivery *Delivery) DeleteCategory(c *gin.Context) {
 		return
 	}
 
-	noCategory, err := delivery.categoryHandlers.GetCategoryByName(ctx, "noCategory")
+	noCategory, err := delivery.categoryHandlers.GetCategoryByName(ctx, "NoCategory")
 	if err != nil {
 		delivery.logger.Error(fmt.Sprintf("error on get category by name: %v", err))
 		noCategory := handlers.Category{
