@@ -430,9 +430,11 @@ func TestItemsQuantity(t *testing.T) {
 	cash.EXPECT().CheckCash(ctx, itemsQuantityKey).Return(false)
 	cash.EXPECT().CheckCash(ctx, itemsListKey).Return(true)
 	cash.EXPECT().GetItemsCash(ctx, itemsListKey).Return(nil, nil)
+	cash.EXPECT().CreateItemsQuantityCash(ctx, 0, itemsQuantityKey).Return(nil)
+	cash.EXPECT().GetItemsQuantityCash(ctx, itemsQuantityKey).Return(0, nil)
 	res, err = usecase.ItemsQuantity(ctx)
-	require.Error(t, err)
-	require.Equal(t, res, -1)
+	require.NoError(t, err)
+	require.Equal(t, res, 0)
 }
 
 func TestUpdateCash(t *testing.T) {
