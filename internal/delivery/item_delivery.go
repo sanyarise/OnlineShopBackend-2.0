@@ -403,12 +403,27 @@ func (delivery *Delivery) GetItemsByCategory(c *gin.Context) {
 }
 
 // UploadItemImage - upload an image
+// @Summary Get list of items by category name
+// @Description Method provides to get list of items by category name
+// @Tags items
+// @Accept  json
+// @Produce json
+// @Param   id 			path 		string			true	"id of item"
+// @Param	image		formData	file			true	"picture of item"
+// @Success 201
+// @Failure 400 		{object}    ErrorResponse
+// @Failure 403	 		"Forbidden"
+// @Failure 404 	    {object} 	ErrorResponse			"404 Not Found"
+// @Failure 500			{object}    ErrorResponse
+// @Router /items/image/upload/:itemID [post]
 func (delivery *Delivery) UploadItemImage(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery UploadItemImage()")
 	ctx := c.Request.Context()
 	id := c.Param("itemID")
 	if id == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "empty item id"})
+		err := fmt.Errorf("empty search request")
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
 		return
 	}
 	var name string
@@ -419,13 +434,16 @@ func (delivery *Delivery) UploadItemImage(c *gin.Context) {
 	} else if contentType == "image/png" {
 		name = carbon.Now().ToShortDateTimeString() + ".png"
 	} else {
-		c.JSON(http.StatusUnsupportedMediaType, gin.H{})
+		err := fmt.Errorf("unsupported type of image in request")
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusUnsupportedMediaType, err)
 		return
 	}
 
 	file, err := io.ReadAll(c.Request.Body)
 	if err != nil {
-		c.JSON(http.StatusUnsupportedMediaType, gin.H{})
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusUnsupportedMediaType, err)
 		return
 	}
 
@@ -433,52 +451,71 @@ func (delivery *Delivery) UploadItemImage(c *gin.Context) {
 	delivery.logger.Info("File len=", zap.Int32("len", int32(len(file))))
 	path, err := delivery.filestorage.PutItemImage(id, name, file)
 	if err != nil {
-		c.JSON(http.StatusInsufficientStorage, gin.H{})
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusInsufficientStorage, err)
 		return
 	}
 
 	item, err := delivery.itemHandlers.GetItem(ctx, id)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusInternalServerError, err)
 	}
 	item.Images = append(item.Images, path)
 
 	err = delivery.itemHandlers.UpdateItem(ctx, item)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusInternalServerError, err)
 		return
 	}
-	c.JSON(http.StatusCreated, gin.H{"status": "upload image success"})
+	c.JSON(http.StatusCreated, gin.H{})
 }
 
 // DeleteItemImage delete an item image
+// @Summary Delete an item image by item id
+// @Description The method allows you to delete an item image by item id.
+// @Tags items
+// @Accept  json
+// @Produce json
+// @Param	id			query 		string			true	"Item id"
+// @Param 	name 		query 		string 			true	"Image name"
+// @Success 200
+// @Failure 400 		{object}    ErrorResponse
+// @Failure 403	 		"Forbidden"
+// @Failure 404 	    {object} 	ErrorResponse			"404 Not Found"
+// @Failure 500			{object}    ErrorResponse
+// @Router /items/image/delete [delete]
 func (delivery *Delivery) DeleteItemImage(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery DeleteItemImage()")
 	var imageOptions ImageOptions
 	err := c.Bind(&imageOptions)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
 		return
 	}
 
 	delivery.logger.Debug(fmt.Sprintf("image options is %v", imageOptions))
 
 	if imageOptions.Id == "" || imageOptions.Name == "" {
-		fmt.Println("empty item")
-		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Errorf("empty item id or file name")})
+		err := fmt.Errorf("empty image options in request")
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
 		return
 	}
 	err = delivery.filestorage.DeleteItemImage(imageOptions.Id, imageOptions.Name)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusInternalServerError, err)
 		return
 
 	}
 	ctx := c.Request.Context()
 	item, err := delivery.itemHandlers.GetItem(ctx, imageOptions.Id)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusInternalServerError, err)
 		return
 	}
 	for idx, imagePath := range item.Images {
@@ -489,8 +526,9 @@ func (delivery *Delivery) DeleteItemImage(c *gin.Context) {
 	}
 	err = delivery.itemHandlers.UpdateItem(ctx, item)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusInternalServerError, err)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"status": "delete image success"})
+	c.JSON(http.StatusOK, gin.H{})
 }

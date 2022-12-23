@@ -239,6 +239,82 @@ paths:
       summary: Method provides to create store item
       tags:
       - items
+  /items/image/delete:
+    delete:
+      consumes:
+      - application/json
+      description: The method allows you to delete an item image by item id.
+      parameters:
+      - description: Item id
+        in: query
+        name: id
+        required: true
+        type: string
+      - description: Image name
+        in: query
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Delete an item image by item id
+      tags:
+      - items
+  /items/image/upload/:itemID:
+    post:
+      consumes:
+      - application/json
+      description: Method provides to get list of items by category name
+      parameters:
+      - description: id of item
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: picture of item
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Get list of items by category name
+      tags:
+      - items
   /items/list:
     get:
       consumes:

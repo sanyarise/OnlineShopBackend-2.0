@@ -143,6 +143,120 @@ const docTemplate = `{
                 }
             }
         },
+        "/items/image/delete": {
+            "delete": {
+                "description": "The method allows you to delete an item image by item id.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "items"
+                ],
+                "summary": "Delete an item image by item id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Item id",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Image name",
+                        "name": "name",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "404 Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/items/image/upload/:itemID": {
+            "post": {
+                "description": "Method provides to get list of items by category name",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "items"
+                ],
+                "summary": "Get list of items by category name",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id of item",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "picture of item",
+                        "name": "image",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "404 Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/items/list": {
             "get": {
                 "description": "Method provides to get list of items",
