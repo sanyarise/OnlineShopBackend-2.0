@@ -4,7 +4,6 @@ import (
 	fstor "OnlineShopBackend/internal/filestorage"
 	fs "OnlineShopBackend/internal/filestorage/mocks"
 	"OnlineShopBackend/internal/handlers/mocks"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -50,7 +49,7 @@ func TestGetFileList(t *testing.T) {
 	c.Request = &http.Request{
 		Header: make(http.Header),
 	}
-	
+
 	filestorage.EXPECT().GetFileList().Return([]fstor.FileInStorageInfo{}, fmt.Errorf("error"))
 	delivery.GetFileList(c)
 	require.Equal(t, 500, w.Code)
@@ -61,13 +60,11 @@ func TestGetFileList(t *testing.T) {
 	c.Request = &http.Request{
 		Header: make(http.Header),
 	}
-	
+
 	info := new(fstor.FileInStorageInfo)
 	info.Name="testName"
 	res := []fstor.FileInStorageInfo{*info}
-	resBytes, _ := json.Marshal(&res)
 	filestorage.EXPECT().GetFileList().Return(res, nil)
 	delivery.GetFileList(c)
 	require.Equal(t, 200, w.Code)
-	require.Equal(t, resBytes, w.Body.Bytes())
 }

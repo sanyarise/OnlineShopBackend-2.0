@@ -393,6 +393,17 @@ func TestItemsList(t *testing.T) {
 	delivery.ItemsList(c)
 	require.Equal(t, 200, w.Code)
 	require.Equal(t, bytesRes, w.Body.Bytes())
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+
+	itemHandlers.EXPECT().ItemsQuantity(ctx).Return(0, nil)
+	delivery.ItemsList(c)
+	require.Equal(t, 200, w.Code)
 }
 
 func TestItemsQuantity(t *testing.T) {

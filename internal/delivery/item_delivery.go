@@ -65,9 +65,9 @@ func (delivery *Delivery) CreateItem(c *gin.Context) {
 		delivery.SetError(c, http.StatusBadRequest, err)
 		return
 	}
-	if deliveryItem.Title == "" && deliveryItem.Description == "" && deliveryItem.Category == "" && deliveryItem.Price == 0 && deliveryItem.Vendor == "" {
-		delivery.logger.Error(fmt.Errorf("empty item in request").Error())
-		delivery.SetError(c, http.StatusBadRequest, fmt.Errorf("empty item in request"))
+	if deliveryItem.Title == "" || deliveryItem.Description == "" || deliveryItem.Category == "" || deliveryItem.Price == 0 || deliveryItem.Vendor == "" {
+		delivery.logger.Error(fmt.Errorf("empty item fields in request").Error())
+		delivery.SetError(c, http.StatusBadRequest, fmt.Errorf("empty item fields in request"))
 		return
 	}
 	handlersItem := handlers.Item{
