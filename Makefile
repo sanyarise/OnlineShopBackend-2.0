@@ -141,3 +141,6 @@ run:
 
 swag:
 	swag init -d ./internal/delivery -g delivery.go -o ./internal/delivery/swagger/docs
+
+swag_fmt:
+	swag fmt -d ./internal/delivery -g delivery.go

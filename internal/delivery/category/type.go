@@ -16,6 +16,6 @@ type Category struct {
 	Image       string `json:"image,omitempty"`
 }
 
-type CategoryList struct {
+type CategoriesList struct {
 	List []Category `json:"categories" binding:"min=0" minimum:"0"`
 }

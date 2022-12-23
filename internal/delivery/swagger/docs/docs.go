@@ -11,7 +11,7 @@ const docTemplate = `{
         "description": "{{escape .Description}}",
         "title": "{{.Title}}",
         "contact": {
-            "email": "example@mail.com"
+            "url": "https://github.com/GBteammates/OnlineShopBackend"
         },
         "license": {
             "name": "MIT"
@@ -21,6 +21,437 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/categories/create": {
+            "post": {
+                "description": "Method provides to create category of items.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "categories"
+                ],
+                "summary": "Method provides to create category of items",
+                "parameters": [
+                    {
+                        "description": "Data for creating category",
+                        "name": "category",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/category.ShortCategory"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/category.CategoryId"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "404 Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/categories/delete/{categoryID}": {
+            "delete": {
+                "description": "Method provides to delete category.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "categories"
+                ],
+                "summary": "Method provides to delete category",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id of category",
+                        "name": "categoryID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "404 Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/categories/image/delete": {
+            "delete": {
+                "description": "The method allows you to delete a category image by category id.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "categories"
+                ],
+                "summary": "Delete a category image by category id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Category id",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Image name",
+                        "name": "name",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "404 Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/categories/image/upload/:categoryID": {
+            "post": {
+                "description": "Method provides to upload an image of category.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "categories"
+                ],
+                "summary": "Upload an image of category",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id of category",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "picture of category",
+                        "name": "image",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "404 Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "415": {
+                        "description": "Unsupported Media Type",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "507": {
+                        "description": "Insufficient Storage",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/categories/list": {
+            "get": {
+                "description": "Method provides to get list of categories",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "categories"
+                ],
+                "summary": "Get list of categories",
+                "responses": {
+                    "200": {
+                        "description": "List of categories",
+                        "schema": {
+                            "$ref": "#/definitions/category.CategoriesList"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "404 Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/categories/update": {
+            "put": {
+                "description": "Method provides to update category.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "categories"
+                ],
+                "summary": "Method provides to update category",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id of category",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Data for updating category",
+                        "name": "category",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/category.Category"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "404 Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/categories/{categoryID}": {
+            "get": {
+                "description": "The method allows you to get the category by id.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "categories"
+                ],
+                "summary": "Get category by id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Id of category",
+                        "name": "categoryID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Category structure",
+                        "schema": {
+                            "$ref": "#/definitions/category.Category"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "404 Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/images/list": {
+            "get": {
+                "description": "Method provides to get list of files.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "files"
+                ],
+                "summary": "Get list of files",
+                "responses": {
+                    "200": {
+                        "description": "List of files",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.FileListResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "404 Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/items": {
             "get": {
                 "description": "Method provides to get list of items by category name",
@@ -88,7 +519,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/items/create": {
+        "/items/create/": {
             "post": {
                 "description": "Method provides to create store item",
                 "consumes": [
@@ -202,7 +633,7 @@ const docTemplate = `{
         },
         "/items/image/upload/:itemID": {
             "post": {
-                "description": "Method provides to get list of items by category name",
+                "description": "Method provides to upload an image of item",
                 "consumes": [
                     "application/json"
                 ],
@@ -212,7 +643,7 @@ const docTemplate = `{
                 "tags": [
                     "items"
                 ],
-                "summary": "Get list of items by category name",
+                "summary": "Upload an image of item",
                 "parameters": [
                     {
                         "type": "string",
@@ -248,8 +679,20 @@ const docTemplate = `{
                             "$ref": "#/definitions/delivery.ErrorResponse"
                         }
                     },
+                    "415": {
+                        "description": "Unsupported Media Type",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "507": {
+                        "description": "Insufficient Storage",
                         "schema": {
                             "$ref": "#/definitions/delivery.ErrorResponse"
                         }
@@ -438,7 +881,7 @@ const docTemplate = `{
                 "summary": "Method provides to update store item",
                 "parameters": [
                     {
-                        "description": "Data for updateing item",
+                        "description": "Data for updating item",
                         "name": "item",
                         "in": "body",
                         "required": true,
@@ -492,7 +935,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "id of item",
-                        "name": "id",
+                        "name": "itemID",
                         "in": "path",
                         "required": true
                     }
@@ -530,6 +973,18 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "category.CategoriesList": {
+            "type": "object",
+            "properties": {
+                "categories": {
+                    "type": "array",
+                    "minItems": 0,
+                    "items": {
+                        "$ref": "#/definitions/category.Category"
+                    }
+                }
+            }
+        },
         "category.Category": {
             "type": "object",
             "required": [
@@ -556,6 +1011,36 @@ const docTemplate = `{
                 }
             }
         },
+        "category.CategoryId": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "example": "00000000-0000-0000-0000-000000000000"
+                }
+            }
+        },
+        "category.ShortCategory": {
+            "type": "object",
+            "required": [
+                "description",
+                "name"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "example": "Электротехнические товары для дома"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Электротехника"
+                }
+            }
+        },
         "delivery.ErrorResponse": {
             "type": "object",
             "properties": {
@@ -574,6 +1059,38 @@ const docTemplate = `{
                 }
             }
         },
+        "delivery.FileListResponse": {
+            "type": "object",
+            "properties": {
+                "files": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/delivery.FilesInfo"
+                    }
+                }
+            }
+        },
+        "delivery.FilesInfo": {
+            "type": "object",
+            "properties": {
+                "created_date": {
+                    "type": "string",
+                    "example": "2022-12-13 12:46:16.0964549 +0300 MSK"
+                },
+                "modify_date": {
+                    "type": "string",
+                    "example": "2022-12-13 12:46:16.0964549 +0300 MSK"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "20221213125935.jpeg"
+                },
+                "path": {
+                    "type": "string",
+                    "example": "storage\\files\\categories\\d0d3df2d-f6c8-4956-9d76-998ee1ec8a39\\20221213125935.jpeg"
+                }
+            }
+        },
         "delivery.ItemsQuantity": {
             "type": "object",
             "properties": {
@@ -588,8 +1105,10 @@ const docTemplate = `{
         "item.Item": {
             "type": "object",
             "required": [
+                "category",
                 "description",
                 "id",
+                "price",
                 "title",
                 "vendor"
             ],
@@ -614,7 +1133,7 @@ const docTemplate = `{
                 },
                 "price": {
                     "type": "integer",
-                    "default": 0,
+                    "default": 10,
                     "minimum": 0,
                     "example": 1990
                 },
@@ -658,6 +1177,7 @@ const docTemplate = `{
             "required": [
                 "category",
                 "description",
+                "price",
                 "title",
                 "vendor"
             ],
@@ -673,7 +1193,7 @@ const docTemplate = `{
                 },
                 "price": {
                     "type": "integer",
-                    "default": 0,
+                    "default": 10,
                     "minimum": 0,
                     "example": 1990
                 },
@@ -696,7 +1216,7 @@ var SwaggerInfo = &swag.Spec{
 	Host:             "",
 	BasePath:         "/",
 	Schemes:          []string{},
-	Title:            "onlineShopBackend",
+	Title:            "Online Shop Backend Service",
 	Description:      "Backend service for online store",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,

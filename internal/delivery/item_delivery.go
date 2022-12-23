@@ -67,18 +67,19 @@ type DeliveryItem struct {
 }
 
 // CreateItem
-// @Summary Method provides to create store item
-// @Description Method provides to create store item
-// @Tags 	items
-// @Accept  json
-// @Produce json
-// @Param   item 		body 		item.ShortItem	true	"Data for creating item"
-// @Success 200			{object}  	item.ItemId
-// @Failure 400 		{object}    ErrorResponse
-// @Failure 403	 		"Forbidden"
-// @Failure 404 	    {object} 	ErrorResponse				"404 Not Found"
-// @Failure 500			{object}    ErrorResponse
-// @Router /items/create [post]
+//
+//	@Summary		Method provides to create store item
+//	@Description	Method provides to create store item
+//	@Tags			items
+//	@Accept			json
+//	@Produce		json
+//	@Param			item	body		item.ShortItem	true	"Data for creating item"
+//	@Success		200		{object}	item.ItemId
+//	@Failure		400		{object}	ErrorResponse
+//	@Failure		403		"Forbidden"
+//	@Failure		404		{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500		{object}	ErrorResponse
+//	@Router			/items/create/ [post]
 func (delivery *Delivery) CreateItem(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery CreateItem()")
 	ctx := context.Background()
@@ -113,18 +114,18 @@ func (delivery *Delivery) CreateItem(c *gin.Context) {
 }
 
 // GetItem - returns item by id
-// @Summary Get item by id
-// @Description The method allows you to get the product by id.
-// @Tags items
-// @Accept  json
-// @Produce json
-// @Param   id 			path 		string			true	"id of item"
-// @Success 200			{object}  	item.Item				"Item structure"
-// @Failure 400 		{object}    ErrorResponse
-// @Failure 403	 		"Forbidden"
-// @Failure 404 	    {object} 	ErrorResponse			"404 Not Found"
-// @Failure 500			{object}    ErrorResponse
-// @Router /items/{itemID} [get]
+//	@Summary		Get item by id
+//	@Description	The method allows you to get the product by id.
+//	@Tags			items
+//	@Accept			json
+//	@Produce		json
+//	@Param			itemID	path		string		true	"id of item"
+//	@Success		200		{object}	item.Item	"Item structure"
+//	@Failure		400		{object}	ErrorResponse
+//	@Failure		403		"Forbidden"
+//	@Failure		404		{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500		{object}	ErrorResponse
+//	@Router			/items/{itemID} [get]
 func (delivery *Delivery) GetItem(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery GetItem()")
 	id := c.Param("itemID")
@@ -157,18 +158,19 @@ func (delivery *Delivery) GetItem(c *gin.Context) {
 }
 
 // UpdateItem - update an item
-// @Summary Method provides to update store item
-// @Description Method provides to update store item
-// @Tags 	items
-// @Accept  json
-// @Produce json
-// @Param   item 		body 		item.Item	true	"Data for updateing item"
-// @Success 200
-// @Failure 400 		{object}    ErrorResponse
-// @Failure 403	 		"Forbidden"
-// @Failure 404 	    {object} 	ErrorResponse				"404 Not Found"
-// @Failure 500			{object}    ErrorResponse
-// @Router /items/update [put]
+//
+//	@Summary		Method provides to update store item
+//	@Description	Method provides to update store item
+//	@Tags			items
+//	@Accept			json
+//	@Produce		json
+//	@Param			item	body	item.Item	true	"Data for updating item"
+//	@Success		200
+//	@Failure		400	{object}	ErrorResponse
+//	@Failure		403	"Forbidden"
+//	@Failure		404	{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500	{object}	ErrorResponse
+//	@Router			/items/update [put]
 func (delivery *Delivery) UpdateItem(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery UpdateItem()")
 	ctx := c.Request.Context()
@@ -196,19 +198,20 @@ func (delivery *Delivery) UpdateItem(c *gin.Context) {
 }
 
 // ItemsList - returns list of all items
-// @Summary Get list of items
-// @Description Method provides to get list of items
-// @Tags items
-// @Accept  json
-// @Produce json
-// @Param 	limit 		query 		int 					false "Quantity of recordings" default(10) minimum(0)
-// @Param 	offset 		query 		int 					false "Offset when receiving records" default(0) mininum(0)
-// @Success 200			{object}  	item.ItemsList		  	"List of items"
-// @Failure 400 		{object}    ErrorResponse
-// @Failure 403	 		"Forbidden"
-// @Failure 404 	    {object} 	ErrorResponse			"404 Not Found"
-// @Failure 500			{object}    ErrorResponse
-// @Router /items/list [get]
+//
+//	@Summary		Get list of items
+//	@Description	Method provides to get list of items
+//	@Tags			items
+//	@Accept			json
+//	@Produce		json
+//	@Param			limit	query		int				false	"Quantity of recordings"		default(10)	minimum(0)
+//	@Param			offset	query		int				false	"Offset when receiving records"	default(0)	mininum(0)
+//	@Success		200		{object}	item.ItemsList	"List of items"
+//	@Failure		400		{object}	ErrorResponse
+//	@Failure		403		"Forbidden"
+//	@Failure		404		{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500		{object}	ErrorResponse
+//	@Router			/items/list [get]
 func (delivery *Delivery) ItemsList(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery ItemsList()")
 	var options Options
@@ -261,16 +264,17 @@ func (delivery *Delivery) ItemsList(c *gin.Context) {
 }
 
 // ItemsQuantity returns quantity of all items
-// @Summary Get quantity of items
-// @Description Method provides to get quantity of items
-// @Tags items
-// @Accept  json
-// @Produce json
-// @Success 200			{object}  	ItemsQuantity		  	"Quantity of items"
-// @Failure 403	 		"Forbidden"
-// @Failure 404 	    {object} 	ErrorResponse			"404 Not Found"
-// @Failure 500			{object}    ErrorResponse
-// @Router /items/quantity [get]
+//
+//	@Summary		Get quantity of items
+//	@Description	Method provides to get quantity of items
+//	@Tags			items
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{object}	ItemsQuantity	"Quantity of items"
+//	@Failure		403	"Forbidden"
+//	@Failure		404	{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500	{object}	ErrorResponse
+//	@Router			/items/quantity [get]
 func (delivery *Delivery) ItemsQuantity(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery ItemsQuantity()")
 	ctx := c.Request.Context()
@@ -285,20 +289,21 @@ func (delivery *Delivery) ItemsQuantity(c *gin.Context) {
 }
 
 // SearchLine - returns list of items with parameters
-// @Summary Get list of items by search parameters
-// @Description Method provides to get list of items by search parameters
-// @Tags items
-// @Accept  json
-// @Produce json
-// @Param	param		query 		string			false	"Search param"
-// @Param 	limit 		query 		int 			false	"Quantity of recordings" default(10) minimum(0)
-// @Param 	offset 		query 		int 			false 	"Offset when receiving records" default(0) mininum(0)
-// @Success 200			{object}  	item.ItemsList		  	"List of items"
-// @Failure 400 		{object}    ErrorResponse
-// @Failure 403	 		"Forbidden"
-// @Failure 404 	    {object} 	ErrorResponse			"404 Not Found"
-// @Failure 500			{object}    ErrorResponse
-// @Router /items/search [get]
+//
+//	@Summary		Get list of items by search parameters
+//	@Description	Method provides to get list of items by search parameters
+//	@Tags			items
+//	@Accept			json
+//	@Produce		json
+//	@Param			param	query		string			false	"Search param"
+//	@Param			limit	query		int				false	"Quantity of recordings"		default(10)	minimum(0)
+//	@Param			offset	query		int				false	"Offset when receiving records"	default(0)	mininum(0)
+//	@Success		200		{object}	item.ItemsList	"List of items"
+//	@Failure		400		{object}	ErrorResponse
+//	@Failure		403		"Forbidden"
+//	@Failure		404		{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500		{object}	ErrorResponse
+//	@Router			/items/search [get]
 func (delivery *Delivery) SearchLine(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery SearchLine()")
 	var options SearchOptions
@@ -345,20 +350,21 @@ func (delivery *Delivery) SearchLine(c *gin.Context) {
 }
 
 // GetItemsByCategory returns list of items in category
-// @Summary Get list of items by category name
-// @Description Method provides to get list of items by category name
-// @Tags items
-// @Accept  json
-// @Produce json
-// @Param	param		query 		string			false	"Category name"
-// @Param 	limit 		query 		int 			false	"Quantity of recordings" default(10) minimum(0)
-// @Param 	offset 		query 		int 			false 	"Offset when receiving records" default(0) mininum(0)
-// @Success 200			{object}  	item.ItemsList		  	"List of items"
-// @Failure 400 		{object}    ErrorResponse
-// @Failure 403	 		"Forbidden"
-// @Failure 404 	    {object} 	ErrorResponse			"404 Not Found"
-// @Failure 500			{object}    ErrorResponse
-// @Router /items [get]
+//
+//	@Summary		Get list of items by category name
+//	@Description	Method provides to get list of items by category name
+//	@Tags			items
+//	@Accept			json
+//	@Produce		json
+//	@Param			param	query		string			false	"Category name"
+//	@Param			limit	query		int				false	"Quantity of recordings"		default(10)	minimum(0)
+//	@Param			offset	query		int				false	"Offset when receiving records"	default(0)	mininum(0)
+//	@Success		200		{object}	item.ItemsList	"List of items"
+//	@Failure		400		{object}	ErrorResponse
+//	@Failure		403		"Forbidden"
+//	@Failure		404		{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500		{object}	ErrorResponse
+//	@Router			/items [get]
 func (delivery *Delivery) GetItemsByCategory(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery GetItemsByCategory()")
 	var options SearchOptions
@@ -403,19 +409,22 @@ func (delivery *Delivery) GetItemsByCategory(c *gin.Context) {
 }
 
 // UploadItemImage - upload an image
-// @Summary Get list of items by category name
-// @Description Method provides to get list of items by category name
-// @Tags items
-// @Accept  json
-// @Produce json
-// @Param   id 			path 		string			true	"id of item"
-// @Param	image		formData	file			true	"picture of item"
-// @Success 201
-// @Failure 400 		{object}    ErrorResponse
-// @Failure 403	 		"Forbidden"
-// @Failure 404 	    {object} 	ErrorResponse			"404 Not Found"
-// @Failure 500			{object}    ErrorResponse
-// @Router /items/image/upload/:itemID [post]
+//
+//	@Summary		Upload an image of item
+//	@Description	Method provides to upload an image of item
+//	@Tags			items
+//	@Accept			json
+//	@Produce		json
+//	@Param			id		path		string	true	"id of item"
+//	@Param			image	formData	file	true	"picture of item"
+//	@Success		201
+//	@Failure		400	{object}	ErrorResponse
+//	@Failure		403	"Forbidden"
+//	@Failure		404	{object}	ErrorResponse	"404 Not Found"
+//	@Failure		415	{object}	ErrorResponse
+//	@Failure		500	{object}	ErrorResponse
+//	@Failure		507	{object}	ErrorResponse
+//	@Router			/items/image/upload/:itemID [post]
 func (delivery *Delivery) UploadItemImage(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery UploadItemImage()")
 	ctx := c.Request.Context()
@@ -434,7 +443,7 @@ func (delivery *Delivery) UploadItemImage(c *gin.Context) {
 	} else if contentType == "image/png" {
 		name = carbon.Now().ToShortDateTimeString() + ".png"
 	} else {
-		err := fmt.Errorf("unsupported type of image in request")
+		err := fmt.Errorf("unsupported media type: %s", contentType)
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusUnsupportedMediaType, err)
 		return
@@ -473,19 +482,20 @@ func (delivery *Delivery) UploadItemImage(c *gin.Context) {
 }
 
 // DeleteItemImage delete an item image
-// @Summary Delete an item image by item id
-// @Description The method allows you to delete an item image by item id.
-// @Tags items
-// @Accept  json
-// @Produce json
-// @Param	id			query 		string			true	"Item id"
-// @Param 	name 		query 		string 			true	"Image name"
-// @Success 200
-// @Failure 400 		{object}    ErrorResponse
-// @Failure 403	 		"Forbidden"
-// @Failure 404 	    {object} 	ErrorResponse			"404 Not Found"
-// @Failure 500			{object}    ErrorResponse
-// @Router /items/image/delete [delete]
+//
+//	@Summary		Delete an item image by item id
+//	@Description	The method allows you to delete an item image by item id.
+//	@Tags			items
+//	@Accept			json
+//	@Produce		json
+//	@Param			id		query	string	true	"Item id"
+//	@Param			name	query	string	true	"Image name"
+//	@Success		200
+//	@Failure		400	{object}	ErrorResponse
+//	@Failure		403	"Forbidden"
+//	@Failure		404	{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500	{object}	ErrorResponse
+//	@Router			/items/image/delete [delete]
 func (delivery *Delivery) DeleteItemImage(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery DeleteItemImage()")
 	var imageOptions ImageOptions

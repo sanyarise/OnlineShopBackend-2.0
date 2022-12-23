@@ -1,5 +1,13 @@
 basePath: /
 definitions:
+  category.CategoriesList:
+    properties:
+      categories:
+        items:
+          $ref: '#/definitions/category.Category'
+        minItems: 0
+        type: array
+    type: object
   category.Category:
     properties:
       description:
@@ -19,6 +27,27 @@ definitions:
     - id
     - name
     type: object
+  category.CategoryId:
+    properties:
+      id:
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        type: string
+    required:
+    - id
+    type: object
+  category.ShortCategory:
+    properties:
+      description:
+        example: Электротехнические товары для дома
+        type: string
+      name:
+        example: Электротехника
+        type: string
+    required:
+    - description
+    - name
+    type: object
   delivery.ErrorResponse:
     properties:
       errors:
@@ -29,6 +58,28 @@ definitions:
         type: string
       info: {}
       message:
+        type: string
+    type: object
+  delivery.FileListResponse:
+    properties:
+      files:
+        items:
+          $ref: '#/definitions/delivery.FilesInfo'
+        type: array
+    type: object
+  delivery.FilesInfo:
+    properties:
+      created_date:
+        example: 2022-12-13 12:46:16.0964549 +0300 MSK
+        type: string
+      modify_date:
+        example: 2022-12-13 12:46:16.0964549 +0300 MSK
+        type: string
+      name:
+        example: 20221213125935.jpeg
+        type: string
+      path:
+        example: storage\files\categories\d0d3df2d-f6c8-4956-9d76-998ee1ec8a39\20221213125935.jpeg
         type: string
     type: object
   delivery.ItemsQuantity:
@@ -55,7 +106,7 @@ definitions:
           type: string
         type: array
       price:
-        default: 0
+        default: 10
         example: 1990
         minimum: 0
         type: integer
@@ -66,8 +117,10 @@ definitions:
         example: Витязь
         type: string
     required:
+    - category
     - description
     - id
+    - price
     - title
     - vendor
     type: object
@@ -98,7 +151,7 @@ definitions:
         example: Мощность всасывания 1.5 кВт
         type: string
       price:
-        default: 0
+        default: 10
         example: 1990
         minimum: 0
         type: integer
@@ -111,18 +164,304 @@ definitions:
     required:
     - category
     - description
+    - price
     - title
     - vendor
     type: object
 info:
   contact:
-    email: example@mail.com
+    url: https://github.com/GBteammates/OnlineShopBackend
   description: Backend service for online store
   license:
     name: MIT
-  title: onlineShopBackend
+  title: Online Shop Backend Service
   version: "1.0"
 paths:
+  /categories/{categoryID}:
+    get:
+      consumes:
+      - application/json
+      description: The method allows you to get the category by id.
+      parameters:
+      - description: Id of category
+        in: path
+        name: categoryID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Category structure
+          schema:
+            $ref: '#/definitions/category.Category'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Get category by id
+      tags:
+      - categories
+  /categories/create:
+    post:
+      consumes:
+      - application/json
+      description: Method provides to create category of items.
+      parameters:
+      - description: Data for creating category
+        in: body
+        name: category
+        required: true
+        schema:
+          $ref: '#/definitions/category.ShortCategory'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/category.CategoryId'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Method provides to create category of items
+      tags:
+      - categories
+  /categories/delete/{categoryID}:
+    delete:
+      consumes:
+      - application/json
+      description: Method provides to delete category.
+      parameters:
+      - description: id of category
+        in: path
+        name: categoryID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Method provides to delete category
+      tags:
+      - categories
+  /categories/image/delete:
+    delete:
+      consumes:
+      - application/json
+      description: The method allows you to delete a category image by category id.
+      parameters:
+      - description: Category id
+        in: query
+        name: id
+        required: true
+        type: string
+      - description: Image name
+        in: query
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Delete a category image by category id
+      tags:
+      - categories
+  /categories/image/upload/:categoryID:
+    post:
+      consumes:
+      - application/json
+      description: Method provides to upload an image of category.
+      parameters:
+      - description: id of category
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: picture of category
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "415":
+          description: Unsupported Media Type
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "507":
+          description: Insufficient Storage
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Upload an image of category
+      tags:
+      - categories
+  /categories/list:
+    get:
+      consumes:
+      - application/json
+      description: Method provides to get list of categories
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of categories
+          schema:
+            $ref: '#/definitions/category.CategoriesList'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Get list of categories
+      tags:
+      - categories
+  /categories/update:
+    put:
+      consumes:
+      - application/json
+      description: Method provides to update category.
+      parameters:
+      - description: id of category
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Data for updating category
+        in: body
+        name: category
+        required: true
+        schema:
+          $ref: '#/definitions/category.Category'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Method provides to update category
+      tags:
+      - categories
+  /images/list:
+    get:
+      consumes:
+      - application/json
+      description: Method provides to get list of files.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of files
+          schema:
+            $ref: '#/definitions/delivery.FileListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Get list of files
+      tags:
+      - files
   /items:
     get:
       consumes:
@@ -176,7 +515,7 @@ paths:
       parameters:
       - description: id of item
         in: path
-        name: id
+        name: itemID
         required: true
         type: string
       produces:
@@ -203,7 +542,7 @@ paths:
       summary: Get item by id
       tags:
       - items
-  /items/create:
+  /items/create/:
     post:
       consumes:
       - application/json
@@ -281,7 +620,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: Method provides to get list of items by category name
+      description: Method provides to upload an image of item
       parameters:
       - description: id of item
         in: path
@@ -308,11 +647,19 @@ paths:
           description: 404 Not Found
           schema:
             $ref: '#/definitions/delivery.ErrorResponse'
+        "415":
+          description: Unsupported Media Type
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
             $ref: '#/definitions/delivery.ErrorResponse'
-      summary: Get list of items by category name
+        "507":
+          description: Insufficient Storage
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Upload an image of item
       tags:
       - items
   /items/list:
@@ -432,7 +779,7 @@ paths:
       - application/json
       description: Method provides to update store item
       parameters:
-      - description: Data for updateing item
+      - description: Data for updating item
         in: body
         name: item
         required: true
