@@ -21,6 +21,73 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/items": {
+            "get": {
+                "description": "Method provides to get list of items by category name",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "items"
+                ],
+                "summary": "Get list of items by category name",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Category name",
+                        "name": "param",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 0,
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Quantity of recordings",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Offset when receiving records",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of items",
+                        "schema": {
+                            "$ref": "#/definitions/item.ItemsList"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "404 Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/items/create": {
             "post": {
                 "description": "Method provides to create store item",
@@ -41,7 +108,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/delivery.ShortDelivery"
+                            "$ref": "#/definitions/item.ShortItem"
                         }
                     }
                 ],
@@ -49,7 +116,278 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/delivery.ItemResponse"
+                            "$ref": "#/definitions/item.ItemId"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "404 Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/items/list": {
+            "get": {
+                "description": "Method provides to get list of items",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "items"
+                ],
+                "summary": "Get list of items",
+                "parameters": [
+                    {
+                        "minimum": 0,
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Quantity of recordings",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Offset when receiving records",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of items",
+                        "schema": {
+                            "$ref": "#/definitions/item.ItemsList"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "404 Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/items/quantity": {
+            "get": {
+                "description": "Method provides to get quantity of items",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "items"
+                ],
+                "summary": "Get quantity of items",
+                "responses": {
+                    "200": {
+                        "description": "Quantity of items",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ItemsQuantity"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "404 Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/items/search": {
+            "get": {
+                "description": "Method provides to get list of items by search parameters",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "items"
+                ],
+                "summary": "Get list of items by search parameters",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Search param",
+                        "name": "param",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 0,
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Quantity of recordings",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Offset when receiving records",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of items",
+                        "schema": {
+                            "$ref": "#/definitions/item.ItemsList"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "404 Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/items/update": {
+            "put": {
+                "description": "Method provides to update store item",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "items"
+                ],
+                "summary": "Method provides to update store item",
+                "parameters": [
+                    {
+                        "description": "Data for updateing item",
+                        "name": "item",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/item.Item"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "404 Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/items/{itemID}": {
+            "get": {
+                "description": "The method allows you to get the product by id.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "items"
+                ],
+                "summary": "Get item by id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id of item",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Item structure",
+                        "schema": {
+                            "$ref": "#/definitions/item.Item"
                         }
                     },
                     "400": {
@@ -78,6 +416,32 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "category.Category": {
+            "type": "object",
+            "required": [
+                "description",
+                "id",
+                "name"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "example": "Электротехнические товары для дома"
+                },
+                "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "example": "00000000-0000-0000-0000-000000000000"
+                },
+                "image": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Электротехника"
+                }
+            }
+        },
         "delivery.ErrorResponse": {
             "type": "object",
             "properties": {
@@ -96,7 +460,61 @@ const docTemplate = `{
                 }
             }
         },
-        "delivery.ItemResponse": {
+        "delivery.ItemsQuantity": {
+            "type": "object",
+            "properties": {
+                "quantity": {
+                    "type": "integer",
+                    "default": 0,
+                    "minimum": 0,
+                    "example": 10
+                }
+            }
+        },
+        "item.Item": {
+            "type": "object",
+            "required": [
+                "description",
+                "id",
+                "title",
+                "vendor"
+            ],
+            "properties": {
+                "category": {
+                    "$ref": "#/definitions/category.Category"
+                },
+                "description": {
+                    "type": "string",
+                    "example": "Мощность всасывания 1.5 кВт"
+                },
+                "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "example": "00000000-0000-0000-0000-000000000000"
+                },
+                "images": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "price": {
+                    "type": "integer",
+                    "default": 0,
+                    "minimum": 0,
+                    "example": 1990
+                },
+                "title": {
+                    "type": "string",
+                    "example": "Пылесос"
+                },
+                "vendor": {
+                    "type": "string",
+                    "example": "Витязь"
+                }
+            }
+        },
+        "item.ItemId": {
             "type": "object",
             "required": [
                 "id"
@@ -109,12 +527,25 @@ const docTemplate = `{
                 }
             }
         },
-        "delivery.ShortDelivery": {
+        "item.ItemsList": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "minItems": 0,
+                    "items": {
+                        "$ref": "#/definitions/item.Item"
+                    }
+                }
+            }
+        },
+        "item.ShortItem": {
             "type": "object",
             "required": [
                 "category",
                 "description",
-                "title"
+                "title",
+                "vendor"
             ],
             "properties": {
                 "category": {
@@ -124,21 +555,21 @@ const docTemplate = `{
                 },
                 "description": {
                     "type": "string",
-                    "example": "Description of item"
+                    "example": "Мощность всасывания 1.5 кВт"
                 },
-                "title": {
-                    "type": "string",
-                    "example": "Title of item"
-                },
-                "total": {
+                "price": {
                     "type": "integer",
                     "default": 0,
                     "minimum": 0,
-                    "example": 10
+                    "example": 1990
+                },
+                "title": {
+                    "type": "string",
+                    "example": "Пылесос"
                 },
                 "vendor": {
                     "type": "string",
-                    "example": "Vendor of item"
+                    "example": "Витязь"
                 }
             }
         }

@@ -23,9 +23,9 @@ func NewCategoryHandlers(usecase usecase.ICategoryUsecase, logger *zap.Logger) *
 
 // Category is struct for DTO
 type Category struct {
-	Id          string `json:"id,omitempty"`
-	Name        string `json:"name,omitempty"`
-	Description string `json:"description,omitempty"`
+	Id          string `json:"id" binding:"required,uuid" example:"00000000-0000-0000-0000-000000000000" format:"uuid"`
+	Name        string `json:"name" binding:"required" example:"Электротехника"`
+	Description string `json:"description" binding:"required" example:"Электротехнические товары для дома"`
 	Image       string `json:"image,omitempty"`
 }
 

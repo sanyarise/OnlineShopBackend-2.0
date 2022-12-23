@@ -1,5 +1,24 @@
 basePath: /
 definitions:
+  category.Category:
+    properties:
+      description:
+        example: Электротехнические товары для дома
+        type: string
+      id:
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        type: string
+      image:
+        type: string
+      name:
+        example: Электротехника
+        type: string
+    required:
+    - description
+    - id
+    - name
+    type: object
   delivery.ErrorResponse:
     properties:
       errors:
@@ -12,7 +31,47 @@ definitions:
       message:
         type: string
     type: object
-  delivery.ItemResponse:
+  delivery.ItemsQuantity:
+    properties:
+      quantity:
+        default: 0
+        example: 10
+        minimum: 0
+        type: integer
+    type: object
+  item.Item:
+    properties:
+      category:
+        $ref: '#/definitions/category.Category'
+      description:
+        example: Мощность всасывания 1.5 кВт
+        type: string
+      id:
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        type: string
+      images:
+        items:
+          type: string
+        type: array
+      price:
+        default: 0
+        example: 1990
+        minimum: 0
+        type: integer
+      title:
+        example: Пылесос
+        type: string
+      vendor:
+        example: Витязь
+        type: string
+    required:
+    - description
+    - id
+    - title
+    - vendor
+    type: object
+  item.ItemId:
     properties:
       id:
         example: 00000000-0000-0000-0000-000000000000
@@ -21,30 +80,39 @@ definitions:
     required:
     - id
     type: object
-  delivery.ShortDelivery:
+  item.ItemsList:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/item.Item'
+        minItems: 0
+        type: array
+    type: object
+  item.ShortItem:
     properties:
       category:
         example: 00000000-0000-0000-0000-000000000000
         format: uuid
         type: string
       description:
-        example: Description of item
+        example: Мощность всасывания 1.5 кВт
         type: string
-      title:
-        example: Title of item
-        type: string
-      total:
+      price:
         default: 0
-        example: 10
+        example: 1990
         minimum: 0
         type: integer
+      title:
+        example: Пылесос
+        type: string
       vendor:
-        example: Vendor of item
+        example: Витязь
         type: string
     required:
     - category
     - description
     - title
+    - vendor
     type: object
 info:
   contact:
@@ -55,6 +123,86 @@ info:
   title: onlineShopBackend
   version: "1.0"
 paths:
+  /items:
+    get:
+      consumes:
+      - application/json
+      description: Method provides to get list of items by category name
+      parameters:
+      - description: Category name
+        in: query
+        name: param
+        type: string
+      - default: 10
+        description: Quantity of recordings
+        in: query
+        minimum: 0
+        name: limit
+        type: integer
+      - default: 0
+        description: Offset when receiving records
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of items
+          schema:
+            $ref: '#/definitions/item.ItemsList'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Get list of items by category name
+      tags:
+      - items
+  /items/{itemID}:
+    get:
+      consumes:
+      - application/json
+      description: The method allows you to get the product by id.
+      parameters:
+      - description: id of item
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Item structure
+          schema:
+            $ref: '#/definitions/item.Item'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Get item by id
+      tags:
+      - items
   /items/create:
     post:
       consumes:
@@ -66,14 +214,14 @@ paths:
         name: item
         required: true
         schema:
-          $ref: '#/definitions/delivery.ShortDelivery'
+          $ref: '#/definitions/item.ShortItem'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/delivery.ItemResponse'
+            $ref: '#/definitions/item.ItemId'
         "400":
           description: Bad Request
           schema:
@@ -89,6 +237,151 @@ paths:
           schema:
             $ref: '#/definitions/delivery.ErrorResponse'
       summary: Method provides to create store item
+      tags:
+      - items
+  /items/list:
+    get:
+      consumes:
+      - application/json
+      description: Method provides to get list of items
+      parameters:
+      - default: 10
+        description: Quantity of recordings
+        in: query
+        minimum: 0
+        name: limit
+        type: integer
+      - default: 0
+        description: Offset when receiving records
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of items
+          schema:
+            $ref: '#/definitions/item.ItemsList'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Get list of items
+      tags:
+      - items
+  /items/quantity:
+    get:
+      consumes:
+      - application/json
+      description: Method provides to get quantity of items
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Quantity of items
+          schema:
+            $ref: '#/definitions/delivery.ItemsQuantity'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Get quantity of items
+      tags:
+      - items
+  /items/search:
+    get:
+      consumes:
+      - application/json
+      description: Method provides to get list of items by search parameters
+      parameters:
+      - description: Search param
+        in: query
+        name: param
+        type: string
+      - default: 10
+        description: Quantity of recordings
+        in: query
+        minimum: 0
+        name: limit
+        type: integer
+      - default: 0
+        description: Offset when receiving records
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of items
+          schema:
+            $ref: '#/definitions/item.ItemsList'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Get list of items by search parameters
+      tags:
+      - items
+  /items/update:
+    put:
+      consumes:
+      - application/json
+      description: Method provides to update store item
+      parameters:
+      - description: Data for updateing item
+        in: body
+        name: item
+        required: true
+        schema:
+          $ref: '#/definitions/item.Item'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Method provides to update store item
       tags:
       - items
 swagger: "2.0"
