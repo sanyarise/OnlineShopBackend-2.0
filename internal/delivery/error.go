@@ -14,6 +14,11 @@ type ErrorResponse struct {
 }
 
 func (delivery *Delivery) SetError(c *gin.Context, statusCode int, errs ...error) {
+	defer func() {
+		if err := recover(); err != nil {
+			c.JSON(statusCode, gin.H{})
+		}
+	}()
 	var response = ErrorResponse{
 		Id: uuid.New(),
 	}

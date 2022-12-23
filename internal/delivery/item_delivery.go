@@ -40,32 +40,6 @@ type ImageOptions struct {
 	Name string `form:"name"`
 }
 
-type ItemsQuantity struct {
-	Quantity int `json:"quantity" example:"10" default:"0" binding:"min=0" minimum:"0"`
-}
-
-type ShortDeliveryItem struct {
-	Title       string `json:"title" binding:"required" example:"Пылесос"`
-	Description string `json:"description" binding:"required" example:"Мощность всасывания 1.5 кВт"`
-	Category    string `json:"category" binding:"required,uuid" example:"00000000-0000-0000-0000-000000000000" format:"uuid"`
-	Price       int32  `json:"price" example:"1990" default:"0" binding:"min=0" minimum:"0"`
-	Vendor      string `json:"vendor" binding:"required" example:"Витязь"`
-}
-
-type ItemResponse struct {
-	Id string `json:"id" binding:"required,uuid" example:"00000000-0000-0000-0000-000000000000" format:"uuid"`
-}
-
-type DeliveryItem struct {
-	Id          string   `json:"id,omitempty"`
-	Title       string   `json:"title,omitempty"`
-	Description string   `json:"description,omitempty"`
-	Price       int32    `json:"price,omitempty"`
-	Category    string   `json:"category,omitempty"`
-	Vendor      string   `json:"vendor,omitempty"`
-	Images      []string `json:"image,omitempty"`
-}
-
 // CreateItem
 //
 //	@Summary		Method provides to create store item
@@ -74,7 +48,7 @@ type DeliveryItem struct {
 //	@Accept			json
 //	@Produce		json
 //	@Param			item	body		item.ShortItem	true	"Data for creating item"
-//	@Success		200		{object}	item.ItemId
+//	@Success		201		{object}	item.ItemId
 //	@Failure		400		{object}	ErrorResponse
 //	@Failure		403		"Forbidden"
 //	@Failure		404		{object}	ErrorResponse	"404 Not Found"
@@ -86,6 +60,7 @@ func (delivery *Delivery) CreateItem(c *gin.Context) {
 	fmt.Println(fmt.Sprintln(c))
 	var deliveryItem item.ShortItem
 	if err := c.ShouldBindJSON(&deliveryItem); err != nil {
+		fmt.Println(err)
 		delivery.logger.Error(fmt.Sprintf("error on bind json from request: %v", err))
 		delivery.SetError(c, http.StatusBadRequest, err)
 		return
@@ -110,17 +85,18 @@ func (delivery *Delivery) CreateItem(c *gin.Context) {
 		delivery.SetError(c, http.StatusInternalServerError, err)
 		return
 	}
-	c.JSON(http.StatusOK, item.ItemId{Value: id.String()})
+	c.JSON(http.StatusCreated, item.ItemId{Value: id.String()})
 }
 
 // GetItem - returns item by id
+//
 //	@Summary		Get item by id
 //	@Description	The method allows you to get the product by id.
 //	@Tags			items
 //	@Accept			json
 //	@Produce		json
-//	@Param			itemID	path		string		true	"id of item"
-//	@Success		200		{object}	item.Item	"Item structure"
+//	@Param			itemID	path		string			true	"id of item"
+//	@Success		200		{object}	item.OutItem	"Item structure"
 //	@Failure		400		{object}	ErrorResponse
 //	@Failure		403		"Forbidden"
 //	@Failure		404		{object}	ErrorResponse	"404 Not Found"
@@ -129,20 +105,22 @@ func (delivery *Delivery) CreateItem(c *gin.Context) {
 func (delivery *Delivery) GetItem(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery GetItem()")
 	id := c.Param("itemID")
-	delivery.logger.Debug(id)
 	if id == "" {
-		delivery.logger.Error(fmt.Errorf("empty id in request").Error())
-		delivery.SetError(c, http.StatusBadRequest, fmt.Errorf("empty item in request"))
-	}
-	ctx := c.Request.Context()
-	handlersItem, err := delivery.itemHandlers.GetItem(ctx, id)
-	if err != nil {
+		err := fmt.Errorf("empty item in request")
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusBadRequest, err)
 		return
 	}
+	delivery.logger.Debug(id)
+	ctx := c.Request.Context()
+	handlersItem, err := delivery.itemHandlers.GetItem(ctx, id)
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusInternalServerError, err)
+		return
+	}
 
-	c.JSON(http.StatusOK, item.Item{
+	c.JSON(http.StatusOK, item.OutItem{
 		Id:          handlersItem.Id,
 		Title:       handlersItem.Title,
 		Description: handlersItem.Description,
@@ -152,6 +130,7 @@ func (delivery *Delivery) GetItem(c *gin.Context) {
 			Description: handlersItem.Category.Description,
 			Image:       handlersItem.Category.Image,
 		},
+		Price:  handlersItem.Price,
 		Vendor: handlersItem.Vendor,
 		Images: handlersItem.Images,
 	})
@@ -164,7 +143,7 @@ func (delivery *Delivery) GetItem(c *gin.Context) {
 //	@Tags			items
 //	@Accept			json
 //	@Produce		json
-//	@Param			item	body	item.Item	true	"Data for updating item"
+//	@Param			item	body	item.InItem	true	"Data for updating item"
 //	@Success		200
 //	@Failure		400	{object}	ErrorResponse
 //	@Failure		403	"Forbidden"
@@ -174,7 +153,7 @@ func (delivery *Delivery) GetItem(c *gin.Context) {
 func (delivery *Delivery) UpdateItem(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery UpdateItem()")
 	ctx := c.Request.Context()
-	var deliveryItem item.Item
+	var deliveryItem item.InItem
 	if err := c.ShouldBindJSON(&deliveryItem); err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusBadRequest, err)
@@ -184,10 +163,12 @@ func (delivery *Delivery) UpdateItem(c *gin.Context) {
 		Id:          deliveryItem.Id,
 		Title:       deliveryItem.Title,
 		Description: deliveryItem.Description,
-		Category:    handlers.Category(deliveryItem.Category),
-		Price:       deliveryItem.Price,
-		Vendor:      deliveryItem.Vendor,
-		Images:      deliveryItem.Images,
+		Category: handlers.Category{
+			Id: deliveryItem.Category,
+		},
+		Price:  deliveryItem.Price,
+		Vendor: deliveryItem.Vendor,
+		Images: deliveryItem.Images,
 	})
 	if err != nil {
 		delivery.logger.Error(err.Error())
@@ -244,15 +225,15 @@ func (delivery *Delivery) ItemsList(c *gin.Context) {
 	list, err := delivery.itemHandlers.ItemsList(c.Request.Context(), options.Offset, options.Limit)
 	if err != nil {
 		delivery.logger.Error(err.Error())
-		delivery.SetError(c, http.StatusBadRequest, err)
+		delivery.SetError(c, http.StatusInternalServerError, err)
 		return
 	}
 	var itemsList item.ItemsList
-	itemsList.List = make([]item.Item, len(list))
+	itemsList.List = make([]item.OutItem, len(list))
 	for i, it := range list {
-		itemsList.List[i] = item.Item{
+		itemsList.List[i] = item.OutItem{
 			Id:          it.Id,
-			Title:       it.Description,
+			Title:       it.Title,
 			Description: it.Description,
 			Category:    category.Category(it.Category),
 			Price:       it.Price,
@@ -270,7 +251,7 @@ func (delivery *Delivery) ItemsList(c *gin.Context) {
 //	@Tags			items
 //	@Accept			json
 //	@Produce		json
-//	@Success		200	{object}	ItemsQuantity	"Quantity of items"
+//	@Success		200	{object}	item.ItemsQuantity	"Quantity of items"
 //	@Failure		403	"Forbidden"
 //	@Failure		404	{object}	ErrorResponse	"404 Not Found"
 //	@Failure		500	{object}	ErrorResponse
@@ -284,7 +265,7 @@ func (delivery *Delivery) ItemsQuantity(c *gin.Context) {
 		delivery.SetError(c, http.StatusInternalServerError, err)
 		return
 	}
-	itemsQuantity := ItemsQuantity{Quantity: quantity}
+	itemsQuantity := item.ItemsQuantity{Quantity: quantity}
 	c.JSON(http.StatusOK, itemsQuantity)
 }
 
@@ -334,11 +315,11 @@ func (delivery *Delivery) SearchLine(c *gin.Context) {
 		return
 	}
 	var itemsList item.ItemsList
-	itemsList.List = make([]item.Item, len(list))
+	itemsList.List = make([]item.OutItem, len(list))
 	for i, it := range list {
-		itemsList.List[i] = item.Item{
+		itemsList.List[i] = item.OutItem{
 			Id:          it.Id,
-			Title:       it.Description,
+			Title:       it.Title,
 			Description: it.Description,
 			Category:    category.Category(it.Category),
 			Price:       it.Price,
@@ -393,11 +374,11 @@ func (delivery *Delivery) GetItemsByCategory(c *gin.Context) {
 		return
 	}
 	var itemsList item.ItemsList
-	itemsList.List = make([]item.Item, len(list))
+	itemsList.List = make([]item.OutItem, len(list))
 	for i, it := range list {
-		itemsList.List[i] = item.Item{
+		itemsList.List[i] = item.OutItem{
 			Id:          it.Id,
-			Title:       it.Description,
+			Title:       it.Title,
 			Description: it.Description,
 			Category:    category.Category(it.Category),
 			Price:       it.Price,
@@ -469,6 +450,7 @@ func (delivery *Delivery) UploadItemImage(c *gin.Context) {
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusInternalServerError, err)
+		return
 	}
 	item.Images = append(item.Images, path)
 

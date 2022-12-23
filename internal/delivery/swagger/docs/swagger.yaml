@@ -60,14 +60,14 @@ definitions:
       message:
         type: string
     type: object
-  delivery.FileListResponse:
+  file.FileListResponse:
     properties:
       files:
         items:
-          $ref: '#/definitions/delivery.FilesInfo'
+          $ref: '#/definitions/file.FilesInfo'
         type: array
     type: object
-  delivery.FilesInfo:
+  file.FilesInfo:
     properties:
       created_date:
         example: 2022-12-13 12:46:16.0964549 +0300 MSK
@@ -82,18 +82,12 @@ definitions:
         example: storage\files\categories\d0d3df2d-f6c8-4956-9d76-998ee1ec8a39\20221213125935.jpeg
         type: string
     type: object
-  delivery.ItemsQuantity:
-    properties:
-      quantity:
-        default: 0
-        example: 10
-        minimum: 0
-        type: integer
-    type: object
-  item.Item:
+  item.InItem:
     properties:
       category:
-        $ref: '#/definitions/category.Category'
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        type: string
       description:
         example: Мощность всасывания 1.5 кВт
         type: string
@@ -137,9 +131,51 @@ definitions:
     properties:
       items:
         items:
-          $ref: '#/definitions/item.Item'
+          $ref: '#/definitions/item.OutItem'
         minItems: 0
         type: array
+    type: object
+  item.ItemsQuantity:
+    properties:
+      quantity:
+        default: 0
+        example: 10
+        minimum: 0
+        type: integer
+    type: object
+  item.OutItem:
+    properties:
+      category:
+        $ref: '#/definitions/category.Category'
+      description:
+        example: Мощность всасывания 1.5 кВт
+        type: string
+      id:
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        type: string
+      images:
+        items:
+          type: string
+        type: array
+      price:
+        default: 10
+        example: 1990
+        minimum: 0
+        type: integer
+      title:
+        example: Пылесос
+        type: string
+      vendor:
+        example: Витязь
+        type: string
+    required:
+    - category
+    - description
+    - id
+    - price
+    - title
+    - vendor
     type: object
   item.ShortItem:
     properties:
@@ -444,7 +480,7 @@ paths:
         "200":
           description: List of files
           schema:
-            $ref: '#/definitions/delivery.FileListResponse'
+            $ref: '#/definitions/file.FileListResponse'
         "400":
           description: Bad Request
           schema:
@@ -524,7 +560,7 @@ paths:
         "200":
           description: Item structure
           schema:
-            $ref: '#/definitions/item.Item'
+            $ref: '#/definitions/item.OutItem'
         "400":
           description: Bad Request
           schema:
@@ -714,7 +750,7 @@ paths:
         "200":
           description: Quantity of items
           schema:
-            $ref: '#/definitions/delivery.ItemsQuantity'
+            $ref: '#/definitions/item.ItemsQuantity'
         "403":
           description: Forbidden
         "404":
@@ -784,7 +820,7 @@ paths:
         name: item
         required: true
         schema:
-          $ref: '#/definitions/item.Item'
+          $ref: '#/definitions/item.InItem'
       produces:
       - application/json
       responses:

@@ -425,7 +425,7 @@ const docTemplate = `{
                     "200": {
                         "description": "List of files",
                         "schema": {
-                            "$ref": "#/definitions/delivery.FileListResponse"
+                            "$ref": "#/definitions/file.FileListResponse"
                         }
                     },
                     "400": {
@@ -778,7 +778,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Quantity of items",
                         "schema": {
-                            "$ref": "#/definitions/delivery.ItemsQuantity"
+                            "$ref": "#/definitions/item.ItemsQuantity"
                         }
                     },
                     "403": {
@@ -886,7 +886,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/item.Item"
+                            "$ref": "#/definitions/item.InItem"
                         }
                     }
                 ],
@@ -944,7 +944,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Item structure",
                         "schema": {
-                            "$ref": "#/definitions/item.Item"
+                            "$ref": "#/definitions/item.OutItem"
                         }
                     },
                     "400": {
@@ -1059,18 +1059,18 @@ const docTemplate = `{
                 }
             }
         },
-        "delivery.FileListResponse": {
+        "file.FileListResponse": {
             "type": "object",
             "properties": {
                 "files": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/delivery.FilesInfo"
+                        "$ref": "#/definitions/file.FilesInfo"
                     }
                 }
             }
         },
-        "delivery.FilesInfo": {
+        "file.FilesInfo": {
             "type": "object",
             "properties": {
                 "created_date": {
@@ -1091,18 +1091,7 @@ const docTemplate = `{
                 }
             }
         },
-        "delivery.ItemsQuantity": {
-            "type": "object",
-            "properties": {
-                "quantity": {
-                    "type": "integer",
-                    "default": 0,
-                    "minimum": 0,
-                    "example": 10
-                }
-            }
-        },
-        "item.Item": {
+        "item.InItem": {
             "type": "object",
             "required": [
                 "category",
@@ -1114,7 +1103,9 @@ const docTemplate = `{
             ],
             "properties": {
                 "category": {
-                    "$ref": "#/definitions/category.Category"
+                    "type": "string",
+                    "format": "uuid",
+                    "example": "00000000-0000-0000-0000-000000000000"
                 },
                 "description": {
                     "type": "string",
@@ -1167,8 +1158,64 @@ const docTemplate = `{
                     "type": "array",
                     "minItems": 0,
                     "items": {
-                        "$ref": "#/definitions/item.Item"
+                        "$ref": "#/definitions/item.OutItem"
                     }
+                }
+            }
+        },
+        "item.ItemsQuantity": {
+            "type": "object",
+            "properties": {
+                "quantity": {
+                    "type": "integer",
+                    "default": 0,
+                    "minimum": 0,
+                    "example": 10
+                }
+            }
+        },
+        "item.OutItem": {
+            "type": "object",
+            "required": [
+                "category",
+                "description",
+                "id",
+                "price",
+                "title",
+                "vendor"
+            ],
+            "properties": {
+                "category": {
+                    "$ref": "#/definitions/category.Category"
+                },
+                "description": {
+                    "type": "string",
+                    "example": "Мощность всасывания 1.5 кВт"
+                },
+                "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "example": "00000000-0000-0000-0000-000000000000"
+                },
+                "images": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "price": {
+                    "type": "integer",
+                    "default": 10,
+                    "minimum": 0,
+                    "example": 1990
+                },
+                "title": {
+                    "type": "string",
+                    "example": "Пылесос"
+                },
+                "vendor": {
+                    "type": "string",
+                    "example": "Витязь"
                 }
             }
         },

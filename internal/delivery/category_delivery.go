@@ -31,7 +31,7 @@ import (
 //	@Accept			json
 //	@Produce		json
 //	@Param			category	body		category.ShortCategory	true	"Data for creating category"
-//	@Success		200			{object}	category.CategoryId
+//	@Success		201			{object}	category.CategoryId
 //	@Failure		400			{object}	ErrorResponse
 //	@Failure		403			"Forbidden"
 //	@Failure		404			{object}	ErrorResponse	"404 Not Found"
@@ -62,7 +62,7 @@ func (delivery *Delivery) CreateCategory(c *gin.Context) {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusInternalServerError, err)
 	}
-	c.JSON(http.StatusOK, category.CategoryId{Value: id.String()})
+	c.JSON(http.StatusCreated, category.CategoryId{Value: id.String()})
 }
 
 // UpdateCategory updating category
