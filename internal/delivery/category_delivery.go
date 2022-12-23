@@ -392,6 +392,7 @@ func (delivery *Delivery) DeleteCategory(c *gin.Context) {
 			delivery.SetError(c, http.StatusInternalServerError, err)
 			return
 		}
+		delivery.SetError(c, http.StatusOK, nil)
 		noCategory.Id = noCategoryId.String()
 		for _, item := range items {
 			item.Category = noCategory
