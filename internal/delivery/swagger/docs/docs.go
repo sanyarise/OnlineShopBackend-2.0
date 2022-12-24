@@ -1210,11 +1210,9 @@ const docTemplate = `{
         "item.ShortItem": {
             "type": "object",
             "required": [
-                "category",
                 "description",
                 "price",
-                "title",
-                "vendor"
+                "title"
             ],
             "properties": {
                 "category": {

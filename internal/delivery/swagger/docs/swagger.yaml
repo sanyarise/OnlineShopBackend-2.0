@@ -182,11 +182,9 @@ definitions:
         example: Витязь
         type: string
     required:
-    - category
     - description
     - price
     - title
-    - vendor
     type: object
 info:
   contact:

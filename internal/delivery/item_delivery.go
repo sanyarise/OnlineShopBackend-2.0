@@ -57,18 +57,36 @@ type ImageOptions struct {
 func (delivery *Delivery) CreateItem(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery CreateItem()")
 	ctx := context.Background()
-	fmt.Println(fmt.Sprintln(c))
 	var deliveryItem item.ShortItem
 	if err := c.ShouldBindJSON(&deliveryItem); err != nil {
-		fmt.Println(err)
 		delivery.logger.Error(fmt.Sprintf("error on bind json from request: %v", err))
 		delivery.SetError(c, http.StatusBadRequest, err)
 		return
 	}
-	if deliveryItem.Title == "" || deliveryItem.Description == "" || deliveryItem.Category == "" || deliveryItem.Price == 0 || deliveryItem.Vendor == "" {
+	if deliveryItem.Title == "" || deliveryItem.Description == "" || deliveryItem.Price == 0 {
 		delivery.logger.Error(fmt.Errorf("empty item fields in request").Error())
 		delivery.SetError(c, http.StatusBadRequest, fmt.Errorf("empty item fields in request"))
 		return
+	}
+
+	if deliveryItem.Category == "" {
+		noCategory, err := delivery.categoryHandlers.GetCategoryByName(ctx, "NoCategory")
+		if err != nil {
+			delivery.logger.Sugar().Errorf("NoCategory is not exists: %v", err)
+			noCategory := handlers.Category{
+				Name:        "NoCategory",
+				Description: "Category for items without categories",
+			}
+			noCategoryId, err := delivery.categoryHandlers.CreateCategory(ctx, noCategory)
+			if err != nil {
+				delivery.logger.Error(fmt.Sprintf("error on create no category: %v", err))
+				delivery.SetError(c, http.StatusInternalServerError, err)
+				return
+			}
+			deliveryItem.Category = noCategoryId.String()
+		} else {
+			deliveryItem.Category = noCategory.Id
+		}
 	}
 	handlersItem := handlers.Item{
 		Title:       deliveryItem.Title,
