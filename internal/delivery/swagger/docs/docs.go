@@ -269,7 +269,10 @@ const docTemplate = `{
                     "200": {
                         "description": "List of categories",
                         "schema": {
-                            "$ref": "#/definitions/category.CategoriesList"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/category.Category"
+                            }
                         }
                     },
                     "400": {
@@ -492,7 +495,10 @@ const docTemplate = `{
                     "200": {
                         "description": "List of items",
                         "schema": {
-                            "$ref": "#/definitions/item.ItemsList"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/item.OutItem"
+                            }
                         }
                     },
                     "400": {
@@ -734,7 +740,10 @@ const docTemplate = `{
                     "200": {
                         "description": "List of items",
                         "schema": {
-                            "$ref": "#/definitions/item.ItemsList"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/item.OutItem"
+                            }
                         }
                     },
                     "400": {
@@ -839,7 +848,10 @@ const docTemplate = `{
                     "200": {
                         "description": "List of items",
                         "schema": {
-                            "$ref": "#/definitions/item.ItemsList"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/item.OutItem"
+                            }
                         }
                     },
                     "400": {
@@ -973,18 +985,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "category.CategoriesList": {
-            "type": "object",
-            "properties": {
-                "categories": {
-                    "type": "array",
-                    "minItems": 0,
-                    "items": {
-                        "$ref": "#/definitions/category.Category"
-                    }
-                }
-            }
-        },
         "category.Category": {
             "type": "object",
             "required": [
@@ -1148,18 +1148,6 @@ const docTemplate = `{
                     "type": "string",
                     "format": "uuid",
                     "example": "00000000-0000-0000-0000-000000000000"
-                }
-            }
-        },
-        "item.ItemsList": {
-            "type": "object",
-            "properties": {
-                "items": {
-                    "type": "array",
-                    "minItems": 0,
-                    "items": {
-                        "$ref": "#/definitions/item.OutItem"
-                    }
                 }
             }
         },

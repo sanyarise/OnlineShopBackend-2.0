@@ -1,13 +1,5 @@
 basePath: /
 definitions:
-  category.CategoriesList:
-    properties:
-      categories:
-        items:
-          $ref: '#/definitions/category.Category'
-        minItems: 0
-        type: array
-    type: object
   category.Category:
     properties:
       description:
@@ -126,14 +118,6 @@ definitions:
         type: string
     required:
     - id
-    type: object
-  item.ItemsList:
-    properties:
-      items:
-        items:
-          $ref: '#/definitions/item.OutItem'
-        minItems: 0
-        type: array
     type: object
   item.ItemsQuantity:
     properties:
@@ -412,7 +396,9 @@ paths:
         "200":
           description: List of categories
           schema:
-            $ref: '#/definitions/category.CategoriesList'
+            items:
+              $ref: '#/definitions/category.Category'
+            type: array
         "400":
           description: Bad Request
           schema:
@@ -525,7 +511,9 @@ paths:
         "200":
           description: List of items
           schema:
-            $ref: '#/definitions/item.ItemsList'
+            items:
+              $ref: '#/definitions/item.OutItem'
+            type: array
         "400":
           description: Bad Request
           schema:
@@ -721,7 +709,9 @@ paths:
         "200":
           description: List of items
           schema:
-            $ref: '#/definitions/item.ItemsList'
+            items:
+              $ref: '#/definitions/item.OutItem'
+            type: array
         "400":
           description: Bad Request
           schema:
@@ -791,7 +781,9 @@ paths:
         "200":
           description: List of items
           schema:
-            $ref: '#/definitions/item.ItemsList'
+            items:
+              $ref: '#/definitions/item.OutItem'
+            type: array
         "400":
           description: Bad Request
           schema:

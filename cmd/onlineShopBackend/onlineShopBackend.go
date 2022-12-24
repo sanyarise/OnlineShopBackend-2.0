@@ -62,6 +62,20 @@ func main() {
 		"ReadHeaderTimeout": cfg.ReadHeaderTimeout,
 	}
 	server := server.NewServer(cfg.Port, router, l, serverOptions)
+
+	l.Debug("Start create cash...")
+	_, err = categoryUsecase.GetCategoryList(ctx)
+	if err != nil {
+		l.Sugar().Errorf("error on create category cash: %w", err)
+	}
+	l.Info("Category list cash create success")
+
+	_, err = itemUsecase.ItemsList(ctx, 0, 0)
+	if err != nil {
+		l.Sugar().Errorf("error on create items list cash: %w", err)
+	}
+	l.Info("Items list cash create success")
+
 	server.Start()
 	l.Info(fmt.Sprintf("Server start successful on port: %v", cfg.Port))
 

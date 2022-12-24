@@ -284,7 +284,7 @@ func (delivery *Delivery) GetCategory(c *gin.Context) {
 //	@Tags			categories
 //	@Accept			json
 //	@Produce		json
-//	@Success		200	{object}	category.CategoriesList	"List of categories"
+//	@Success		200	array		category.Category	"List of categories"
 //	@Failure		400	{object}	ErrorResponse
 //	@Failure		403	"Forbidden"
 //	@Failure		404	{object}	ErrorResponse	"404 Not Found"
@@ -298,17 +298,17 @@ func (delivery *Delivery) GetCategoryList(c *gin.Context) {
 		delivery.SetError(c, http.StatusInternalServerError, err)
 		return
 	}
-	var categoriesList category.CategoriesList
-	categoriesList.List = make([]category.Category, len(list))
+	//var categoriesList category.CategoriesList
+	categories := make([]category.Category, len(list))
 	for i, cat := range list {
-		categoriesList.List[i] = category.Category{
+		categories[i] = category.Category{
 			Id:          cat.Id,
 			Name:        cat.Name,
 			Description: cat.Description,
 			Image:       cat.Image,
 		}
 	}
-	c.JSON(http.StatusOK, categoriesList)
+	c.JSON(http.StatusOK, categories)
 }
 
 // DeleteCategory deleted category by id

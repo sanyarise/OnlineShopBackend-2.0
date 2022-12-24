@@ -337,7 +337,7 @@ func TestItemsList(t *testing.T) {
 	}
 	c.Request.URL, _ = url.Parse("?offset=0&limit=1")
 
-	bytesRes, _ := json.Marshal(&testOutItems)
+	bytesRes, _ := json.Marshal(&testOutItems.List)
 	itemHandlers.EXPECT().ItemsList(ctx, 0, 1).Return(testItems, nil)
 	delivery.ItemsList(c)
 	require.Equal(t, 200, w.Code)
@@ -373,7 +373,7 @@ func TestItemsList(t *testing.T) {
 		Header: make(http.Header),
 	}
 
-	bytesRes, _ = json.Marshal(&testOutItems)
+	bytesRes, _ = json.Marshal(&testOutItems.List)
 	itemHandlers.EXPECT().ItemsQuantity(ctx).Return(1, nil)
 	itemHandlers.EXPECT().ItemsList(ctx, 0, 1).Return(testItems, nil)
 	delivery.ItemsList(c)
@@ -387,7 +387,7 @@ func TestItemsList(t *testing.T) {
 		Header: make(http.Header),
 	}
 
-	bytesRes, _ = json.Marshal(&testOutItems)
+	bytesRes, _ = json.Marshal(&testOutItems.List)
 	itemHandlers.EXPECT().ItemsQuantity(ctx).Return(100, nil)
 	itemHandlers.EXPECT().ItemsList(ctx, 0, 10).Return(testItems, nil)
 	delivery.ItemsList(c)
@@ -461,7 +461,7 @@ func TestSearchLine(t *testing.T) {
 	}
 	c.Request.URL, _ = url.Parse("?param=test&offset=0&limit=1")
 
-	bytesRes, _ := json.Marshal(&testOutItems)
+	bytesRes, _ := json.Marshal(&testOutItems.List)
 	itemHandlers.EXPECT().SearchLine(ctx, "test", 0, 1).Return(testItems, nil)
 	delivery.SearchLine(c)
 	require.Equal(t, 200, w.Code)
@@ -533,7 +533,7 @@ func TestGetItemsByCategory(t *testing.T) {
 	}
 	c.Request.URL, _ = url.Parse("?param=test&offset=0&limit=1")
 
-	bytesRes, _ := json.Marshal(&testOutItems)
+	bytesRes, _ := json.Marshal(&testOutItems.List)
 	itemHandlers.EXPECT().GetItemsByCategory(ctx, "test", 0, 1).Return(testItems, nil)
 	delivery.GetItemsByCategory(c)
 	require.Equal(t, 200, w.Code)

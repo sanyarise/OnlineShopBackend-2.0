@@ -273,7 +273,7 @@ func TestGetCategoryList(t *testing.T) {
 		Header: make(http.Header),
 	}
 
-	testBytes, _ := json.Marshal(&testOutList)
+	testBytes, _ := json.Marshal(&testOutList.List)
 	categoryHandlers.EXPECT().GetCategoryList(ctx).Return(testList, nil)
 	delivery.GetCategoryList(c)
 	require.Equal(t, 200, w.Code)

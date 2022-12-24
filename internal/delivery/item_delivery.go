@@ -187,7 +187,7 @@ func (delivery *Delivery) UpdateItem(c *gin.Context) {
 //	@Produce		json
 //	@Param			limit	query		int				false	"Quantity of recordings"		default(10)	minimum(0)
 //	@Param			offset	query		int				false	"Offset when receiving records"	default(0)	mininum(0)
-//	@Success		200		{object}	item.ItemsList	"List of items"
+//	@Success		200		array		item.OutItem	"List of items"
 //	@Failure		400		{object}	ErrorResponse
 //	@Failure		403		"Forbidden"
 //	@Failure		404		{object}	ErrorResponse	"404 Not Found"
@@ -228,10 +228,9 @@ func (delivery *Delivery) ItemsList(c *gin.Context) {
 		delivery.SetError(c, http.StatusInternalServerError, err)
 		return
 	}
-	var itemsList item.ItemsList
-	itemsList.List = make([]item.OutItem, len(list))
+	items := make([]item.OutItem, len(list))
 	for i, it := range list {
-		itemsList.List[i] = item.OutItem{
+		items[i] = item.OutItem{
 			Id:          it.Id,
 			Title:       it.Title,
 			Description: it.Description,
@@ -241,7 +240,7 @@ func (delivery *Delivery) ItemsList(c *gin.Context) {
 			Images:      it.Images,
 		}
 	}
-	c.JSON(http.StatusOK, itemsList)
+	c.JSON(http.StatusOK, items)
 }
 
 // ItemsQuantity returns quantity of all items
@@ -279,7 +278,7 @@ func (delivery *Delivery) ItemsQuantity(c *gin.Context) {
 //	@Param			param	query		string			false	"Search param"
 //	@Param			limit	query		int				false	"Quantity of recordings"		default(10)	minimum(0)
 //	@Param			offset	query		int				false	"Offset when receiving records"	default(0)	mininum(0)
-//	@Success		200		{object}	item.ItemsList	"List of items"
+//	@Success		200		array		item.OutItem	"List of items"
 //	@Failure		400		{object}	ErrorResponse
 //	@Failure		403		"Forbidden"
 //	@Failure		404		{object}	ErrorResponse	"404 Not Found"
@@ -314,10 +313,9 @@ func (delivery *Delivery) SearchLine(c *gin.Context) {
 		delivery.SetError(c, http.StatusInternalServerError, err)
 		return
 	}
-	var itemsList item.ItemsList
-	itemsList.List = make([]item.OutItem, len(list))
+	items := make([]item.OutItem, len(list))
 	for i, it := range list {
-		itemsList.List[i] = item.OutItem{
+		items[i] = item.OutItem{
 			Id:          it.Id,
 			Title:       it.Title,
 			Description: it.Description,
@@ -327,7 +325,7 @@ func (delivery *Delivery) SearchLine(c *gin.Context) {
 			Images:      it.Images,
 		}
 	}
-	c.JSON(http.StatusOK, itemsList)
+	c.JSON(http.StatusOK, items)
 }
 
 // GetItemsByCategory returns list of items in category
@@ -340,7 +338,7 @@ func (delivery *Delivery) SearchLine(c *gin.Context) {
 //	@Param			param	query		string			false	"Category name"
 //	@Param			limit	query		int				false	"Quantity of recordings"		default(10)	minimum(0)
 //	@Param			offset	query		int				false	"Offset when receiving records"	default(0)	mininum(0)
-//	@Success		200		{object}	item.ItemsList	"List of items"
+//	@Success		200		array		item.OutItem	"List of items"
 //	@Failure		400		{object}	ErrorResponse
 //	@Failure		403		"Forbidden"
 //	@Failure		404		{object}	ErrorResponse	"404 Not Found"
@@ -373,10 +371,9 @@ func (delivery *Delivery) GetItemsByCategory(c *gin.Context) {
 		delivery.SetError(c, http.StatusInternalServerError, err)
 		return
 	}
-	var itemsList item.ItemsList
-	itemsList.List = make([]item.OutItem, len(list))
+	items := make([]item.OutItem, len(list))
 	for i, it := range list {
-		itemsList.List[i] = item.OutItem{
+		items[i] = item.OutItem{
 			Id:          it.Id,
 			Title:       it.Title,
 			Description: it.Description,
@@ -386,7 +383,7 @@ func (delivery *Delivery) GetItemsByCategory(c *gin.Context) {
 			Images:      it.Images,
 		}
 	}
-	c.JSON(http.StatusOK, itemsList)
+	c.JSON(http.StatusOK, items)
 }
 
 // UploadItemImage - upload an image
