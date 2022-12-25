@@ -23,13 +23,13 @@ func NewItemHandlers(usecase usecase.IItemUsecase, logger *zap.Logger) *ItemHand
 
 // Item is struct for DTO
 type Item struct {
-	Id          string   `json:"id,omitempty"`
-	Title       string   `json:"title,omitempty"`
-	Description string   `json:"description,omitempty"`
-	Price       int32    `json:"price,omitempty"`
-	Category    Category `json:"category,omitempty"`
-	Vendor      string   `json:"vendor,omitempty"`
-	Images      []string `json:"image,omitempty"`
+	Id          string `json:"id" binding:"required,uuid" example:"00000000-0000-0000-0000-000000000000" format:"uuid"`
+	Title       string `json:"title" binding:"required" example:"Пылесос"`
+	Description string `json:"description" binding:"required" example:"Мощность всасывания 1.5 кВт"`
+	Price       int32  `json:"price" example:"1990" default:"0" binding:"min=0" minimum:"0"`
+	Category    Category
+	Vendor      string   `json:"vendor" binding:"required" example:"Витязь"`
+	Images      []string `json:"images,omitempty"`
 }
 
 // CreateItem transform Item to models.Item and call usecase CreateItem

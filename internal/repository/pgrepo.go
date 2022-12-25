@@ -80,3 +80,11 @@ func (pg *PGres) initStorage(ctx context.Context, dns string) (*pgxpool.Pool, er
 func (pg *PGres) GetPool() *pgxpool.Pool {
 	return pg.pool
 }
+
+// ShutDown close connection with database
+func (pg *PGres) ShutDown(timeout int) {
+	pg.logger.Debug("Enter in pgrepo ShutDown()")
+	_, cancel := context.WithTimeout(context.Background(), time.Duration(timeout)*time.Second)
+	pg.pool.Close()
+	cancel()
+}

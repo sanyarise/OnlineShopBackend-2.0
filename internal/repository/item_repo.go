@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v4"
 	"go.uber.org/zap"
 )
 
@@ -27,7 +28,28 @@ func (repo *itemRepo) CreateItem(ctx context.Context, item *models.Item) (uuid.U
 	repo.logger.Debug("Enter in repository CreateItem()")
 	var id uuid.UUID
 	pool := repo.storage.GetPool()
-	row := pool.QueryRow(ctx, `INSERT INTO items(name, category, description, price, vendor, pictures)
+
+	tx, err := pool.BeginTx(ctx, pgx.TxOptions{})
+	if err != nil {
+		repo.logger.Errorf("can't create transaction: %s", err)
+		return uuid.Nil, fmt.Errorf("can't create transaction: %w", err)
+	}
+	repo.logger.Debug("transaction begin success")
+	defer func() {
+		if err != nil {
+			repo.logger.Errorf("transaction rolled back")
+			if err = tx.Rollback(ctx); err != nil {
+				repo.logger.Errorf("can't rollback %s", err)
+			}
+
+		} else {
+			repo.logger.Info("transaction commited")
+			if err != tx.Commit(ctx) {
+				repo.logger.Errorf("can't commit %s", err)
+			}
+		}
+	}()
+	row := tx.QueryRow(ctx, `INSERT INTO items(name, category, description, price, vendor, pictures)
 	values ($1, $2, $3, $4, $5, $6) RETURNING id`,
 		item.Title,
 		item.Category.Id,
@@ -36,7 +58,7 @@ func (repo *itemRepo) CreateItem(ctx context.Context, item *models.Item) (uuid.U
 		item.Vendor,
 		item.Images,
 	)
-	err := row.Scan(&id)
+	err = row.Scan(&id)
 	if err != nil {
 		repo.logger.Errorf("can't create item %s", err)
 		return uuid.Nil, fmt.Errorf("can't create item %w", err)
@@ -48,7 +70,29 @@ func (repo *itemRepo) CreateItem(ctx context.Context, item *models.Item) (uuid.U
 func (repo *itemRepo) UpdateItem(ctx context.Context, item *models.Item) error {
 	repo.logger.Debug("Enter in repository UpdateItem()")
 	pool := repo.storage.GetPool()
-	_, err := pool.Exec(ctx, `UPDATE items SET name=$1, category=$2, description=$3, price=$4, vendor=$5, pictures = $6 WHERE id=$7`,
+
+	tx, err := pool.BeginTx(ctx, pgx.TxOptions{})
+	if err != nil {
+		repo.logger.Errorf("can't create transaction: %s", err)
+		return fmt.Errorf("can't create transaction: %w", err)
+	}
+	repo.logger.Debug("transaction begin success")
+	defer func() {
+		if err != nil {
+			repo.logger.Errorf("transaction rolled back")
+			if err = tx.Rollback(ctx); err != nil {
+				repo.logger.Errorf("can't rollback %s", err)
+			}
+
+		} else {
+			repo.logger.Info("transaction commited")
+			if err != tx.Commit(ctx) {
+				repo.logger.Errorf("can't commit %s", err)
+			}
+		}
+	}()
+
+	_, err = tx.Exec(ctx, `UPDATE items SET name=$1, category=$2, description=$3, price=$4, vendor=$5, pictures = $6 WHERE id=$7`,
 		item.Title,
 		item.Category.Id,
 		item.Description,
@@ -129,6 +173,7 @@ func (repo *itemRepo) ItemsList(ctx context.Context) (chan models.Item, error) {
 }
 
 func (repo *itemRepo) SearchLine(ctx context.Context, param string) (chan models.Item, error) {
+	repo.logger.Debug("Enter in repository SearchLine()")
 	itemChan := make(chan models.Item, 100)
 	go func() {
 		defer close(itemChan)

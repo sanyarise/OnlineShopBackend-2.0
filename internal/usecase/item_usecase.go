@@ -20,11 +20,11 @@ const (
 
 type ItemUsecase struct {
 	itemStore repository.ItemStore
-	itemCash  cash.Cash
+	itemCash  cash.IItemsCash
 	logger    *zap.Logger
 }
 
-func NewItemUsecase(itemStore repository.ItemStore, itemCash cash.Cash, logger *zap.Logger) IItemUsecase {
+func NewItemUsecase(itemStore repository.ItemStore, itemCash cash.IItemsCash, logger *zap.Logger) IItemUsecase {
 	return &ItemUsecase{itemStore: itemStore, itemCash: itemCash, logger: logger}
 }
 
@@ -127,7 +127,8 @@ func (usecase *ItemUsecase) ItemsQuantity(ctx context.Context) (int, error) {
 				return -1, fmt.Errorf("error on get items list cash: %w", err)
 			}
 			if items == nil {
-				return -1, fmt.Errorf("items list is not exists")
+				items = make([]models.Item, 0)
+
 			}
 			err = usecase.itemCash.CreateItemsQuantityCash(ctx, len(items), itemsQuantityKey)
 			if err != nil {

@@ -10,7 +10,10 @@
 package delivery
 
 import (
+	"OnlineShopBackend/internal/delivery/category"
+	"OnlineShopBackend/internal/delivery/item"
 	"OnlineShopBackend/internal/handlers"
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -37,35 +40,55 @@ type ImageOptions struct {
 	Name string `form:"name"`
 }
 
-type ItemsQuantity struct {
-	Quantity int `json:"quantity"`
-}
-
-type DeliveryItem struct {
-	Id          string   `json:"id,omitempty"`
-	Title       string   `json:"title,omitempty"`
-	Description string   `json:"description,omitempty"`
-	Price       int32    `json:"price,omitempty"`
-	Category    string   `json:"category,omitempty"`
-	Vendor      string   `json:"vendor,omitempty"`
-	Images      []string `json:"image,omitempty"`
-}
-
-// CreateItem - create a new item
+// CreateItem
+//
+//	@Summary		Method provides to create store item
+//	@Description	Method provides to create store item
+//	@Tags			items
+//	@Accept			json
+//	@Produce		json
+//	@Param			item	body		item.ShortItem	true	"Data for creating item"
+//	@Success		201		{object}	item.ItemId
+//	@Failure		400		{object}	ErrorResponse
+//	@Failure		403		"Forbidden"
+//	@Failure		404		{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500		{object}	ErrorResponse
+//	@Router			/items/create/ [post]
 func (delivery *Delivery) CreateItem(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery CreateItem()")
-	ctx := c.Request.Context()
-	var deliveryItem DeliveryItem
+	ctx := context.Background()
+	var deliveryItem item.ShortItem
 	if err := c.ShouldBindJSON(&deliveryItem); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		delivery.logger.Error(fmt.Sprintf("error on bind json from request: %v", err))
+		delivery.SetError(c, http.StatusBadRequest, err)
 		return
 	}
-	if deliveryItem.Title == "" && deliveryItem.Description == "" && deliveryItem.Category == "" && deliveryItem.Price == 0 && deliveryItem.Vendor == "" {
-		c.JSON(http.StatusBadRequest, "empty item is not correct")
+	if deliveryItem.Title == "" || deliveryItem.Description == "" || deliveryItem.Price == 0 {
+		delivery.logger.Error(fmt.Errorf("empty item fields in request").Error())
+		delivery.SetError(c, http.StatusBadRequest, fmt.Errorf("empty item fields in request"))
 		return
 	}
-	item := handlers.Item{
-		Id:          deliveryItem.Id,
+
+	if deliveryItem.Category == "" {
+		noCategory, err := delivery.categoryHandlers.GetCategoryByName(ctx, "NoCategory")
+		if err != nil {
+			delivery.logger.Sugar().Errorf("NoCategory is not exists: %v", err)
+			noCategory := handlers.Category{
+				Name:        "NoCategory",
+				Description: "Category for items without categories",
+			}
+			noCategoryId, err := delivery.categoryHandlers.CreateCategory(ctx, noCategory)
+			if err != nil {
+				delivery.logger.Error(fmt.Sprintf("error on create no category: %v", err))
+				delivery.SetError(c, http.StatusInternalServerError, err)
+				return
+			}
+			deliveryItem.Category = noCategoryId.String()
+		} else {
+			deliveryItem.Category = noCategory.Id
+		}
+	}
+	handlersItem := handlers.Item{
 		Title:       deliveryItem.Title,
 		Description: deliveryItem.Description,
 		Price:       deliveryItem.Price,
@@ -75,162 +98,338 @@ func (delivery *Delivery) CreateItem(c *gin.Context) {
 		Vendor: deliveryItem.Vendor,
 		Images: deliveryItem.Images,
 	}
-	id, err := delivery.itemHandlers.CreateItem(ctx, item)
+
+	id, err := delivery.itemHandlers.CreateItem(ctx, handlersItem)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		delivery.SetError(c, http.StatusInternalServerError, err)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"success": id.String()})
+	c.JSON(http.StatusCreated, item.ItemId{Value: id.String()})
 }
 
-// GetItem - returns item on id
+// GetItem - returns item by id
+//
+//	@Summary		Get item by id
+//	@Description	The method allows you to get the product by id.
+//	@Tags			items
+//	@Accept			json
+//	@Produce		json
+//	@Param			itemID	path		string			true	"id of item"
+//	@Success		200		{object}	item.OutItem	"Item structure"
+//	@Failure		400		{object}	ErrorResponse
+//	@Failure		403		"Forbidden"
+//	@Failure		404		{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500		{object}	ErrorResponse
+//	@Router			/items/{itemID} [get]
 func (delivery *Delivery) GetItem(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery GetItem()")
 	id := c.Param("itemID")
-	delivery.logger.Debug(id)
-	ctx := c.Request.Context()
-	item, err := delivery.itemHandlers.GetItem(ctx, id)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	if id == "" {
+		err := fmt.Errorf("empty item in request")
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
 		return
 	}
-	c.JSON(http.StatusOK, item)
+	delivery.logger.Debug(id)
+	ctx := c.Request.Context()
+	handlersItem, err := delivery.itemHandlers.GetItem(ctx, id)
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusInternalServerError, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, item.OutItem{
+		Id:          handlersItem.Id,
+		Title:       handlersItem.Title,
+		Description: handlersItem.Description,
+		Category: category.Category{
+			Id:          handlersItem.Category.Id,
+			Name:        handlersItem.Category.Name,
+			Description: handlersItem.Category.Description,
+			Image:       handlersItem.Category.Image,
+		},
+		Price:  handlersItem.Price,
+		Vendor: handlersItem.Vendor,
+		Images: handlersItem.Images,
+	})
 }
 
 // UpdateItem - update an item
+//
+//	@Summary		Method provides to update store item
+//	@Description	Method provides to update store item
+//	@Tags			items
+//	@Accept			json
+//	@Produce		json
+//	@Param			item	body	item.InItem	true	"Data for updating item"
+//	@Success		200
+//	@Failure		400	{object}	ErrorResponse
+//	@Failure		403	"Forbidden"
+//	@Failure		404	{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500	{object}	ErrorResponse
+//	@Router			/items/update [put]
 func (delivery *Delivery) UpdateItem(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery UpdateItem()")
 	ctx := c.Request.Context()
-	var deliveryItem handlers.Item
+	var deliveryItem item.InItem
 	if err := c.ShouldBindJSON(&deliveryItem); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
 		return
 	}
-	err := delivery.itemHandlers.UpdateItem(ctx, deliveryItem)
+	err := delivery.itemHandlers.UpdateItem(ctx, handlers.Item{
+		Id:          deliveryItem.Id,
+		Title:       deliveryItem.Title,
+		Description: deliveryItem.Description,
+		Category: handlers.Category{
+			Id: deliveryItem.Category,
+		},
+		Price:  deliveryItem.Price,
+		Vendor: deliveryItem.Vendor,
+		Images: deliveryItem.Images,
+	})
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusInternalServerError, err)
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{})
 }
 
 // ItemsList - returns list of all items
+//
+//	@Summary		Get list of items
+//	@Description	Method provides to get list of items
+//	@Tags			items
+//	@Accept			json
+//	@Produce		json
+//	@Param			limit	query		int				false	"Quantity of recordings"		default(10)	minimum(0)
+//	@Param			offset	query		int				false	"Offset when receiving records"	default(0)	mininum(0)
+//	@Success		200		array		item.OutItem	"List of items"
+//	@Failure		400		{object}	ErrorResponse
+//	@Failure		403		"Forbidden"
+//	@Failure		404		{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500		{object}	ErrorResponse
+//	@Router			/items/list [get]
 func (delivery *Delivery) ItemsList(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery ItemsList()")
 	var options Options
 	err := c.Bind(&options)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
 		return
 	}
-
 	delivery.logger.Debug(fmt.Sprintf("options is %v", options))
 
 	if options.Limit == 0 {
 		quantity, err := delivery.itemHandlers.ItemsQuantity(c.Request.Context())
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			delivery.logger.Error(err.Error())
+		}
+		if quantity == 0 {
+			delivery.logger.Debug("quantity of items is 0")
+			c.JSON(http.StatusOK, item.ItemsList{})
 			return
 		}
-		if quantity < 100 {
+		if quantity <= 30 && quantity > 0 {
 			options.Limit = quantity
 		} else {
-			options.Limit = 20
+			options.Limit = 10
 		}
 	}
-
-	delivery.logger.Debug("options limit is set in default value")
+	delivery.logger.Sugar().Debugf("options limit is set in default value: %d", options.Limit)
 
 	list, err := delivery.itemHandlers.ItemsList(c.Request.Context(), options.Offset, options.Limit)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusInternalServerError, err)
 		return
 	}
-	c.JSON(http.StatusOK, list)
+	items := make([]item.OutItem, len(list))
+	for i, it := range list {
+		items[i] = item.OutItem{
+			Id:          it.Id,
+			Title:       it.Title,
+			Description: it.Description,
+			Category:    category.Category(it.Category),
+			Price:       it.Price,
+			Vendor:      it.Vendor,
+			Images:      it.Images,
+		}
+	}
+	c.JSON(http.StatusOK, items)
 }
 
 // ItemsQuantity returns quantity of all items
+//
+//	@Summary		Get quantity of items
+//	@Description	Method provides to get quantity of items
+//	@Tags			items
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{object}	item.ItemsQuantity	"Quantity of items"
+//	@Failure		403	"Forbidden"
+//	@Failure		404	{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500	{object}	ErrorResponse
+//	@Router			/items/quantity [get]
 func (delivery *Delivery) ItemsQuantity(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery ItemsQuantity()")
 	ctx := c.Request.Context()
 	quantity, err := delivery.itemHandlers.ItemsQuantity(ctx)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusInternalServerError, err)
 		return
 	}
-	itemsQuantity := ItemsQuantity{Quantity: quantity}
+	itemsQuantity := item.ItemsQuantity{Quantity: quantity}
 	c.JSON(http.StatusOK, itemsQuantity)
 }
 
 // SearchLine - returns list of items with parameters
+//
+//	@Summary		Get list of items by search parameters
+//	@Description	Method provides to get list of items by search parameters
+//	@Tags			items
+//	@Accept			json
+//	@Produce		json
+//	@Param			param	query		string			false	"Search param"
+//	@Param			limit	query		int				false	"Quantity of recordings"		default(10)	minimum(0)
+//	@Param			offset	query		int				false	"Offset when receiving records"	default(0)	mininum(0)
+//	@Success		200		array		item.OutItem	"List of items"
+//	@Failure		400		{object}	ErrorResponse
+//	@Failure		403		"Forbidden"
+//	@Failure		404		{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500		{object}	ErrorResponse
+//	@Router			/items/search [get]
 func (delivery *Delivery) SearchLine(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery SearchLine()")
-
 	var options SearchOptions
 	err := c.Bind(&options)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
 		return
 	}
-	if options.Param == "" {
-		delivery.logger.Sugar().Error("empty search request")
-		c.JSON(http.StatusBadRequest, gin.H{})
-		return
-	}
-
 	delivery.logger.Debug(fmt.Sprintf("options is %v", options))
+	if options.Param == "" {
+		err = fmt.Errorf("empty search request")
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
+		return
+	}
 
 	if options.Limit == 0 {
 		options.Limit = 10
 	}
 
-	delivery.logger.Debug("options limit is set in default value: 10")
+	delivery.logger.Sugar().Debugf("options limit is set in default value: %d", options.Limit)
+
 	list, err := delivery.itemHandlers.SearchLine(c.Request.Context(), options.Param, options.Offset, options.Limit)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusInternalServerError, err)
 		return
 	}
-	c.JSON(http.StatusOK, list)
+	items := make([]item.OutItem, len(list))
+	for i, it := range list {
+		items[i] = item.OutItem{
+			Id:          it.Id,
+			Title:       it.Title,
+			Description: it.Description,
+			Category:    category.Category(it.Category),
+			Price:       it.Price,
+			Vendor:      it.Vendor,
+			Images:      it.Images,
+		}
+	}
+	c.JSON(http.StatusOK, items)
 }
 
 // GetItemsByCategory returns list of items in category
+//
+//	@Summary		Get list of items by category name
+//	@Description	Method provides to get list of items by category name
+//	@Tags			items
+//	@Accept			json
+//	@Produce		json
+//	@Param			param	query		string			false	"Category name"
+//	@Param			limit	query		int				false	"Quantity of recordings"		default(10)	minimum(0)
+//	@Param			offset	query		int				false	"Offset when receiving records"	default(0)	mininum(0)
+//	@Success		200		array		item.OutItem	"List of items"
+//	@Failure		400		{object}	ErrorResponse
+//	@Failure		403		"Forbidden"
+//	@Failure		404		{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500		{object}	ErrorResponse
+//	@Router			/items [get]
 func (delivery *Delivery) GetItemsByCategory(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery GetItemsByCategory()")
 	var options SearchOptions
 	err := c.Bind(&options)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
 		return
 	}
-	if options.Param == "" {
-		delivery.logger.Sugar().Error("empty category name")
-		c.JSON(http.StatusBadRequest, gin.H{})
-		return
-	}
-
 	delivery.logger.Debug(fmt.Sprintf("options is %v", options))
-
+	if options.Param == "" {
+		err = fmt.Errorf("empty search request")
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
+		return
+	}
 	if options.Limit == 0 {
 		options.Limit = 10
 	}
+	delivery.logger.Sugar().Debugf("options limit is set in default value: %d", options.Limit)
 
-	delivery.logger.Debug("options limit is set in default value: 10")
-
-	items, err := delivery.itemHandlers.GetItemsByCategory(c.Request.Context(), options.Param, options.Offset, options.Limit)
+	list, err := delivery.itemHandlers.GetItemsByCategory(c.Request.Context(), options.Param, options.Offset, options.Limit)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusInternalServerError, err)
 		return
+	}
+	items := make([]item.OutItem, len(list))
+	for i, it := range list {
+		items[i] = item.OutItem{
+			Id:          it.Id,
+			Title:       it.Title,
+			Description: it.Description,
+			Category:    category.Category(it.Category),
+			Price:       it.Price,
+			Vendor:      it.Vendor,
+			Images:      it.Images,
+		}
 	}
 	c.JSON(http.StatusOK, items)
 }
 
 // UploadItemImage - upload an image
+//
+//	@Summary		Upload an image of item
+//	@Description	Method provides to upload an image of item
+//	@Tags			items
+//	@Accept			json
+//	@Produce		json
+//	@Param			id		path		string	true	"id of item"
+//	@Param			image	formData	file	true	"picture of item"
+//	@Success		201
+//	@Failure		400	{object}	ErrorResponse
+//	@Failure		403	"Forbidden"
+//	@Failure		404	{object}	ErrorResponse	"404 Not Found"
+//	@Failure		415	{object}	ErrorResponse
+//	@Failure		500	{object}	ErrorResponse
+//	@Failure		507	{object}	ErrorResponse
+//	@Router			/items/image/upload/:itemID [post]
 func (delivery *Delivery) UploadItemImage(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery UploadItemImage()")
 	ctx := c.Request.Context()
 	id := c.Param("itemID")
 	if id == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "empty item id"})
+		err := fmt.Errorf("empty search request")
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
 		return
 	}
 	var name string
@@ -241,14 +440,16 @@ func (delivery *Delivery) UploadItemImage(c *gin.Context) {
 	} else if contentType == "image/png" {
 		name = carbon.Now().ToShortDateTimeString() + ".png"
 	} else {
-		c.JSON(http.StatusUnsupportedMediaType, gin.H{})
+		err := fmt.Errorf("unsupported media type: %s", contentType)
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusUnsupportedMediaType, err)
 		return
 	}
 
 	file, err := io.ReadAll(c.Request.Body)
-
 	if err != nil {
-		c.JSON(http.StatusUnsupportedMediaType, gin.H{})
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusUnsupportedMediaType, err)
 		return
 	}
 
@@ -256,51 +457,73 @@ func (delivery *Delivery) UploadItemImage(c *gin.Context) {
 	delivery.logger.Info("File len=", zap.Int32("len", int32(len(file))))
 	path, err := delivery.filestorage.PutItemImage(id, name, file)
 	if err != nil {
-		c.JSON(http.StatusInsufficientStorage, gin.H{})
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusInsufficientStorage, err)
 		return
 	}
 
 	item, err := delivery.itemHandlers.GetItem(ctx, id)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusInternalServerError, err)
 		return
 	}
 	item.Images = append(item.Images, path)
 
 	err = delivery.itemHandlers.UpdateItem(ctx, item)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusInternalServerError, err)
 		return
 	}
-	c.JSON(http.StatusCreated, gin.H{"status": "upload image success"})
+	c.JSON(http.StatusCreated, gin.H{})
 }
 
 // DeleteItemImage delete an item image
+//
+//	@Summary		Delete an item image by item id
+//	@Description	The method allows you to delete an item image by item id.
+//	@Tags			items
+//	@Accept			json
+//	@Produce		json
+//	@Param			id		query	string	true	"Item id"
+//	@Param			name	query	string	true	"Image name"
+//	@Success		200
+//	@Failure		400	{object}	ErrorResponse
+//	@Failure		403	"Forbidden"
+//	@Failure		404	{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500	{object}	ErrorResponse
+//	@Router			/items/image/delete [delete]
 func (delivery *Delivery) DeleteItemImage(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery DeleteItemImage()")
 	var imageOptions ImageOptions
 	err := c.Bind(&imageOptions)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
 		return
 	}
 
 	delivery.logger.Debug(fmt.Sprintf("image options is %v", imageOptions))
 
 	if imageOptions.Id == "" || imageOptions.Name == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Errorf("empty item id or file name")})
+		err := fmt.Errorf("empty image options in request")
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
 		return
 	}
 	err = delivery.filestorage.DeleteItemImage(imageOptions.Id, imageOptions.Name)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusInternalServerError, err)
 		return
 
 	}
 	ctx := c.Request.Context()
 	item, err := delivery.itemHandlers.GetItem(ctx, imageOptions.Id)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusInternalServerError, err)
 		return
 	}
 	for idx, imagePath := range item.Images {
@@ -311,8 +534,9 @@ func (delivery *Delivery) DeleteItemImage(c *gin.Context) {
 	}
 	err = delivery.itemHandlers.UpdateItem(ctx, item)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusInternalServerError, err)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"status": "delete image success"})
+	c.JSON(http.StatusOK, gin.H{})
 }

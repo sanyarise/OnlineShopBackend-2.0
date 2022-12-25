@@ -192,6 +192,20 @@ func (mr *MockICategoryUsecaseMockRecorder) CreateCategory(ctx, category interfa
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateCategory", reflect.TypeOf((*MockICategoryUsecase)(nil).CreateCategory), ctx, category)
 }
 
+// DeleteCategory mocks base method.
+func (m *MockICategoryUsecase) DeleteCategory(ctx context.Context, id uuid.UUID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteCategory", ctx, id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteCategory indicates an expected call of DeleteCategory.
+func (mr *MockICategoryUsecaseMockRecorder) DeleteCategory(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteCategory", reflect.TypeOf((*MockICategoryUsecase)(nil).DeleteCategory), ctx, id)
+}
+
 // GetCategory mocks base method.
 func (m *MockICategoryUsecase) GetCategory(ctx context.Context, id uuid.UUID) (*models.Category, error) {
 	m.ctrl.T.Helper()
@@ -207,11 +221,26 @@ func (mr *MockICategoryUsecaseMockRecorder) GetCategory(ctx, id interface{}) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCategory", reflect.TypeOf((*MockICategoryUsecase)(nil).GetCategory), ctx, id)
 }
 
+// GetCategoryByName mocks base method.
+func (m *MockICategoryUsecase) GetCategoryByName(ctx context.Context, name string) (*models.Category, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCategoryByName", ctx, name)
+	ret0, _ := ret[0].(*models.Category)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetCategoryByName indicates an expected call of GetCategoryByName.
+func (mr *MockICategoryUsecaseMockRecorder) GetCategoryByName(ctx, name interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCategoryByName", reflect.TypeOf((*MockICategoryUsecase)(nil).GetCategoryByName), ctx, name)
+}
+
 // GetCategoryList mocks base method.
-func (m *MockICategoryUsecase) GetCategoryList(ctx context.Context) (chan models.Category, error) {
+func (m *MockICategoryUsecase) GetCategoryList(ctx context.Context) ([]models.Category, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetCategoryList", ctx)
-	ret0, _ := ret[0].(chan models.Category)
+	ret0, _ := ret[0].([]models.Category)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -220,6 +249,20 @@ func (m *MockICategoryUsecase) GetCategoryList(ctx context.Context) (chan models
 func (mr *MockICategoryUsecaseMockRecorder) GetCategoryList(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCategoryList", reflect.TypeOf((*MockICategoryUsecase)(nil).GetCategoryList), ctx)
+}
+
+// UpdateCash mocks base method.
+func (m *MockICategoryUsecase) UpdateCash(ctx context.Context, id uuid.UUID, op string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateCash", ctx, id, op)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateCash indicates an expected call of UpdateCash.
+func (mr *MockICategoryUsecaseMockRecorder) UpdateCash(ctx, id, op interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateCash", reflect.TypeOf((*MockICategoryUsecase)(nil).UpdateCash), ctx, id, op)
 }
 
 // UpdateCategory mocks base method.

@@ -126,3 +126,21 @@ mock_usecase:
 
 mock_handlers:
 	mockgen -source=internal/handlers/handlers_interface.go -destination=internal/handlers/mocks/handlers_mock.go -package=mocks
+
+mock_filestorage:
+	mockgen -source=internal/filestorage/diskFileStorage.go -destination=internal/filestorage/mocks/filestorage_mock.go -package=mocks FileStorager
+
+up:
+	docker-compose up -d
+
+down:
+	docker-compose down
+
+run:
+	go run ./cmd/onlineShopBackend/onlineShopBackend.go
+
+swag:
+	swag init -d ./internal/delivery -g delivery.go -o ./internal/delivery/swagger/docs
+
+swag_fmt:
+	swag fmt -d ./internal/delivery -g delivery.go
