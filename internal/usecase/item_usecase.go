@@ -218,7 +218,11 @@ func (usecase *ItemUsecase) GetItemsByCategory(ctx context.Context, categoryName
 		}
 		err = usecase.itemCash.CreateItemsCash(ctx, items, categoryName)
 		if err != nil {
-			return nil, fmt.Errorf("error on create search list cash: %w", err)
+			return nil, fmt.Errorf("error on create get items by category cash: %w", err)
+		}
+		err = usecase.itemCash.CreateItemsQuantityCash(ctx, len(items), categoryName+"Quantity")
+		if err != nil {
+			return nil, fmt.Errorf("error on create items quantity in category cash: %w", err)
 		}
 	}
 
