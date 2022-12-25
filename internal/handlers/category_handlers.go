@@ -23,9 +23,9 @@ func NewCategoryHandlers(usecase usecase.ICategoryUsecase, logger *zap.Logger) *
 
 // Category is struct for DTO
 type Category struct {
-	Id          string `json:"id,omitempty"`
-	Name        string `json:"name,omitempty"`
-	Description string `json:"description,omitempty"`
+	Id          string `json:"id" binding:"required,uuid" example:"00000000-0000-0000-0000-000000000000" format:"uuid"`
+	Name        string `json:"name" binding:"required" example:"Электротехника"`
+	Description string `json:"description" binding:"required" example:"Электротехнические товары для дома"`
 	Image       string `json:"image,omitempty"`
 }
 
@@ -89,20 +89,33 @@ func (handlers *CategoryHandlers) GetCategoryList(ctx context.Context) ([]Catego
 	if err != nil {
 		return res, err
 	}
-	for {
-		select {
-		case <-ctx.Done():
-			return res, ctx.Err()
-		case category, ok := <-categories:
-			if !ok {
-				return res, nil
-			}
-			res = append(res, Category{
-				Id:          category.Id.String(),
-				Name:        category.Name,
-				Description: category.Description,
-				Image:       category.Image,
-			})
-		}
+	for _, category := range categories {
+		res = append(res, Category{
+			Id:          category.Id.String(),
+			Name:        category.Name,
+			Description: category.Description,
+			Image:       category.Image,
+		})
 	}
+	return res, nil
+}
+
+// DeleteCategory calls usecase method for delete category by id
+func (handlers *CategoryHandlers) DeleteCategory(ctx context.Context, id uuid.UUID) error {
+	handlers.logger.Debug("Enter in handlers DeleteCategory()")
+	return handlers.usecase.DeleteCategory(ctx, id)
+}
+
+func (handlers *CategoryHandlers) GetCategoryByName(ctx context.Context, name string) (Category, error) {
+	handlers.logger.Debug("Enter in handlers GetCategoryByName()")
+	category, err := handlers.usecase.GetCategoryByName(ctx, name)
+	if err != nil {
+		return Category{}, err
+	}
+	return Category{
+		Id:          category.Id.String(),
+		Name:        category.Name,
+		Description: category.Description,
+		Image:       category.Image,
+	}, nil
 }

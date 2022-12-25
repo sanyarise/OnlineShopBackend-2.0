@@ -163,6 +163,20 @@ func (mr *MockCategoryStoreMockRecorder) CreateCategory(ctx, category interface{
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateCategory", reflect.TypeOf((*MockCategoryStore)(nil).CreateCategory), ctx, category)
 }
 
+// DeleteCategory mocks base method.
+func (m *MockCategoryStore) DeleteCategory(ctx context.Context, id uuid.UUID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteCategory", ctx, id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteCategory indicates an expected call of DeleteCategory.
+func (mr *MockCategoryStoreMockRecorder) DeleteCategory(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteCategory", reflect.TypeOf((*MockCategoryStore)(nil).DeleteCategory), ctx, id)
+}
+
 // GetCategory mocks base method.
 func (m *MockCategoryStore) GetCategory(ctx context.Context, id uuid.UUID) (*models.Category, error) {
 	m.ctrl.T.Helper()
@@ -176,6 +190,21 @@ func (m *MockCategoryStore) GetCategory(ctx context.Context, id uuid.UUID) (*mod
 func (mr *MockCategoryStoreMockRecorder) GetCategory(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCategory", reflect.TypeOf((*MockCategoryStore)(nil).GetCategory), ctx, id)
+}
+
+// GetCategoryByName mocks base method.
+func (m *MockCategoryStore) GetCategoryByName(ctx context.Context, name string) (*models.Category, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCategoryByName", ctx, name)
+	ret0, _ := ret[0].(*models.Category)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetCategoryByName indicates an expected call of GetCategoryByName.
+func (mr *MockCategoryStoreMockRecorder) GetCategoryByName(ctx, name interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCategoryByName", reflect.TypeOf((*MockCategoryStore)(nil).GetCategoryByName), ctx, name)
 }
 
 // GetCategoryList mocks base method.

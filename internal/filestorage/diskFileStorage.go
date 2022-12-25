@@ -2,18 +2,27 @@ package filestorage
 
 import (
 	"fmt"
+	"io/fs"
 	"os"
+	"path/filepath"
 
 	"go.uber.org/zap"
 )
 
 type FileStorager interface {
-	GetFileList(id string) ([]FileInStorageInfo, error)
-	GetFile(id string, filename string) ([]byte, error)
+	GetFileList() ([]FileInStorageInfo, error)
 	PutItemImage(id string, filename string, file []byte) (string, error)
 	PutCategoryImage(id string, filename string, file []byte) (string, error)
 	DeleteItemImage(id string, filename string) error
 	DeleteCategoryImage(id string, filename string) error
+	DeleteCategoryImageById(id string) error
+}
+
+type FileInStorageInfo struct {
+	Name       string `json:"Name"`
+	Path       string `json:"Path"`
+	CreateDate string `json:"CreateDate"`
+	ModifyDate string `json:"ModifyDate"`
 }
 
 type OnDiskLocalStorage struct {
@@ -23,6 +32,7 @@ type OnDiskLocalStorage struct {
 }
 
 func NewOnDiskLocalStorage(url string, path string, logger *zap.Logger) *OnDiskLocalStorage {
+	logger.Debug("Enter in NewOnDiskLocalStorage()")
 	d := OnDiskLocalStorage{serverURL: url, path: path, logger: logger}
 	return &d
 }
@@ -31,7 +41,7 @@ func (imagestorage *OnDiskLocalStorage) PutItemImage(id string, filename string,
 	imagestorage.logger.Debug("Enter in filestorage PutItemImage()")
 	_, err = os.Stat(imagestorage.path + "items/" + id)
 	if os.IsNotExist(err) {
-		err = os.Mkdir(imagestorage.path + "items/" + id, 0700)
+		err = os.Mkdir(imagestorage.path+"items/"+id, 0700)
 		if err != nil {
 			imagestorage.logger.Debug(fmt.Sprintf("error on create dir for save image %v", err))
 			return "", fmt.Errorf("error on create dir for save image: %w", err)
@@ -48,7 +58,7 @@ func (imagestorage *OnDiskLocalStorage) PutItemImage(id string, filename string,
 }
 
 func (imagestorage *OnDiskLocalStorage) PutCategoryImage(id string, filename string, file []byte) (filePath string, err error) {
-	imagestorage.logger.Debug("Enter in filestorage PutCategoryFile()")
+	imagestorage.logger.Debug("Enter in filestorage PutCategoryImage()")
 	_, err = os.Stat(imagestorage.path + "categories/" + id)
 	if os.IsNotExist(err) {
 		err = os.Mkdir(imagestorage.path+"categories/"+id, 0700)
@@ -68,49 +78,58 @@ func (imagestorage *OnDiskLocalStorage) PutCategoryImage(id string, filename str
 }
 
 func (imagestorage *OnDiskLocalStorage) DeleteItemImage(id string, filename string) error {
+	imagestorage.logger.Debug("Enter in filestorage DeleteItemImage()")
+	imagestorage.logger.Debug(fmt.Sprintf("name of deleting image: %s", filename))
 	err := os.Remove(imagestorage.path + "items/" + id + "/" + filename)
 	if err != nil {
 		imagestorage.logger.Debug(fmt.Sprintf("error on delete file: %v", err))
 		return fmt.Errorf("error on delete file: %w", err)
 	}
+	imagestorage.logger.Info("Item image delete success")
 	return nil
 }
 
 func (imagestorage *OnDiskLocalStorage) DeleteCategoryImage(id string, filename string) error {
+	imagestorage.logger.Debug("Enter in filestorage DeleteCategoryImage()")
+	imagestorage.logger.Debug(fmt.Sprintf("name of deleting image: %s", filename))
 	err := os.Remove(imagestorage.path + "categories/" + id + "/" + filename)
 	if err != nil {
 		imagestorage.logger.Debug(fmt.Sprintf("error on delete file: %v", err))
 		return fmt.Errorf("error on delete file: %w", err)
 	}
+	imagestorage.logger.Info("Category image delete success")
 	return nil
 }
 
-func (imagestorage *OnDiskLocalStorage) GetFile(id string, filename string) ([]byte, error) {
-	if f, err := os.ReadFile(imagestorage.path + id + "-" + filename); err == nil {
-		return f, nil
+func (imagestorage *OnDiskLocalStorage) DeleteCategoryImageById(folderName string) error {
+	imagestorage.logger.Debug("Enter in filestorage DeleteCategoryImageById()")
+	imagestorage.logger.Debug(fmt.Sprintf("name of deleting folder: %s", folderName))
+	err := os.RemoveAll(imagestorage.path + "categories/" + folderName)
+	if err != nil {
+		imagestorage.logger.Debug(fmt.Sprintf("error on delete folder: %v", err))
+		return fmt.Errorf("error on delete folder: %w", err)
 	}
-
-	return nil, FileNotFoundError{}
+	imagestorage.logger.Info("Category folder delete success")
+	return nil
 }
 
-func (imagestorage *OnDiskLocalStorage) GetFileList(id string) ([]FileInStorageInfo, error) {
+func (imagestorage *OnDiskLocalStorage) GetFileList() ([]FileInStorageInfo, error) {
+	imagestorage.logger.Debug("Enter in filestorage GetFileList()")
 	result := make([]FileInStorageInfo, 0)
-	dir, err := os.ReadDir(imagestorage.path)
-	if err != nil {
-		return nil, err
-	}
-	for _, v := range dir {
-		if !v.IsDir() {
-			if info, err := v.Info(); err != nil {
-				result = append(result, FileInStorageInfo{
-					Id:         id,
-					Name:       info.Name(),
-					Path:       info.Name(),
-					CreateDate: info.ModTime().String(),
-					ModifyDate: info.ModTime().String(),
-				})
-			}
+	err := filepath.Walk(imagestorage.path, func(path string, info fs.FileInfo, err error) error {
+		if !info.IsDir() {
+			result = append(result, FileInStorageInfo{
+				Name:       info.Name(),
+				Path:       path,
+				CreateDate: info.ModTime().String(),
+				ModifyDate: info.ModTime().String(),
+			})
 		}
+		return nil
+	})
+	if err != nil {
+		imagestorage.logger.Error(fmt.Sprintf("error no filepath.Walk: %v", err))
+		return nil, err
 	}
 	return result, nil
 }

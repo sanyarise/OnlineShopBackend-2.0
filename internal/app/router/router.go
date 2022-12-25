@@ -10,33 +10,19 @@
 package router
 
 import (
-	"OnlineShopBackend/cmd/onlineShopBackend/docs"
+	"OnlineShopBackend/internal/delivery/swagger/docs"
 	"OnlineShopBackend/internal/delivery"
-	"fmt"
+
 	"net/http"
 	"time"
 
 	"github.com/gin-contrib/cors"
+	ginzap "github.com/gin-contrib/zap"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"go.uber.org/zap"
 )
-
-// @title Swagger Example API
-// @version 1.0
-// @description This is a sample server Petstore server.
-// @termsOfService http://swagger.io/terms/
-
-// @contact.name API Support
-// @contact.url http://www.swagger.io/support
-// @contact.email support@swagger.io
-
-// @license.name Apache 2.0
-// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
-
-// @host localhost:80
-// @BasePath /
 
 // Route is the information for every URI.
 type Route struct {
@@ -54,7 +40,7 @@ type Route struct {
 type Routes []Route
 
 type Router struct {
-	router   *gin.Engine
+	*gin.Engine
 	delivery *delivery.Delivery
 	logger   *zap.Logger
 }
@@ -62,43 +48,29 @@ type Router struct {
 // NewRouter returns a new router.
 func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 	logger.Debug("Enter in NewRouter()")
-	router := gin.Default()
-
-
-
-
-
-	ginSwagger.WrapHandler(swaggerFiles.Handler,
-		ginSwagger.URL("http://localhost:80/swagger/doc.json"), //8000
-		ginSwagger.DefaultModelsExpandDepth(-1))
-
-	//Swagger 2.0 Meta Information
-	docs.SwaggerInfo.Host = "localhost:80" //8000
-	docs.SwaggerInfo.Schemes = []string{"http"}
+	gin := gin.Default()
+	gin.Use(cors.Default())
+	gin.Use(ginzap.RecoveryWithZap(logger, true))
+	gin.Static("/files", "./storage/files")
 	docs.SwaggerInfo.BasePath = "/"
+	gin.Group("/docs").Any("/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	router := &Router{
+		delivery: delivery,
+		logger:   logger,
+	}
 
-	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-
-	 	router.Use(cors.New(cors.Config{
-				//AllowOrigins: []string{"http://localhost:3000"},
-			    AllowMethods:     []string{"GET", "POST", "OPTIONS", "PUT", "DELETE"},
-				AllowHeaders:     []string{"Access-Control-Allow-Origin", "*"},
-				ExposeHeaders:    []string{"Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With"},
-				AllowCredentials: true,
-				AllowAllOrigins:  false,
-		AllowOriginFunc:  func(origin string) bool { return true },
-				MaxAge:           12 * time.Hour,
-			}))
-
-		//router.Use(cors.Default())
-
-	router.Static("./files", "./storage/files")
 	routes := Routes{
 		{
 			"Index",
 			http.MethodGet,
 			"/",
 			delivery.Index,
+		},
+		{
+			"GetFileList",
+			http.MethodGet,
+			"/images/list",
+			delivery.GetFileList,
 		},
 		{
 			"CreateCategory",
@@ -133,8 +105,14 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 		{
 			"DeleteCategoryImage",
 			http.MethodDelete,
-			"/category/image/delete", //?id=25f32441-587a-452d-af8c-b3876ae29d45&name=20221209194557.jpeg
+			"/categories/image/delete", //?id=25f32441-587a-452d-af8c-b3876ae29d45&name=20221209194557.jpeg
 			delivery.DeleteCategoryImage,
+		},
+		{
+			"DeleteCategory",
+			http.MethodDelete,
+			"/categories/delete/:categoryID",
+			delivery.DeleteCategory,
 		},
 		{
 			"CreateItem",
@@ -248,21 +226,17 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 	for _, route := range routes {
 		switch route.Method {
 		case http.MethodGet:
-			router.GET(route.Pattern, route.HandlerFunc)
+			gin.GET(route.Pattern, route.HandlerFunc)
 		case http.MethodPost:
-			router.POST(route.Pattern, route.HandlerFunc)
+			gin.POST(route.Pattern, route.HandlerFunc)
 		case http.MethodPut:
-			router.PUT(route.Pattern, route.HandlerFunc)
+			gin.PUT(route.Pattern, route.HandlerFunc)
 		case http.MethodPatch:
-			router.PATCH(route.Pattern, route.HandlerFunc)
+			gin.PATCH(route.Pattern, route.HandlerFunc)
 		case http.MethodDelete:
-			router.DELETE(route.Pattern, route.HandlerFunc)
+			gin.DELETE(route.Pattern, route.HandlerFunc)
 		}
 	}
-	return &Router{router: router, delivery: delivery, logger: logger}
-}
-
-func (router *Router) Run(port string) error {
-	router.logger.Debug(fmt.Sprintf("Enter in router Run(), port: %s", port))
-	return router.router.Run(port)
+	router.Engine = gin
+	return router
 }

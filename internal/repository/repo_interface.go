@@ -21,6 +21,8 @@ type CategoryStore interface {
 	UpdateCategory(ctx context.Context, category *models.Category) error
 	GetCategory(ctx context.Context, id uuid.UUID) (*models.Category, error)
 	GetCategoryList(ctx context.Context) (chan models.Category, error)
+	DeleteCategory(ctx context.Context, id uuid.UUID) error
+	GetCategoryByName(ctx context.Context, name string) (*models.Category, error)
 }
 
 type UserStore interface {

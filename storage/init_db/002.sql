@@ -26,7 +26,8 @@ CREATE TABLE categories (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(256) NOT NULL UNIQUE, 
     description TEXT NOT NULL,
-    picture TEXT
+    picture TEXT,
+    deleted_at timestamptz NULL
 );
 
 
