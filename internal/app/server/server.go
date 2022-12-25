@@ -33,7 +33,11 @@ func NewServer(addr string, handler http.Handler, logger *zap.Logger, timeouts m
 // Start begin server work
 func (server *Server) Start() {
 	server.logger.Debug("Enter in server Start()")
-	go server.srv.ListenAndServe()
+	go func() {
+		if err := server.srv.ListenAndServe(); err != nil {
+			server.logger.Error(err.Error())
+		}
+	}()
 }
 
 // ShutDown stop the server
