@@ -3,8 +3,8 @@ package delivery
 import (
 	"OnlineShopBackend/internal/delivery/category"
 	fs "OnlineShopBackend/internal/filestorage/mocks"
-	"OnlineShopBackend/internal/handlers"
-	"OnlineShopBackend/internal/handlers/mocks"
+	"OnlineShopBackend/internal/models"
+	"OnlineShopBackend/internal/usecase/mocks"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -29,7 +29,7 @@ type WrongStruct struct {
 }
 
 var (
-	testCategoryNoId = handlers.Category{
+	testCategoryNoId = &models.Category{
 		Name:        "testName",
 		Description: "testDescription",
 	}
@@ -45,8 +45,8 @@ var (
 		Name:        "testName",
 		Description: "testDescription",
 	}
-	testHandlersCategoryWithId = handlers.Category{
-		Id:          testId.String(),
+	testModelsCategoryWithId = &models.Category{
+		Id:          testId,
 		Name:        "testName",
 		Description: "testDescription",
 	}
@@ -54,8 +54,8 @@ var (
 		Name:        "",
 		Description: "",
 	}
-	testEmptyHandlersCategory = handlers.Category{
-		Id:          uuid.Nil.String(),
+	testEmptyModelsCategory = models.Category{
+		Id:          uuid.Nil,
 		Name:        "",
 		Description: "",
 	}
@@ -63,29 +63,29 @@ var (
 		Name:        5,
 		Description: 6,
 	}
-	testList    = []handlers.Category{testHandlersCategoryWithId}
+	testList    = []models.Category{*testModelsCategoryWithId}
 	testOutList = category.CategoriesList{
 		List: []category.Category{
 			testCategoryWithId,
 		},
 	}
-	testCategoryWithImage = handlers.Category{
-		Id:          testId.String(),
+	testCategoryWithImage = models.Category{
+		Id:          testId,
 		Name:        "testName",
 		Description: "testDescription",
 		Image:       "testImagePath",
 	}
-	testNoCategory = handlers.Category{
+	testNoCategory = models.Category{
 		Name:        "NoCategory",
 		Description: "Category for items from deleting categories",
 	}
-	testNoCategoryWithId = handlers.Category{
-		Id:          testId.String(),
+	testNoCategoryWithId = models.Category{
+		Id:          testId,
 		Name:        "NoCategory",
 		Description: "Category for items from deleting categories",
 	}
-	testHandlersItemNoCat = handlers.Item{
-		Id:          testId.String(),
+	testModelsItemNoCat = models.Item{
+		Id:          testId,
 		Title:       "testTitle",
 		Description: "testDescription",
 		Category:    testNoCategoryWithId,
@@ -127,8 +127,8 @@ func TestCreateCategory(t *testing.T) {
 	defer ctrl.Finish()
 	ctx := context.Background()
 	logger := zap.L()
-	itemHandlers := mocks.NewMockIItemHandlers(ctrl)
-	categoryHandlers := mocks.NewMockICategoryHandlers(ctrl)
+	itemHandlers := mocks.NewMockIItemUsecase(ctrl)
+	categoryHandlers := mocks.NewMockICategoryUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
 	delivery := NewDelivery(itemHandlers, categoryHandlers, logger, filestorage)
 
@@ -181,8 +181,8 @@ func TestUpdateCategory(t *testing.T) {
 	defer ctrl.Finish()
 	ctx := context.Background()
 	logger := zap.L()
-	itemHandlers := mocks.NewMockIItemHandlers(ctrl)
-	categoryHandlers := mocks.NewMockICategoryHandlers(ctrl)
+	itemHandlers := mocks.NewMockIItemUsecase(ctrl)
+	categoryHandlers := mocks.NewMockICategoryUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
 	delivery := NewDelivery(itemHandlers, categoryHandlers, logger, filestorage)
 
@@ -199,7 +199,7 @@ func TestUpdateCategory(t *testing.T) {
 		},
 	}
 	MockCatJson(c, testCategoryWithId, put)
-	categoryHandlers.EXPECT().UpdateCategory(ctx, testHandlersCategoryWithId).Return(nil)
+	categoryHandlers.EXPECT().UpdateCategory(ctx, testModelsCategoryWithId).Return(nil)
 	delivery.UpdateCategory(c)
 	require.Equal(t, 200, w.Code)
 
@@ -216,7 +216,7 @@ func TestUpdateCategory(t *testing.T) {
 		},
 	}
 	MockCatJson(c, testCategoryWithId, put)
-	categoryHandlers.EXPECT().UpdateCategory(ctx, testHandlersCategoryWithId).Return(fmt.Errorf("error"))
+	categoryHandlers.EXPECT().UpdateCategory(ctx, testModelsCategoryWithId).Return(fmt.Errorf("error"))
 	delivery.UpdateCategory(c)
 	require.Equal(t, 500, w.Code)
 
@@ -251,8 +251,8 @@ func TestGetCategoryList(t *testing.T) {
 	defer ctrl.Finish()
 	ctx := context.Background()
 	logger := zap.L()
-	itemHandlers := mocks.NewMockIItemHandlers(ctrl)
-	categoryHandlers := mocks.NewMockICategoryHandlers(ctrl)
+	itemHandlers := mocks.NewMockIItemUsecase(ctrl)
+	categoryHandlers := mocks.NewMockICategoryUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
 	delivery := NewDelivery(itemHandlers, categoryHandlers, logger, filestorage)
 
@@ -262,7 +262,7 @@ func TestGetCategoryList(t *testing.T) {
 	c.Request = &http.Request{
 		Header: make(http.Header),
 	}
-	categoryHandlers.EXPECT().GetCategoryList(ctx).Return([]handlers.Category{}, fmt.Errorf("error"))
+	categoryHandlers.EXPECT().GetCategoryList(ctx).Return([]models.Category{}, fmt.Errorf("error"))
 	delivery.GetCategoryList(c)
 	require.Equal(t, 500, w.Code)
 
@@ -285,8 +285,8 @@ func TestGetCategory(t *testing.T) {
 	defer ctrl.Finish()
 	ctx := context.Background()
 	logger := zap.L()
-	itemHandlers := mocks.NewMockIItemHandlers(ctrl)
-	categoryHandlers := mocks.NewMockICategoryHandlers(ctrl)
+	itemHandlers := mocks.NewMockIItemUsecase(ctrl)
+	categoryHandlers := mocks.NewMockICategoryUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
 	delivery := NewDelivery(itemHandlers, categoryHandlers, logger, filestorage)
 
@@ -311,7 +311,7 @@ func TestGetCategory(t *testing.T) {
 			Value: testId.String(),
 		},
 	}
-	categoryHandlers.EXPECT().GetCategory(ctx, testId.String()).Return(testEmptyHandlersCategory, fmt.Errorf("error"))
+	categoryHandlers.EXPECT().GetCategory(ctx, testId).Return(&testEmptyModelsCategory, fmt.Errorf("error"))
 	delivery.GetCategory(c)
 	require.Equal(t, 500, w.Code)
 
@@ -328,7 +328,7 @@ func TestGetCategory(t *testing.T) {
 		},
 	}
 	testBytes, _ := json.Marshal(&testCategoryWithId)
-	categoryHandlers.EXPECT().GetCategory(ctx, testId.String()).Return(testHandlersCategoryWithId, nil)
+	categoryHandlers.EXPECT().GetCategory(ctx, testId).Return(testModelsCategoryWithId, nil)
 	delivery.GetCategory(c)
 	require.Equal(t, 200, w.Code)
 	require.Equal(t, testBytes, w.Body.Bytes())
@@ -339,8 +339,8 @@ func TestUploadCategoryImage(t *testing.T) {
 	defer ctrl.Finish()
 	ctx := context.Background()
 	logger := zap.L()
-	itemHandlers := mocks.NewMockIItemHandlers(ctrl)
-	categoryHandlers := mocks.NewMockICategoryHandlers(ctrl)
+	itemHandlers := mocks.NewMockIItemUsecase(ctrl)
+	categoryHandlers := mocks.NewMockICategoryUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
 	delivery := NewDelivery(itemHandlers, categoryHandlers, logger, filestorage)
 
@@ -400,7 +400,7 @@ func TestUploadCategoryImage(t *testing.T) {
 	}
 	MockCatFile(c, "png", testFile)
 	filestorage.EXPECT().PutCategoryImage(testId.String(), carbon.Now().ToShortDateTimeString()+".png", testFile).Return("testImagePath", nil)
-	categoryHandlers.EXPECT().GetCategory(ctx, testId.String()).Return(testEmptyHandlersCategory, fmt.Errorf("error"))
+	categoryHandlers.EXPECT().GetCategory(ctx, testId).Return(&testEmptyModelsCategory, fmt.Errorf("error"))
 	delivery.UploadCategoryImage(c)
 	require.Equal(t, 500, w.Code)
 
@@ -418,8 +418,8 @@ func TestUploadCategoryImage(t *testing.T) {
 	}
 	MockCatFile(c, "png", testFile)
 	filestorage.EXPECT().PutCategoryImage(testId.String(), carbon.Now().ToShortDateTimeString()+".png", testFile).Return("testImagePath", nil)
-	categoryHandlers.EXPECT().GetCategory(ctx, testId.String()).Return(testHandlersCategoryWithId, nil)
-	categoryHandlers.EXPECT().UpdateCategory(ctx, testCategoryWithImage).Return(fmt.Errorf("error"))
+	categoryHandlers.EXPECT().GetCategory(ctx, testId).Return(testModelsCategoryWithId, nil)
+	categoryHandlers.EXPECT().UpdateCategory(ctx, &testCategoryWithImage).Return(fmt.Errorf("error"))
 	delivery.UploadCategoryImage(c)
 	require.Equal(t, 500, w.Code)
 
@@ -437,8 +437,8 @@ func TestUploadCategoryImage(t *testing.T) {
 	}
 	MockCatFile(c, "png", testFile)
 	filestorage.EXPECT().PutCategoryImage(testId.String(), carbon.Now().ToShortDateTimeString()+".png", testFile).Return("testImagePath", nil)
-	categoryHandlers.EXPECT().GetCategory(ctx, testId.String()).Return(testHandlersCategoryWithId, nil)
-	categoryHandlers.EXPECT().UpdateCategory(ctx, testCategoryWithImage).Return(nil)
+	categoryHandlers.EXPECT().GetCategory(ctx, testId).Return(testModelsCategoryWithId, nil)
+	categoryHandlers.EXPECT().UpdateCategory(ctx, &testCategoryWithImage).Return(nil)
 	delivery.UploadCategoryImage(c)
 	require.Equal(t, 201, w.Code)
 }
@@ -448,8 +448,8 @@ func TestDeleteCategoryImage(t *testing.T) {
 	defer ctrl.Finish()
 	ctx := context.Background()
 	logger := zap.L()
-	itemHandlers := mocks.NewMockIItemHandlers(ctrl)
-	categoryHandlers := mocks.NewMockICategoryHandlers(ctrl)
+	itemHandlers := mocks.NewMockIItemUsecase(ctrl)
+	categoryHandlers := mocks.NewMockICategoryUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
 	delivery := NewDelivery(itemHandlers, categoryHandlers, logger, filestorage)
 
@@ -491,7 +491,7 @@ func TestDeleteCategoryImage(t *testing.T) {
 	}
 	c.Request.URL, _ = url.Parse(fmt.Sprintf("?id=%s&name=testName", testId.String()))
 	filestorage.EXPECT().DeleteCategoryImage(testId.String(), "testName").Return(nil)
-	categoryHandlers.EXPECT().GetCategory(ctx, testId.String()).Return(testEmptyHandlersCategory, fmt.Errorf("error"))
+	categoryHandlers.EXPECT().GetCategory(ctx, testId).Return(&testEmptyModelsCategory, fmt.Errorf("error"))
 	delivery.DeleteCategoryImage(c)
 	require.Equal(t, 500, w.Code)
 
@@ -503,8 +503,8 @@ func TestDeleteCategoryImage(t *testing.T) {
 	}
 	c.Request.URL, _ = url.Parse(fmt.Sprintf("?id=%s&name=testImagePath", testId.String()))
 	filestorage.EXPECT().DeleteCategoryImage(testId.String(), "testImagePath").Return(nil)
-	categoryHandlers.EXPECT().GetCategory(ctx, testId.String()).Return(testCategoryWithImage, nil)
-	categoryHandlers.EXPECT().UpdateCategory(ctx, testHandlersCategoryWithId).Return(fmt.Errorf("error"))
+	categoryHandlers.EXPECT().GetCategory(ctx, testId).Return(&testCategoryWithImage, nil)
+	categoryHandlers.EXPECT().UpdateCategory(ctx, testModelsCategoryWithId).Return(fmt.Errorf("error"))
 	delivery.DeleteCategoryImage(c)
 	require.Equal(t, 500, w.Code)
 
@@ -516,8 +516,8 @@ func TestDeleteCategoryImage(t *testing.T) {
 	}
 	c.Request.URL, _ = url.Parse(fmt.Sprintf("?id=%s&name=testImagePath", testId.String()))
 	filestorage.EXPECT().DeleteCategoryImage(testId.String(), "testImagePath").Return(nil)
-	categoryHandlers.EXPECT().GetCategory(ctx, testId.String()).Return(testCategoryWithImage, nil)
-	categoryHandlers.EXPECT().UpdateCategory(ctx, testHandlersCategoryWithId).Return(nil)
+	categoryHandlers.EXPECT().GetCategory(ctx, testId).Return(&testCategoryWithImage, nil)
+	categoryHandlers.EXPECT().UpdateCategory(ctx, testModelsCategoryWithId).Return(nil)
 	delivery.DeleteCategoryImage(c)
 	require.Equal(t, 200, w.Code)
 }
@@ -527,8 +527,8 @@ func TestDeleteCategory(t *testing.T) {
 	defer ctrl.Finish()
 	ctx := context.Background()
 	logger := zap.L()
-	itemHandlers := mocks.NewMockIItemHandlers(ctrl)
-	categoryHandlers := mocks.NewMockICategoryHandlers(ctrl)
+	itemHandlers := mocks.NewMockIItemUsecase(ctrl)
+	categoryHandlers := mocks.NewMockICategoryUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
 	delivery := NewDelivery(itemHandlers, categoryHandlers, logger, filestorage)
 
@@ -568,7 +568,7 @@ func TestDeleteCategory(t *testing.T) {
 			Value: testId.String(),
 		},
 	}
-	categoryHandlers.EXPECT().GetCategory(ctx, testId.String()).Return(testEmptyHandlersCategory, fmt.Errorf("error"))
+	categoryHandlers.EXPECT().GetCategory(ctx, testId).Return(&testEmptyModelsCategory, fmt.Errorf("error"))
 	delivery.DeleteCategory(c)
 	require.Equal(t, 500, w.Code)
 
@@ -584,7 +584,7 @@ func TestDeleteCategory(t *testing.T) {
 			Value: testId.String(),
 		},
 	}
-	categoryHandlers.EXPECT().GetCategory(ctx, testId.String()).Return(testHandlersCategoryWithId, nil)
+	categoryHandlers.EXPECT().GetCategory(ctx, testId).Return(testModelsCategoryWithId, nil)
 	categoryHandlers.EXPECT().DeleteCategory(ctx, testId).Return(fmt.Errorf("error"))
 	delivery.DeleteCategory(c)
 	require.Equal(t, 500, w.Code)
@@ -601,7 +601,7 @@ func TestDeleteCategory(t *testing.T) {
 			Value: testId.String(),
 		},
 	}
-	categoryHandlers.EXPECT().GetCategory(ctx, testId.String()).Return(testCategoryWithImage, nil)
+	categoryHandlers.EXPECT().GetCategory(ctx, testId).Return(&testCategoryWithImage, nil)
 	categoryHandlers.EXPECT().DeleteCategory(ctx, testId).Return(nil)
 	filestorage.EXPECT().DeleteCategoryImageById(testId.String()).Return(fmt.Errorf("error"))
 	itemHandlers.EXPECT().ItemsQuantity(ctx).Return(-1, fmt.Errorf("error"))
@@ -620,11 +620,11 @@ func TestDeleteCategory(t *testing.T) {
 			Value: testId.String(),
 		},
 	}
-	categoryHandlers.EXPECT().GetCategory(ctx, testId.String()).Return(testCategoryWithImage, nil)
+	categoryHandlers.EXPECT().GetCategory(ctx, testId).Return(&testCategoryWithImage, nil)
 	categoryHandlers.EXPECT().DeleteCategory(ctx, testId).Return(nil)
 	filestorage.EXPECT().DeleteCategoryImageById(testId.String()).Return(fmt.Errorf("error"))
 	itemHandlers.EXPECT().ItemsQuantity(ctx).Return(1, nil)
-	itemHandlers.EXPECT().GetItemsByCategory(ctx, testCategoryWithImage.Name, 0, 1).Return([]handlers.Item{}, fmt.Errorf("error"))
+	itemHandlers.EXPECT().GetItemsByCategory(ctx, testCategoryWithImage.Name, 0, 1).Return([]models.Item{}, fmt.Errorf("error"))
 	delivery.DeleteCategory(c)
 	require.Equal(t, 500, w.Code)
 
@@ -640,13 +640,13 @@ func TestDeleteCategory(t *testing.T) {
 			Value: testId.String(),
 		},
 	}
-	categoryHandlers.EXPECT().GetCategory(ctx, testId.String()).Return(testCategoryWithImage, nil)
+	categoryHandlers.EXPECT().GetCategory(ctx, testId).Return(&testCategoryWithImage, nil)
 	categoryHandlers.EXPECT().DeleteCategory(ctx, testId).Return(nil)
 	filestorage.EXPECT().DeleteCategoryImageById(testId.String()).Return(fmt.Errorf("error"))
 	itemHandlers.EXPECT().ItemsQuantity(ctx).Return(1, nil)
-	itemHandlers.EXPECT().GetItemsByCategory(ctx, testCategoryWithImage.Name, 0, 1).Return([]handlers.Item{testHandlersItemWithImage}, nil)
-	categoryHandlers.EXPECT().GetCategoryByName(ctx, "NoCategory").Return(testEmptyHandlersCategory, fmt.Errorf("error"))
-	categoryHandlers.EXPECT().CreateCategory(ctx, testNoCategory).Return(uuid.Nil, fmt.Errorf("error"))
+	itemHandlers.EXPECT().GetItemsByCategory(ctx, testCategoryWithImage.Name, 0, 1).Return([]models.Item{testModelsItemWithImage}, nil)
+	categoryHandlers.EXPECT().GetCategoryByName(ctx, "NoCategory").Return(&testEmptyModelsCategory, fmt.Errorf("error"))
+	categoryHandlers.EXPECT().CreateCategory(ctx, &testNoCategory).Return(uuid.Nil, fmt.Errorf("error"))
 	delivery.DeleteCategory(c)
 	require.Equal(t, 500, w.Code)
 
@@ -662,14 +662,14 @@ func TestDeleteCategory(t *testing.T) {
 			Value: testId.String(),
 		},
 	}
-	categoryHandlers.EXPECT().GetCategory(ctx, testId.String()).Return(testCategoryWithImage, nil)
+	categoryHandlers.EXPECT().GetCategory(ctx, testId).Return(&testCategoryWithImage, nil)
 	categoryHandlers.EXPECT().DeleteCategory(ctx, testId).Return(nil)
 	filestorage.EXPECT().DeleteCategoryImageById(testId.String()).Return(nil)
 	itemHandlers.EXPECT().ItemsQuantity(ctx).Return(1, nil)
-	itemHandlers.EXPECT().GetItemsByCategory(ctx, testCategoryWithImage.Name, 0, 1).Return([]handlers.Item{testHandlersItemWithImage}, nil)
-	categoryHandlers.EXPECT().GetCategoryByName(ctx, "NoCategory").Return(testEmptyHandlersCategory, fmt.Errorf("error"))
-	categoryHandlers.EXPECT().CreateCategory(ctx, testNoCategory).Return(testId, nil)
-	itemHandlers.EXPECT().UpdateItem(ctx, testHandlersItemNoCat).Return(fmt.Errorf("error"))
+	itemHandlers.EXPECT().GetItemsByCategory(ctx, testCategoryWithImage.Name, 0, 1).Return([]models.Item{testModelsItemWithImage}, nil)
+	categoryHandlers.EXPECT().GetCategoryByName(ctx, "NoCategory").Return(&testEmptyModelsCategory, fmt.Errorf("error"))
+	categoryHandlers.EXPECT().CreateCategory(ctx, &testNoCategory).Return(testId, nil)
+	itemHandlers.EXPECT().UpdateItem(ctx, &testModelsItemNoCat).Return(fmt.Errorf("error"))
 	delivery.DeleteCategory(c)
 	require.Equal(t, 200, w.Code)
 
@@ -685,13 +685,13 @@ func TestDeleteCategory(t *testing.T) {
 			Value: testId.String(),
 		},
 	}
-	categoryHandlers.EXPECT().GetCategory(ctx, testId.String()).Return(testCategoryWithImage, nil)
+	categoryHandlers.EXPECT().GetCategory(ctx, testId).Return(&testCategoryWithImage, nil)
 	categoryHandlers.EXPECT().DeleteCategory(ctx, testId).Return(nil)
 	filestorage.EXPECT().DeleteCategoryImageById(testId.String()).Return(nil)
 	itemHandlers.EXPECT().ItemsQuantity(ctx).Return(1, nil)
-	itemHandlers.EXPECT().GetItemsByCategory(ctx, testCategoryWithImage.Name, 0, 1).Return([]handlers.Item{testHandlersItemWithImage}, nil)
-	categoryHandlers.EXPECT().GetCategoryByName(ctx, "NoCategory").Return(testNoCategoryWithId, nil)
-	itemHandlers.EXPECT().UpdateItem(ctx, testHandlersItemNoCat).Return(nil)
+	itemHandlers.EXPECT().GetItemsByCategory(ctx, testCategoryWithImage.Name, 0, 1).Return([]models.Item{testModelsItemWithImage}, nil)
+	categoryHandlers.EXPECT().GetCategoryByName(ctx, "NoCategory").Return(&testNoCategoryWithId, nil)
+	itemHandlers.EXPECT().UpdateItem(ctx, &testModelsItemNoCat).Return(nil)
 	delivery.DeleteCategory(c)
 	require.Equal(t, 200, w.Code)
 }

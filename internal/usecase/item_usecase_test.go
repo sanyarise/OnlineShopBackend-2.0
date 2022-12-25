@@ -50,6 +50,7 @@ var (
 		Price:       0,
 		Vendor:      "test",
 	}
+	testCategoryName = "testName"
 )
 
 func TestCreateItem(t *testing.T) {
@@ -309,6 +310,7 @@ func TestGetItemByCategory(t *testing.T) {
 	cash.EXPECT().CheckCash(ctx, param).Return(false)
 	itemRepo.EXPECT().GetItemsByCategory(ctx, param).Return(testItemChan, nil)
 	cash.EXPECT().CreateItemsCash(ctx, items, param).Return(nil)
+	cash.EXPECT().CreateItemsQuantityCash(ctx, 1, param+"Quantity")
 	cash.EXPECT().GetItemsCash(ctx, param).Return(items, nil)
 	res, err := usecase.GetItemsByCategory(ctx, param, 0, 1)
 	require.NoError(t, err)
@@ -359,6 +361,7 @@ func TestGetItemByCategory(t *testing.T) {
 	cash.EXPECT().CheckCash(ctx, param).Return(false)
 	itemRepo.EXPECT().GetItemsByCategory(ctx, param).Return(testChan3, nil)
 	cash.EXPECT().CreateItemsCash(ctx, items, param).Return(nil)
+	cash.EXPECT().CreateItemsQuantityCash(ctx, 1, param+"Quantity")
 	cash.EXPECT().GetItemsCash(ctx, param).Return(nil, err)
 	res, err = usecase.GetItemsByCategory(ctx, param, 0, 1)
 	require.Error(t, err)
@@ -433,6 +436,79 @@ func TestItemsQuantity(t *testing.T) {
 	cash.EXPECT().CreateItemsQuantityCash(ctx, 0, itemsQuantityKey).Return(nil)
 	cash.EXPECT().GetItemsQuantityCash(ctx, itemsQuantityKey).Return(0, nil)
 	res, err = usecase.ItemsQuantity(ctx)
+	require.NoError(t, err)
+	require.Equal(t, res, 0)
+}
+
+func TestItemsQuantityInCategory(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	logger := zap.L()
+	itemRepo := mocks.NewMockItemStore(ctrl)
+	cash := mocks.NewMockIItemsCash(ctrl)
+	usecase := NewItemUsecase(itemRepo, cash, logger)
+	ctx := context.Background()
+
+	q := "Quantity"
+	cash.EXPECT().CheckCash(ctx, testCategoryName+q).Return(true)
+	cash.EXPECT().GetItemsQuantityCash(ctx, testCategoryName+q).Return(1, nil)
+	res, err := usecase.ItemsQuantityInCategory(ctx, testCategoryName)
+	require.NoError(t, err)
+	require.Equal(t, res, 1)
+
+	cash.EXPECT().CheckCash(ctx, testCategoryName+q).Return(true)
+	cash.EXPECT().GetItemsQuantityCash(ctx, testCategoryName+q).Return(-1, fmt.Errorf("error on get items quantity cash"))
+	res, err = usecase.ItemsQuantityInCategory(ctx, testCategoryName)
+	require.Error(t, err)
+	require.Equal(t, res, -1)
+
+	cash.EXPECT().CheckCash(ctx, testCategoryName+q).Return(false)
+	cash.EXPECT().CheckCash(ctx, testCategoryName).Return(true)
+	cash.EXPECT().GetItemsCash(ctx, testCategoryName).Return([]models.Item{{Title: "testTitle"}}, nil)
+	cash.EXPECT().CreateItemsQuantityCash(ctx, 1, testCategoryName+q).Return(nil)
+	cash.EXPECT().GetItemsQuantityCash(ctx, testCategoryName+q).Return(1, nil)
+	res, err = usecase.ItemsQuantityInCategory(ctx, testCategoryName)
+	require.NoError(t, err)
+	require.Equal(t, res, 1)
+
+	cash.EXPECT().CheckCash(ctx, testCategoryName+q).Return(false)
+	cash.EXPECT().CheckCash(ctx, testCategoryName).Return(true)
+	cash.EXPECT().GetItemsCash(ctx, testCategoryName).Return(nil, fmt.Errorf("error on get items list cash"))
+	res, err = usecase.ItemsQuantityInCategory(ctx, testCategoryName)
+	require.Error(t, err)
+	require.Equal(t, res, -1)
+
+	cash.EXPECT().CheckCash(ctx, testCategoryName+q).Return(false)
+	cash.EXPECT().CheckCash(ctx, testCategoryName).Return(true)
+	cash.EXPECT().GetItemsCash(ctx, testCategoryName).Return([]models.Item{{Title: "testTitle"}}, nil)
+	cash.EXPECT().CreateItemsQuantityCash(ctx, 1, testCategoryName+q).Return(fmt.Errorf("error on create items quantity cash"))
+	res, err = usecase.ItemsQuantityInCategory(ctx, testCategoryName)
+	require.Error(t, err)
+	require.Equal(t, res, -1)
+
+	cash.EXPECT().CheckCash(ctx, testCategoryName+q).Return(false)
+	cash.EXPECT().CheckCash(ctx, testCategoryName).Return(false)
+	cash.EXPECT().CheckCash(ctx, testCategoryName).Return(true)
+	cash.EXPECT().GetItemsCash(ctx, testCategoryName)
+	cash.EXPECT().GetItemsQuantityCash(ctx, testCategoryName+q).Return(1, nil)
+	res, err = usecase.ItemsQuantityInCategory(ctx, testCategoryName)
+	require.NoError(t, err)
+	require.Equal(t, res, 1)
+
+	cash.EXPECT().CheckCash(ctx, testCategoryName+q).Return(false)
+	cash.EXPECT().CheckCash(ctx, testCategoryName).Return(false)
+	cash.EXPECT().CheckCash(ctx, testCategoryName).Return(false)
+	itemRepo.EXPECT().GetItemsByCategory(ctx, testCategoryName).Return(nil, fmt.Errorf("error"))
+	res, err = usecase.ItemsQuantityInCategory(ctx, testCategoryName)
+	require.Error(t, err)
+	require.Equal(t, res, -1)
+
+	cash.EXPECT().CheckCash(ctx, testCategoryName+q).Return(false)
+	cash.EXPECT().CheckCash(ctx, testCategoryName).Return(true)
+	cash.EXPECT().GetItemsCash(ctx, testCategoryName).Return(nil, nil)
+	cash.EXPECT().CreateItemsQuantityCash(ctx, 0, testCategoryName+q).Return(nil)
+	cash.EXPECT().GetItemsQuantityCash(ctx, testCategoryName+q).Return(0, nil)
+	res, err = usecase.ItemsQuantityInCategory(ctx, testCategoryName)
 	require.NoError(t, err)
 	require.Equal(t, res, 0)
 }

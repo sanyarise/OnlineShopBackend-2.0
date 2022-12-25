@@ -7,7 +7,6 @@ import (
 	"OnlineShopBackend/internal/app/server"
 	"OnlineShopBackend/internal/delivery"
 	"OnlineShopBackend/internal/filestorage"
-	"OnlineShopBackend/internal/handlers"
 	"OnlineShopBackend/internal/repository"
 	"OnlineShopBackend/internal/repository/cash"
 	"OnlineShopBackend/internal/usecase"
@@ -28,13 +27,13 @@ func main() {
 	logger := logger.NewLogger(cfg.LogLevel)
 	lsug := logger.Logger.Sugar()
 	l := logger.Logger
-	defer func(){
+	defer func() {
 		err := l.Sync()
 		if err != nil {
 			l.Error(err.Error())
 		}
 	}()
-	defer func(){
+	defer func() {
 		err := lsug.Sync()
 		if err != nil {
 			l.Error(err.Error())
@@ -60,11 +59,8 @@ func main() {
 	itemUsecase := usecase.NewItemUsecase(itemStore, itemsCash, l)
 	categoryUsecase := usecase.NewCategoryUsecase(categoryStore, categoriesCash, l)
 
-	itemHandlers := handlers.NewItemHandlers(itemUsecase, l)
-	categoryHandlers := handlers.NewCategoryHandlers(categoryUsecase, l)
-
 	filestorage := filestorage.NewOnDiskLocalStorage(cfg.ServerURL, cfg.FsPath, l)
-	delivery := delivery.NewDelivery(itemHandlers, categoryHandlers, l, filestorage)
+	delivery := delivery.NewDelivery(itemUsecase, categoryUsecase, l, filestorage)
 	router := router.NewRouter(delivery, l)
 	serverOptions := map[string]int{
 		"ReadTimeout":       cfg.ReadTimeout,

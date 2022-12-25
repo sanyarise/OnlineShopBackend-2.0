@@ -128,7 +128,6 @@ func (usecase *ItemUsecase) ItemsQuantity(ctx context.Context) (int, error) {
 			}
 			if items == nil {
 				items = make([]models.Item, 0)
-
 			}
 			err = usecase.itemCash.CreateItemsQuantityCash(ctx, len(items), itemsQuantityKey)
 			if err != nil {
@@ -137,6 +136,32 @@ func (usecase *ItemUsecase) ItemsQuantity(ctx context.Context) (int, error) {
 		}
 	}
 	quantity, err := usecase.itemCash.GetItemsQuantityCash(ctx, itemsQuantityKey)
+	return quantity, err
+}
+
+func (usecase *ItemUsecase) ItemsQuantityInCategory(ctx context.Context, categoryName string) (int, error) {
+	usecase.logger.Debug("Enter in usecase ItemsQuantityInCategory()")
+	if ok := usecase.itemCash.CheckCash(ctx, categoryName+"Quantity"); !ok {
+		if ok := usecase.itemCash.CheckCash(ctx, categoryName); !ok {
+			_, err := usecase.GetItemsByCategory(ctx, categoryName, 0, 1)
+			if err != nil {
+				return -1, fmt.Errorf("error on create items list: %w", err)
+			}
+		} else {
+			items, err := usecase.itemCash.GetItemsCash(ctx, categoryName)
+			if err != nil {
+				return -1, fmt.Errorf("error on get items list cash: %w", err)
+			}
+			if items == nil {
+				items = make([]models.Item, 0)
+			}
+			err = usecase.itemCash.CreateItemsQuantityCash(ctx, len(items), categoryName+"Quantity")
+			if err != nil {
+				return -1, fmt.Errorf("error on create items quantity cash: %w", err)
+			}
+		}
+	}
+	quantity, err := usecase.itemCash.GetItemsQuantityCash(ctx, categoryName+"Quantity")
 	return quantity, err
 }
 
@@ -193,7 +218,11 @@ func (usecase *ItemUsecase) GetItemsByCategory(ctx context.Context, categoryName
 		}
 		err = usecase.itemCash.CreateItemsCash(ctx, items, categoryName)
 		if err != nil {
-			return nil, fmt.Errorf("error on create search list cash: %w", err)
+			return nil, fmt.Errorf("error on create get items by category cash: %w", err)
+		}
+		err = usecase.itemCash.CreateItemsQuantityCash(ctx, len(items), categoryName+"Quantity")
+		if err != nil {
+			return nil, fmt.Errorf("error on create items quantity in category cash: %w", err)
 		}
 	}
 

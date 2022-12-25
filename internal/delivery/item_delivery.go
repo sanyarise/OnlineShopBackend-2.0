@@ -12,7 +12,6 @@ package delivery
 import (
 	"OnlineShopBackend/internal/delivery/category"
 	"OnlineShopBackend/internal/delivery/item"
-	"OnlineShopBackend/internal/handlers"
 	"OnlineShopBackend/internal/models"
 	"context"
 	"fmt"
@@ -25,6 +24,10 @@ import (
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
+
+type QuantityOptions struct {
+	CategoryName string `form:"categoryName"`
+}
 
 type Options struct {
 	Offset int `form:"offset"`
@@ -196,12 +199,17 @@ func (delivery *Delivery) UpdateItem(c *gin.Context) {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusBadRequest, err)
 	}
+	categoryUid, err := uuid.Parse(deliveryItem.Category)
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
+	}
 	err = delivery.itemUsecase.UpdateItem(ctx, &models.Item{
 		Id:          uid,
 		Title:       deliveryItem.Title,
 		Description: deliveryItem.Description,
-		Category: handlers.Category{
-			Id: deliveryItem.Category,
+		Category: models.Category{
+			Id: categoryUid,
 		},
 		Price:  deliveryItem.Price,
 		Vendor: deliveryItem.Vendor,
@@ -299,15 +307,34 @@ func (delivery *Delivery) ItemsList(c *gin.Context) {
 //	@Router			/items/quantity [get]
 func (delivery *Delivery) ItemsQuantity(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery ItemsQuantity()")
-	ctx := c.Request.Context()
-	quantity, err := delivery.itemUsecase.ItemsQuantity(ctx)
+	var options QuantityOptions
+	err := c.Bind(&options)
 	if err != nil {
 		delivery.logger.Error(err.Error())
-		delivery.SetError(c, http.StatusInternalServerError, err)
+		delivery.SetError(c, http.StatusBadRequest, err)
 		return
 	}
-	itemsQuantity := item.ItemsQuantity{Quantity: quantity}
-	c.JSON(http.StatusOK, itemsQuantity)
+	delivery.logger.Debug(fmt.Sprintf("options is %v", options))
+	ctx := c.Request.Context()
+	if options.CategoryName == "" {
+		quantity, err := delivery.itemUsecase.ItemsQuantity(ctx)
+		if err != nil {
+			delivery.logger.Error(err.Error())
+			delivery.SetError(c, http.StatusInternalServerError, err)
+			return
+		}
+		itemsQuantity := item.ItemsQuantity{Quantity: quantity}
+		c.JSON(http.StatusOK, itemsQuantity)
+	} else {
+		quantity, err := delivery.itemUsecase.ItemsQuantityInCategory(ctx, options.CategoryName)
+		if err != nil {
+			delivery.logger.Error(err.Error())
+			delivery.SetError(c, http.StatusInternalServerError, err)
+			return
+		}
+		itemsQuantity := item.ItemsQuantity{Quantity: quantity}
+		c.JSON(http.StatusOK, itemsQuantity)
+	}
 }
 
 // SearchLine - returns list of items with parameters

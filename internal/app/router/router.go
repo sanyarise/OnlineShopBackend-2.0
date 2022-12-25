@@ -152,7 +152,7 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 		{
 			"ItemsQuantity",
 			http.MethodGet,
-			"/items/quantity",
+			"/items/quantity", //?categoryName={categoryName} - if category name is empty returns quantity of all items
 			delivery.ItemsQuantity,
 		},
 		{
