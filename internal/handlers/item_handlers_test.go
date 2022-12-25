@@ -202,6 +202,25 @@ func TestItemsQuantity(t *testing.T) {
 	require.Equal(t, res, -1)
 }
 
+func TestItemsQuantityInCategory(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	ctx := context.Background()
+	logger := zap.L()
+	usecase := mocks.NewMockIItemUsecase(ctrl)
+	handlers := NewItemHandlers(usecase, logger)
+
+	usecase.EXPECT().ItemsQuantityInCategory(ctx, "testName").Return(1, nil)
+	res, err := handlers.ItemsQuantityInCategory(ctx, "testName")
+	require.NoError(t, err)
+	require.Equal(t, res, 1)
+
+	usecase.EXPECT().ItemsQuantityInCategory(ctx, "testName").Return(-1, fmt.Errorf("error on get items quantity"))
+	res, err = handlers.ItemsQuantityInCategory(ctx, "testName")
+	require.Error(t, err)
+	require.Equal(t, res, -1)
+}
+
 func TestSearchLine(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()

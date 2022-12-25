@@ -111,6 +111,21 @@ func (mr *MockIItemHandlersMockRecorder) ItemsQuantity(ctx interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ItemsQuantity", reflect.TypeOf((*MockIItemHandlers)(nil).ItemsQuantity), ctx)
 }
 
+// ItemsQuantityInCategory mocks base method.
+func (m *MockIItemHandlers) ItemsQuantityInCategory(ctx context.Context, categoryName string) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ItemsQuantityInCategory", ctx, categoryName)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ItemsQuantityInCategory indicates an expected call of ItemsQuantityInCategory.
+func (mr *MockIItemHandlersMockRecorder) ItemsQuantityInCategory(ctx, categoryName interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ItemsQuantityInCategory", reflect.TypeOf((*MockIItemHandlers)(nil).ItemsQuantityInCategory), ctx, categoryName)
+}
+
 // SearchLine mocks base method.
 func (m *MockIItemHandlers) SearchLine(ctx context.Context, param string, offset, limit int) ([]handlers.Item, error) {
 	m.ctrl.T.Helper()
