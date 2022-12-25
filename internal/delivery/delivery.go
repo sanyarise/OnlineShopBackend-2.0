@@ -3,7 +3,7 @@ package delivery
 import (
 	"OnlineShopBackend/internal/delivery/file"
 	"OnlineShopBackend/internal/filestorage"
-	"OnlineShopBackend/internal/handlers"
+	"OnlineShopBackend/internal/usecase"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -20,16 +20,16 @@ import (
 //	@BasePath	/
 
 type Delivery struct {
-	itemHandlers     handlers.IItemHandlers
-	categoryHandlers handlers.ICategoryHandlers
-	logger           *zap.Logger
-	filestorage      filestorage.FileStorager
+	itemUsecase     usecase.IItemUsecase
+	categoryUsecase usecase.ICategoryUsecase
+	logger          *zap.Logger
+	filestorage     filestorage.FileStorager
 }
 
 // NewDelivery initialize delivery layer
-func NewDelivery(itemHandlers handlers.IItemHandlers, categoryHandlers handlers.ICategoryHandlers, logger *zap.Logger, fs filestorage.FileStorager) *Delivery {
+func NewDelivery(itemUsecase usecase.IItemUsecase, categoryUsecase usecase.ICategoryUsecase, logger *zap.Logger, fs filestorage.FileStorager) *Delivery {
 	logger.Debug("Enter in NewDelivery()")
-	return &Delivery{itemHandlers: itemHandlers, categoryHandlers: categoryHandlers, logger: logger, filestorage: fs}
+	return &Delivery{itemUsecase: itemUsecase, categoryUsecase: categoryUsecase, logger: logger, filestorage: fs}
 }
 
 // Index is the index handler.

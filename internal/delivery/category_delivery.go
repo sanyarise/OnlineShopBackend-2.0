@@ -11,7 +11,7 @@ package delivery
 
 import (
 	"OnlineShopBackend/internal/delivery/category"
-	"OnlineShopBackend/internal/handlers"
+	"OnlineShopBackend/internal/models"
 	"fmt"
 	"io"
 	"net/http"
@@ -53,11 +53,11 @@ func (delivery *Delivery) CreateCategory(c *gin.Context) {
 		delivery.SetError(c, http.StatusBadRequest, err)
 		return
 	}
-	handlersCategory := handlers.Category{
+	modelsCategory := models.Category{
 		Name:        deliveryCategory.Name,
 		Description: deliveryCategory.Description,
 	}
-	id, err := delivery.categoryHandlers.CreateCategory(ctx, handlersCategory)
+	id, err := delivery.categoryUsecase.CreateCategory(ctx, &modelsCategory)
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusInternalServerError, err)
@@ -90,15 +90,25 @@ func (delivery *Delivery) UpdateCategory(c *gin.Context) {
 		delivery.SetError(c, http.StatusBadRequest, err)
 		return
 	}
+	uid, err := uuid.Parse(id)
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
+	}
 	var deliveryCategory category.Category
 	if err := c.ShouldBindJSON(&deliveryCategory); err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusBadRequest, err)
 		return
 	}
-	deliveryCategory.Id = id
+
+	modelsCategory := models.Category{
+		Id:          uid,
+		Name:        deliveryCategory.Name,
+		Description: deliveryCategory.Description,
+	}
 	ctx := c.Request.Context()
-	err := delivery.categoryHandlers.UpdateCategory(ctx, handlers.Category(deliveryCategory))
+	err = delivery.categoryUsecase.UpdateCategory(ctx, &modelsCategory)
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusInternalServerError, err)
@@ -133,6 +143,12 @@ func (delivery *Delivery) UploadCategoryImage(c *gin.Context) {
 		delivery.SetError(c, http.StatusBadRequest, err)
 		return
 	}
+
+	uid, err := uuid.Parse(id)
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
+	}
 	var name string
 	contentType := c.ContentType()
 
@@ -163,7 +179,7 @@ func (delivery *Delivery) UploadCategoryImage(c *gin.Context) {
 		return
 	}
 	ctx := c.Request.Context()
-	category, err := delivery.categoryHandlers.GetCategory(ctx, id)
+	category, err := delivery.categoryUsecase.GetCategory(ctx, uid)
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusInternalServerError, err)
@@ -171,7 +187,7 @@ func (delivery *Delivery) UploadCategoryImage(c *gin.Context) {
 	}
 	category.Image = path
 
-	err = delivery.categoryHandlers.UpdateCategory(ctx, category)
+	err = delivery.categoryUsecase.UpdateCategory(ctx, category)
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusInternalServerError, err)
@@ -220,7 +236,14 @@ func (delivery *Delivery) DeleteCategoryImage(c *gin.Context) {
 
 	}
 	ctx := c.Request.Context()
-	category, err := delivery.categoryHandlers.GetCategory(ctx, imageOptions.Id)
+
+	uid, err := uuid.Parse(imageOptions.Id)
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
+	}
+
+	category, err := delivery.categoryUsecase.GetCategory(ctx, uid)
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusInternalServerError, err)
@@ -229,7 +252,7 @@ func (delivery *Delivery) DeleteCategoryImage(c *gin.Context) {
 	if strings.Contains(category.Image, imageOptions.Name) {
 		category.Image = ""
 	}
-	err = delivery.categoryHandlers.UpdateCategory(ctx, category)
+	err = delivery.categoryUsecase.UpdateCategory(ctx, category)
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusInternalServerError, err)
@@ -261,19 +284,24 @@ func (delivery *Delivery) GetCategory(c *gin.Context) {
 		delivery.SetError(c, http.StatusBadRequest, err)
 		return
 	}
+	uid, err := uuid.Parse(id)
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
+	}
 	delivery.logger.Debug(fmt.Sprintf("Category id from request is %v", id))
 	ctx := c.Request.Context()
-	handlersCategory, err := delivery.categoryHandlers.GetCategory(ctx, id)
+	modelsCategory, err := delivery.categoryUsecase.GetCategory(ctx, uid)
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusInternalServerError, err)
 		return
 	}
 	c.JSON(http.StatusOK, category.Category{
-		Id:          handlersCategory.Id,
-		Name:        handlersCategory.Name,
-		Description: handlersCategory.Description,
-		Image:       handlersCategory.Image,
+		Id:          modelsCategory.Id.String(),
+		Name:        modelsCategory.Name,
+		Description: modelsCategory.Description,
+		Image:       modelsCategory.Image,
 	})
 }
 
@@ -292,7 +320,7 @@ func (delivery *Delivery) GetCategory(c *gin.Context) {
 //	@Router			/categories/list [get]
 func (delivery *Delivery) GetCategoryList(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery GetCategoryList()")
-	list, err := delivery.categoryHandlers.GetCategoryList(c.Request.Context())
+	list, err := delivery.categoryUsecase.GetCategoryList(c.Request.Context())
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusInternalServerError, err)
@@ -302,7 +330,7 @@ func (delivery *Delivery) GetCategoryList(c *gin.Context) {
 	categories := make([]category.Category, len(list))
 	for i, cat := range list {
 		categories[i] = category.Category{
-			Id:          cat.Id,
+			Id:          cat.Id.String(),
 			Name:        cat.Name,
 			Description: cat.Description,
 			Image:       cat.Image,
@@ -327,22 +355,21 @@ func (delivery *Delivery) GetCategoryList(c *gin.Context) {
 //	@Router			/categories/delete/{categoryID} [delete]
 func (delivery *Delivery) DeleteCategory(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery DeleteCategory()")
-	stringId := c.Param("categoryID")
-	if stringId == "" {
+	id := c.Param("categoryID")
+	if id == "" {
 		err := fmt.Errorf("empty category id in request")
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusBadRequest, err)
 		return
 	}
-	id, err := uuid.Parse(stringId)
+	uid, err := uuid.Parse(id)
 	if err != nil {
-		delivery.logger.Error(fmt.Sprintf("error on parsing uuid: %v", err))
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusBadRequest, err)
 		return
 	}
 	ctx := c.Request.Context()
-	deletedCategory, err := delivery.categoryHandlers.GetCategory(ctx, stringId)
+	deletedCategory, err := delivery.categoryUsecase.GetCategory(ctx, uid)
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusInternalServerError, err)
@@ -350,7 +377,7 @@ func (delivery *Delivery) DeleteCategory(c *gin.Context) {
 	}
 	delivery.logger.Debug(fmt.Sprintf("deletedCategory: %v", deletedCategory))
 
-	err = delivery.categoryHandlers.DeleteCategory(ctx, id)
+	err = delivery.categoryUsecase.DeleteCategory(ctx, uid)
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusInternalServerError, err)
@@ -358,45 +385,44 @@ func (delivery *Delivery) DeleteCategory(c *gin.Context) {
 	}
 
 	if deletedCategory.Image != "" {
-		err = delivery.filestorage.DeleteCategoryImageById(stringId)
+		err = delivery.filestorage.DeleteCategoryImageById(id)
 		if err != nil {
 			delivery.logger.Error(err.Error())
 			delivery.SetError(c, http.StatusInternalServerError, err)
 		}
 	}
 
-	quantity, err := delivery.itemHandlers.ItemsQuantity(ctx)
+	quantity, err := delivery.itemUsecase.ItemsQuantity(ctx)
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusInternalServerError, err)
 		return
 	}
 
-	items, err := delivery.itemHandlers.GetItemsByCategory(ctx, deletedCategory.Name, 0, quantity)
+	items, err := delivery.itemUsecase.GetItemsByCategory(ctx, deletedCategory.Name, 0, quantity)
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusInternalServerError, err)
 		return
 	}
 
-	noCategory, err := delivery.categoryHandlers.GetCategoryByName(ctx, "NoCategory")
+	noCategory, err := delivery.categoryUsecase.GetCategoryByName(ctx, "NoCategory")
 	if err != nil {
 		delivery.logger.Error(fmt.Sprintf("error on get category by name: %v", err))
-		noCategory := handlers.Category{
+		noCategory := models.Category{
 			Name:        "NoCategory",
 			Description: "Category for items from deleting categories",
 		}
-		noCategoryId, err := delivery.categoryHandlers.CreateCategory(ctx, noCategory)
+		noCategoryId, err := delivery.categoryUsecase.CreateCategory(ctx, &noCategory)
 		if err != nil {
 			delivery.logger.Error(err.Error())
 			delivery.SetError(c, http.StatusInternalServerError, err)
 			return
 		}
-		delivery.SetError(c, http.StatusOK, nil)
-		noCategory.Id = noCategoryId.String()
+		noCategory.Id = noCategoryId
 		for _, item := range items {
 			item.Category = noCategory
-			err := delivery.itemHandlers.UpdateItem(ctx, item)
+			err := delivery.itemUsecase.UpdateItem(ctx, &item)
 			if err != nil {
 				delivery.logger.Error(fmt.Sprintf("error on update item: %v", err))
 			}
@@ -405,8 +431,8 @@ func (delivery *Delivery) DeleteCategory(c *gin.Context) {
 		return
 	}
 	for _, item := range items {
-		item.Category = noCategory
-		err := delivery.itemHandlers.UpdateItem(ctx, item)
+		item.Category = *noCategory
+		err := delivery.itemUsecase.UpdateItem(ctx, &item)
 		if err != nil {
 			delivery.logger.Error(fmt.Sprintf("error on update item: %v", err))
 		}
