@@ -10,16 +10,33 @@
 package router
 
 import (
+	"OnlineShopBackend/cmd/onlineShopBackend/docs"
 	"OnlineShopBackend/internal/delivery"
 	"fmt"
-
 	"net/http"
+	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/thinkerou/favicon"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"go.uber.org/zap"
 )
+
+// @title Swagger Example API
+// @version 1.0
+// @description This is a sample server Petstore server.
+// @termsOfService http://swagger.io/terms/
+
+// @contact.name API Support
+// @contact.url http://www.swagger.io/support
+// @contact.email support@swagger.io
+
+// @license.name Apache 2.0
+// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
+
+// @host localhost:80
+// @BasePath /
 
 // Route is the information for every URI.
 type Route struct {
@@ -46,9 +63,36 @@ type Router struct {
 func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 	logger.Debug("Enter in NewRouter()")
 	router := gin.Default()
-	router.Use(favicon.New("./favicon.ico"))
-	router.Use(cors.Default())
-	router.Static("/files", "./storage/files")
+
+
+
+
+
+	ginSwagger.WrapHandler(swaggerFiles.Handler,
+		ginSwagger.URL("http://localhost:80/swagger/doc.json"), //8000
+		ginSwagger.DefaultModelsExpandDepth(-1))
+
+	//Swagger 2.0 Meta Information
+	docs.SwaggerInfo.Host = "localhost:80" //8000
+	docs.SwaggerInfo.Schemes = []string{"http"}
+	docs.SwaggerInfo.BasePath = "/"
+
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
+	 	router.Use(cors.New(cors.Config{
+				//AllowOrigins: []string{"http://localhost:3000"},
+			    AllowMethods:     []string{"GET", "POST", "OPTIONS", "PUT", "DELETE"},
+				AllowHeaders:     []string{"Access-Control-Allow-Origin", "*"},
+				ExposeHeaders:    []string{"Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With"},
+				AllowCredentials: true,
+				AllowAllOrigins:  false,
+		AllowOriginFunc:  func(origin string) bool { return true },
+				MaxAge:           12 * time.Hour,
+			}))
+
+		//router.Use(cors.Default())
+
+	router.Static("./files", "./storage/files")
 	routes := Routes{
 		{
 			"Index",
@@ -168,7 +212,7 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 
 		{
 			"LogoutUser",
-			http.MethodPost,
+			http.MethodGet,
 			"/user/logout",
 			delivery.LogoutUser,
 		},

@@ -12,18 +12,27 @@ package delivery
 import (
 	"OnlineShopBackend/internal/handlers"
 	"fmt"
-	//"github.com/dghubble/sessions"
-
-	//"github.com/dghubble/gologin/v2"
-	//"github.com/dghubble/gologin/v2/google"
-	//"github.com/dghubble/sessions"
-	"golang.org/x/oauth2"
-	og2 "golang.org/x/oauth2/google"
 	"net/http"
 	"unicode"
 
+	//"github.com/dghubble/gologin/v2"
+	//"github.com/dghubble/gologin/v2/google"
+	"github.com/dghubble/sessions"
 	"github.com/gin-gonic/gin"
+
+	"golang.org/x/oauth2"
+	og2 "golang.org/x/oauth2/google"
 )
+
+const (
+	sessionName     = "example-google-app"
+	sessionSecret   = "example cookie signing secret"
+	sessionUserKey  = "key"
+	sessionUserID = "user"
+)
+
+var sessionStore = sessions.NewCookieStore([]byte(sessionSecret), nil)
+
 
 // CreateUser -
 func (delivery *Delivery) CreateUser(c *gin.Context) {
@@ -57,12 +66,26 @@ func (delivery *Delivery) CreateUser(c *gin.Context) {
 func (delivery *Delivery) LoginUser(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery LoginUser()")
 	var deliveryUser handlers.User
+	//var user models.User
 	if err := c.ShouldBindJSON(&deliveryUser); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	//TODO
+	user, err := delivery.userHandlers.GetUserByEmail(c.Request.Context(), deliveryUser.Email); if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	//session := sessionStore.New(sessionName)
+	session := sessions.NewSession(sessionStore, sessionName)
+	session.Values[sessionUserID] = user.ID
+	if err := session.Save(c.Writer); err != nil {
+		delivery.logger.Error("saving session error")
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"id": session.Values[sessionUserID]})
+
 }
 
 // LoginUserGoogle -
@@ -103,7 +126,13 @@ func (delivery *Delivery) CallbackYandex(c *gin.Context) {
 // LogoutUser -
 func (delivery *Delivery) LogoutUser(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery LogoutUser()")
-	c.JSON(http.StatusOK, gin.H{})
+	//session, _ := sessionStore.Get(c.Request, sessionName)
+	//session.Values[sessionUserID] = nil
+	//session.Save(c.Writer)
+
+	sessionStore.Destroy(c.Writer, sessionName)
+	c.JSON(http.StatusOK, gin.H{"you have been successfully logged out": nil})
+	c.Redirect(http.StatusTemporaryRedirect, "/")
 }
 
 func validationCheck(user handlers.User) error {
@@ -122,14 +151,6 @@ func validationCheck(user handlers.User) error {
 }
 
 
-const (
-	sessionName     = "example-google-app"
-	sessionSecret   = "example cookie signing secret"
-	sessionUserKey  = "googleID"
-	sessionUsername = "googleName"
-)
-
-//var sessionStore = sessions.NewCookieStore([]byte(sessionSecret), nil)
 
 
 //func issueSession() http.Handler {

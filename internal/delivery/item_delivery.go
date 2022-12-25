@@ -316,3 +316,4 @@ func (delivery *Delivery) DeleteItemImage(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"status": "delete image success"})
 }
+

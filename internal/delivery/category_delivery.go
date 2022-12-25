@@ -167,7 +167,16 @@ func (delivery *Delivery) GetCategory(c *gin.Context) {
 	c.JSON(http.StatusOK, category)
 }
 
-// GetCategoryList - get a list of categories
+//Path Information
+
+// GetCategoryList godoc
+// @Summary Get Category List
+// @Description Get Category List
+// @Accept  json
+// @Produce  json
+// @ Failure 400 {object}
+// @Success 200 {object} list "ok"
+// @Router /categories/list [get]
 func (delivery *Delivery) GetCategoryList(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery GetCategoryList()")
 	list, err := delivery.categoryHandlers.GetCategoryList(c.Request.Context())

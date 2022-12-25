@@ -115,6 +115,10 @@ run_db:
 	-v $(CURDIR)/storage/init_db:/docker-entrypoint-initdb.d \
 	 bitnami/postgresql:latest
 
+.PHONY: groupimports
+groupimports:
+	find . -type f -name '*.go' ! -path './.git/*' | xargs -L 1 python3 third_party/groupimports.py
+
 mock_store:
 	mockgen -source=internal/repository/repo_interface.go -destination=internal/repository/mocks/repo_mock.go -package=mocks
 
