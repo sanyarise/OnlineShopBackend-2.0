@@ -96,6 +96,7 @@ func (delivery *Delivery) CreateItem(c *gin.Context) {
 			Id: deliveryItem.Category,
 		},
 		Vendor: deliveryItem.Vendor,
+		Images: deliveryItem.Images,
 	}
 
 	id, err := delivery.itemHandlers.CreateItem(ctx, handlersItem)

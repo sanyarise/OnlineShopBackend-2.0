@@ -3,11 +3,12 @@ package item
 import "OnlineShopBackend/internal/delivery/category"
 
 type ShortItem struct {
-	Title       string `json:"title" binding:"required" example:"Пылесос"`
-	Description string `json:"description" binding:"required" example:"Мощность всасывания 1.5 кВт"`
-	Category    string `json:"category" example:"00000000-0000-0000-0000-000000000000" format:"uuid"`
-	Price       int32  `json:"price" example:"1990" default:"10" binding:"required" minimum:"0"`
-	Vendor      string `json:"vendor" example:"Витязь"`
+	Title       string   `json:"title" binding:"required" example:"Пылесос"`
+	Description string   `json:"description" binding:"required" example:"Мощность всасывания 1.5 кВт"`
+	Category    string   `json:"category" example:"00000000-0000-0000-0000-000000000000" format:"uuid"`
+	Price       int32    `json:"price" example:"1990" default:"10" binding:"required" minimum:"0"`
+	Vendor      string   `json:"vendor" example:"Витязь"`
+	Images      []string `json:"image,omitempty"`
 }
 
 type ItemId struct {
@@ -21,7 +22,7 @@ type OutItem struct {
 	Category    category.Category `json:"category" binding:"required"`
 	Price       int32             `json:"price" example:"1990" default:"10" binding:"required" minimum:"0"`
 	Vendor      string            `json:"vendor" binding:"required" example:"Витязь"`
-	Images      []string          `json:"images,omitempty"`
+	Images      []string          `json:"image,omitempty"`
 }
 
 type InItem struct {
@@ -31,7 +32,7 @@ type InItem struct {
 	Category    string   `json:"category" binding:"required,uuid" example:"00000000-0000-0000-0000-000000000000" format:"uuid"`
 	Price       int32    `json:"price" example:"1990" default:"10" binding:"required" minimum:"0"`
 	Vendor      string   `json:"vendor" binding:"required" example:"Витязь"`
-	Images      []string `json:"images,omitempty"`
+	Images      []string `json:"image,omitempty"`
 }
 
 type ItemsQuantity struct {
