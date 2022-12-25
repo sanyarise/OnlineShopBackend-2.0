@@ -29,6 +29,10 @@ type Options struct {
 	Limit  int `form:"limit"`
 }
 
+type QuantityOptions struct {
+	CategoryName string `form:"categoryName"`
+}
+
 type SearchOptions struct {
 	Param  string `form:"param"`
 	Offset int    `form:"offset"`
@@ -276,15 +280,34 @@ func (delivery *Delivery) ItemsList(c *gin.Context) {
 //	@Router			/items/quantity [get]
 func (delivery *Delivery) ItemsQuantity(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery ItemsQuantity()")
-	ctx := c.Request.Context()
-	quantity, err := delivery.itemHandlers.ItemsQuantity(ctx)
+	var options QuantityOptions
+	err := c.Bind(&options)
 	if err != nil {
 		delivery.logger.Error(err.Error())
-		delivery.SetError(c, http.StatusInternalServerError, err)
+		delivery.SetError(c, http.StatusBadRequest, err)
 		return
 	}
-	itemsQuantity := item.ItemsQuantity{Quantity: quantity}
-	c.JSON(http.StatusOK, itemsQuantity)
+	delivery.logger.Debug(fmt.Sprintf("options is %v", options))
+	ctx := c.Request.Context()
+	if options.CategoryName == "" {
+		quantity, err := delivery.itemHandlers.ItemsQuantity(ctx)
+		if err != nil {
+			delivery.logger.Error(err.Error())
+			delivery.SetError(c, http.StatusInternalServerError, err)
+			return
+		}
+		itemsQuantity := item.ItemsQuantity{Quantity: quantity}
+		c.JSON(http.StatusOK, itemsQuantity)
+	} else {
+		quantity, err := delivery.itemHandlers.ItemsQuantityInCategory(ctx, options.CategoryName)
+		if err != nil {
+			delivery.logger.Error(err.Error())
+			delivery.SetError(c, http.StatusInternalServerError, err)
+			return
+		}
+		itemsQuantity := item.ItemsQuantity{Quantity: quantity}
+		c.JSON(http.StatusOK, itemsQuantity)
+	}
 }
 
 // SearchLine - returns list of items with parameters
