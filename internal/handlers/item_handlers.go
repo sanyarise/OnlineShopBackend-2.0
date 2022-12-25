@@ -149,9 +149,20 @@ func (handlers *ItemHandlers) ItemsList(ctx context.Context, offset, limit int) 
 	return res, nil
 }
 
+// ItemsQuantity returns quantity of items
 func (handlers *ItemHandlers) ItemsQuantity(ctx context.Context) (int, error) {
 	handlers.logger.Debug("Enter in handlers ItemsQuantity()")
 	quantity, err := handlers.usecase.ItemsQuantity(ctx)
+	if err != nil {
+		return quantity, err
+	}
+	return quantity, nil
+}
+
+// ItemsQuantity returns quantity of items in category
+func (handlers *ItemHandlers) ItemsQuantityInCategory(ctx context.Context, categoryName string) (int, error) {
+	handlers.logger.Debug("Enter in handlers ItemsQuantityInCategory()")
+	quantity, err := handlers.usecase.ItemsQuantityInCategory(ctx, categoryName)
 	if err != nil {
 		return quantity, err
 	}
