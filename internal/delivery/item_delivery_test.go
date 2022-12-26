@@ -43,6 +43,12 @@ var (
 		Price:       10,
 		Vendor:      "testVendor",
 	}
+	testShortItemWithoutCat = item.ShortItem{
+		Title:       "testTitle",
+		Description: "testDescription",
+		Price:       10,
+		Vendor:      "testVendor",
+	}
 	wrongShortItem = WrongShortItem{
 		Title:       10,
 		Description: 11,
@@ -91,6 +97,8 @@ var (
 		Price:  10,
 		Vendor: "testVendor",
 	}
+
+	
 	testModelsItemWithId2 = &models.Item{
 		Id:          testId,
 		Title:       "testTitle",
@@ -232,6 +240,33 @@ func TestCreateItem(t *testing.T) {
 	itemHandlers.EXPECT().CreateItem(ctx, testModelsItemWithoutId).Return(uuid.Nil, fmt.Errorf("error"))
 	delivery.CreateItem(c)
 	require.Equal(t, 500, w.Code)
+
+	testNoCategory := models.Category{
+		Name:        "NoCategory",
+		Description: "Category for items without categories",
+	}
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	MockJson(c, testShortItemWithoutCat, post)
+	categoryHandlers.EXPECT().GetCategoryByName(ctx, "NoCategory").Return(nil, fmt.Errorf("error"))
+	categoryHandlers.EXPECT().CreateCategory(ctx, &testNoCategory).Return(uuid.Nil, fmt.Errorf("error"))
+	delivery.CreateItem(c)
+	require.Equal(t, 500, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	MockJson(c, testShortItemWithoutCat, post)
+	categoryHandlers.EXPECT().GetCategoryByName(ctx, "NoCategory").Return(nil, fmt.Errorf("error"))
+	categoryHandlers.EXPECT().CreateCategory(ctx, &testNoCategory).Return(testId, nil)
+	itemHandlers.EXPECT().CreateItem(ctx, testModelsItemWithoutId).Return(testId, nil)
+	delivery.CreateItem(c)
+	require.Equal(t, 201, w.Code)
 }
 
 func TestGetItem(t *testing.T) {

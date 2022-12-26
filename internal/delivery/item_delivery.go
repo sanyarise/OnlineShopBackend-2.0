@@ -97,6 +97,7 @@ func (delivery *Delivery) CreateItem(c *gin.Context) {
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusBadRequest, err)
+		return
 	}
 	modelsItem := models.Item{
 		Title:       deliveryItem.Title,
@@ -146,6 +147,7 @@ func (delivery *Delivery) GetItem(c *gin.Context) {
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusBadRequest, err)
+		return
 	}
 	ctx := c.Request.Context()
 	modelsItem, err := delivery.itemUsecase.GetItem(ctx, uid)
@@ -198,11 +200,13 @@ func (delivery *Delivery) UpdateItem(c *gin.Context) {
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusBadRequest, err)
+		return
 	}
 	categoryUid, err := uuid.Parse(deliveryItem.Category)
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusBadRequest, err)
+		return
 	}
 	err = delivery.itemUsecase.UpdateItem(ctx, &models.Item{
 		Id:          uid,

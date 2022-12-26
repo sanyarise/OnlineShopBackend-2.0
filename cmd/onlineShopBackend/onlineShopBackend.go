@@ -29,18 +29,6 @@ func main() {
 	logger := logger.NewLogger(cfg.LogLevel)
 	lsug := logger.Logger.Sugar()
 	l := logger.Logger
-	defer func() {
-		err := l.Sync()
-		if err != nil {
-			l.Error(err.Error())
-		}
-	}()
-	defer func() {
-		err := lsug.Sync()
-		if err != nil {
-			l.Error(err.Error())
-		}
-	}()
 
 	l.Info("Configuration sucessfully load")
 

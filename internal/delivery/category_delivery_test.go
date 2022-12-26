@@ -89,14 +89,19 @@ var (
 		Name:        "NoCategory",
 		Description: "Category for items from deleting categories",
 	}
+	testCategoryWithImage2 = & models.Category{
+		Id:          testId,
+		Name:        "testName",
+		Description: "testDescription",
+		Image:       "testImagePath",
+	}
 	testModelsItemNoCat = models.Item{
 		Id:          testId,
 		Title:       "testTitle",
 		Description: "testDescription",
 		Category:    testNoCategoryWithId,
 		Price:       10,
-		Vendor:      "testVendor",
-		Images:      []string{"testName"},
+		Vendor: "testVendor",
 	}
 )
 
@@ -166,6 +171,15 @@ func TestCreateCategory(t *testing.T) {
 	c.Request = &http.Request{
 		Header: make(http.Header),
 	}
+	MockCatJson(c, testEmptyCategory, post)
+	delivery.CreateCategory(c)
+	require.Equal(t, 400, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
 	MockJson(c, testEmptyCategory, post)
 	delivery.CreateCategory(c)
 	require.Equal(t, 400, w.Code)
@@ -224,6 +238,22 @@ func TestUpdateCategory(t *testing.T) {
 	categoryHandlers.EXPECT().UpdateCategory(ctx, testModelsCategoryWithId).Return(fmt.Errorf("error"))
 	delivery.UpdateCategory(c)
 	require.Equal(t, 500, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Params = []gin.Param{
+		{
+			Key:   "categoryID",
+			Value: testId.String()+"l",
+		},
+	}
+	MockCatJson(c, testCategoryWithId, put)
+	delivery.UpdateCategory(c)
+	require.Equal(t, 400, w.Code)
 
 	w = httptest.NewRecorder()
 	c, _ = gin.CreateTestContext(w)
@@ -329,6 +359,21 @@ func TestGetCategory(t *testing.T) {
 	c.Params = []gin.Param{
 		{
 			Key:   "categoryID",
+			Value: testId.String()+"n",
+		},
+	}
+	delivery.GetCategory(c)
+	require.Equal(t, 400, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Params = []gin.Param{
+		{
+			Key:   "categoryID",
 			Value: testId.String(),
 		},
 	}
@@ -373,6 +418,22 @@ func TestUploadCategoryImage(t *testing.T) {
 
 	delivery.UploadCategoryImage(c)
 	require.Equal(t, 415, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Params = []gin.Param{
+		{
+			Key:   "categoryID",
+			Value: testId.String()+"l",
+		},
+	}
+
+	delivery.UploadCategoryImage(c)
+	require.Equal(t, 400, w.Code)
 
 	w = httptest.NewRecorder()
 	c, _ = gin.CreateTestContext(w)
@@ -494,6 +555,28 @@ func TestDeleteCategoryImage(t *testing.T) {
 	c.Request = &http.Request{
 		Header: make(http.Header),
 	}
+	c.Request.URL, _ = url.Parse(fmt.Sprintf("?id=%s&name=testName", testId.String()+"l"))
+	filestorage.EXPECT().DeleteCategoryImage(testId.String()+"l", "testName").Return(nil)
+	delivery.DeleteCategoryImage(c)
+	require.Equal(t, 400, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Request.URL, _ = url.Parse(fmt.Sprintf("?id=%s&name=testName", testId.String()))
+	filestorage.EXPECT().DeleteCategoryImage(testId.String(), "testName").Return(fmt.Errorf("error"))
+	delivery.DeleteCategoryImage(c)
+	require.Equal(t, 500, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
 	c.Request.URL, _ = url.Parse(fmt.Sprintf("?id=%s&name=testName", testId.String()))
 	filestorage.EXPECT().DeleteCategoryImage(testId.String(), "testName").Return(nil)
 	categoryHandlers.EXPECT().GetCategory(ctx, testId).Return(&testEmptyModelsCategory, fmt.Errorf("error"))
@@ -555,21 +638,6 @@ func TestDeleteCategory(t *testing.T) {
 	c.Params = []gin.Param{
 		{
 			Key:   "categoryID",
-			Value: testId.String() + "1",
-		},
-	}
-	delivery.DeleteCategory(c)
-	require.Equal(t, 400, w.Code)
-
-	w = httptest.NewRecorder()
-	c, _ = gin.CreateTestContext(w)
-
-	c.Request = &http.Request{
-		Header: make(http.Header),
-	}
-	c.Params = []gin.Param{
-		{
-			Key:   "categoryID",
 			Value: testId.String(),
 		},
 	}
@@ -590,6 +658,7 @@ func TestDeleteCategory(t *testing.T) {
 		},
 	}
 	categoryHandlers.EXPECT().GetCategory(ctx, testId).Return(testModelsCategoryWithId, nil)
+	itemHandlers.EXPECT().ItemsQuantityInCategory(ctx, testModelsCategoryWithId.Name).Return(0, nil)
 	categoryHandlers.EXPECT().DeleteCategory(ctx, testId).Return(fmt.Errorf("error"))
 	delivery.DeleteCategory(c)
 	require.Equal(t, 500, w.Code)
@@ -607,9 +676,7 @@ func TestDeleteCategory(t *testing.T) {
 		},
 	}
 	categoryHandlers.EXPECT().GetCategory(ctx, testId).Return(testModelsCategoryWithId, nil)
-	categoryHandlers.EXPECT().DeleteCategory(ctx, testId).Return(nil)
-	filestorage.EXPECT().DeleteCategoryImageById(testId.String()).Return(fmt.Errorf("error"))
-	itemHandlers.EXPECT().ItemsQuantity(ctx).Return(-1, fmt.Errorf("error"))
+	itemHandlers.EXPECT().ItemsQuantityInCategory(ctx, testModelsCategoryWithId.Name).Return(-1, fmt.Errorf("error"))
 	delivery.DeleteCategory(c)
 	require.Equal(t, 500, w.Code)
 
@@ -625,11 +692,10 @@ func TestDeleteCategory(t *testing.T) {
 			Value: testId.String(),
 		},
 	}
-	categoryHandlers.EXPECT().GetCategory(ctx, testId).Return(testModelsCategoryWithId, nil)
+	categoryHandlers.EXPECT().GetCategory(ctx, testId).Return(testCategoryWithImage2, nil)
+	itemHandlers.EXPECT().ItemsQuantityInCategory(ctx, testCategoryWithImage2.Name).Return(0, nil)
 	categoryHandlers.EXPECT().DeleteCategory(ctx, testId).Return(nil)
 	filestorage.EXPECT().DeleteCategoryImageById(testId.String()).Return(fmt.Errorf("error"))
-	itemHandlers.EXPECT().ItemsQuantity(ctx).Return(1, nil)
-	itemHandlers.EXPECT().GetItemsByCategory(ctx, testCategoryWithImage.Name, 0, 1).Return([]models.Item{}, fmt.Errorf("error"))
 	delivery.DeleteCategory(c)
 	require.Equal(t, 500, w.Code)
 
@@ -645,17 +711,115 @@ func TestDeleteCategory(t *testing.T) {
 			Value: testId.String(),
 		},
 	}
-	categoryHandlers.EXPECT().GetCategory(ctx, testId).Return(testModelsCategoryWithId, nil)
+	categoryHandlers.EXPECT().GetCategory(ctx, testId).Return(testCategoryWithImage2, nil)
+	itemHandlers.EXPECT().ItemsQuantityInCategory(ctx, testCategoryWithImage2.Name).Return(0, nil)
 	categoryHandlers.EXPECT().DeleteCategory(ctx, testId).Return(nil)
-	filestorage.EXPECT().DeleteCategoryImageById(testId.String()).Return(fmt.Errorf("error"))
-	itemHandlers.EXPECT().ItemsQuantity(ctx).Return(1, nil)
-	itemHandlers.EXPECT().GetItemsByCategory(ctx, testCategoryWithImage.Name, 0, 1).Return([]models.Item{testModelsItemWithImage}, nil)
-	categoryHandlers.EXPECT().GetCategoryByName(ctx, "NoCategory").Return(&testEmptyModelsCategory, fmt.Errorf("error"))
+	filestorage.EXPECT().DeleteCategoryImageById(testId.String()).Return(nil)
+	delivery.DeleteCategory(c)
+	require.Equal(t, 200, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Params = []gin.Param{
+		{
+			Key:   "categoryID",
+			Value: testId.String(),
+		},
+	}
+	categoryHandlers.EXPECT().GetCategory(ctx, testId).Return(testCategoryWithImage2, nil)
+	itemHandlers.EXPECT().ItemsQuantityInCategory(ctx, testCategoryWithImage2.Name).Return(1, nil)
+	itemHandlers.EXPECT().GetItemsByCategory(ctx, testCategoryWithImage2.Name, 0, 1).Return([]models.Item{*testModelsItemWithId}, nil)
+	categoryHandlers.EXPECT().DeleteCategory(ctx, testId).Return(nil)
+	filestorage.EXPECT().DeleteCategoryImageById(testId.String()).Return(nil)
+	categoryHandlers.EXPECT().GetCategoryByName(ctx, "NoCategory").Return(&testNoCategoryWithId, nil)
+	itemHandlers.EXPECT().UpdateItem(ctx, &testModelsItemNoCat).Return(fmt.Errorf("error"))
+	delivery.DeleteCategory(c)
+	require.Equal(t, 200, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Params = []gin.Param{
+		{
+			Key:   "categoryID",
+			Value: testId.String(),
+		},
+	}
+	categoryHandlers.EXPECT().GetCategory(ctx, testId).Return(testCategoryWithImage2, nil)
+	itemHandlers.EXPECT().ItemsQuantityInCategory(ctx, testCategoryWithImage2.Name).Return(1, nil)
+	itemHandlers.EXPECT().GetItemsByCategory(ctx, testCategoryWithImage2.Name, 0, 1).Return(nil, fmt.Errorf("error"))
+	delivery.DeleteCategory(c)
+	require.Equal(t, 500, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Params = []gin.Param{
+		{
+			Key:   "categoryID",
+			Value: testId.String(),
+		},
+	}
+	categoryHandlers.EXPECT().GetCategory(ctx, testId).Return(testCategoryWithImage2, nil)
+	itemHandlers.EXPECT().ItemsQuantityInCategory(ctx, testCategoryWithImage2.Name).Return(1, nil)
+	itemHandlers.EXPECT().GetItemsByCategory(ctx, testCategoryWithImage2.Name, 0, 1).Return([]models.Item{*testModelsItemWithId}, nil)
+	categoryHandlers.EXPECT().DeleteCategory(ctx, testId).Return(nil)
+	filestorage.EXPECT().DeleteCategoryImageById(testId.String()).Return(nil)
+	categoryHandlers.EXPECT().GetCategoryByName(ctx, "NoCategory").Return(nil, fmt.Errorf("error"))
 	categoryHandlers.EXPECT().CreateCategory(ctx, &testNoCategory).Return(uuid.Nil, fmt.Errorf("error"))
 	delivery.DeleteCategory(c)
 	require.Equal(t, 500, w.Code)
 
 	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Params = []gin.Param{
+		{
+			Key:   "categoryID",
+			Value: testId.String(),
+		},
+	}
+	categoryHandlers.EXPECT().GetCategory(ctx, testId).Return(testCategoryWithImage2, nil)
+	itemHandlers.EXPECT().ItemsQuantityInCategory(ctx, testCategoryWithImage2.Name).Return(1, nil)
+	itemHandlers.EXPECT().GetItemsByCategory(ctx, testCategoryWithImage2.Name, 0, 1).Return([]models.Item{*testModelsItemWithId}, nil)
+	categoryHandlers.EXPECT().DeleteCategory(ctx, testId).Return(nil)
+	filestorage.EXPECT().DeleteCategoryImageById(testId.String()).Return(nil)
+	categoryHandlers.EXPECT().GetCategoryByName(ctx, "NoCategory").Return(nil, fmt.Errorf("error"))
+	categoryHandlers.EXPECT().CreateCategory(ctx, &testNoCategory).Return(testId, nil)
+	itemHandlers.EXPECT().UpdateItem(ctx, &testModelsItemNoCat).Return(fmt.Errorf("error"))
+	delivery.DeleteCategory(c)
+	require.Equal(t, 200, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Params = []gin.Param{
+		{
+			Key:   "categoryID",
+			Value: testId.String(),
+		},
+	}
+	categoryHandlers.EXPECT().GetCategory(ctx, testId).Return(&testNoCategoryWithId, nil)
+	delivery.DeleteCategory(c)
+	require.Equal(t, 400, w.Code)
+
+	/*w = httptest.NewRecorder()
 	c, _ = gin.CreateTestContext(w)
 
 	c.Request = &http.Request{
@@ -698,5 +862,5 @@ func TestDeleteCategory(t *testing.T) {
 	categoryHandlers.EXPECT().GetCategoryByName(ctx, "NoCategory").Return(&testNoCategoryWithId, nil)
 	itemHandlers.EXPECT().UpdateItem(ctx, &testModelsItemNoCat).Return(nil)
 	delivery.DeleteCategory(c)
-	require.Equal(t, 200, w.Code)
+	require.Equal(t, 200, w.Code)*/
 }

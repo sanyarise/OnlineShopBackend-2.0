@@ -72,8 +72,8 @@ func (delivery *Delivery) CreateCategory(c *gin.Context) {
 //	@Tags			categories
 //	@Accept			json
 //	@Produce		json
-//	@Param			id			path	string				true	"id of category"
-//	@Param			category	body	category.Category	true	"Data for updating category"
+//	@Param			id			path	string					true	"id of category"
+//	@Param			category	body	category.ShortCategory	true	"Data for updating category"
 //	@Success		200
 //	@Failure		400	{object}	ErrorResponse
 //	@Failure		403	"Forbidden"
@@ -94,8 +94,9 @@ func (delivery *Delivery) UpdateCategory(c *gin.Context) {
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusBadRequest, err)
+		return
 	}
-	var deliveryCategory category.Category
+	var deliveryCategory category.ShortCategory
 	if err := c.ShouldBindJSON(&deliveryCategory); err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusBadRequest, err)
@@ -148,6 +149,7 @@ func (delivery *Delivery) UploadCategoryImage(c *gin.Context) {
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusBadRequest, err)
+		return
 	}
 	var name string
 	contentType := c.ContentType()
@@ -241,6 +243,7 @@ func (delivery *Delivery) DeleteCategoryImage(c *gin.Context) {
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusBadRequest, err)
+		return
 	}
 
 	category, err := delivery.categoryUsecase.GetCategory(ctx, uid)
@@ -288,6 +291,7 @@ func (delivery *Delivery) GetCategory(c *gin.Context) {
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusBadRequest, err)
+		return
 	}
 	delivery.logger.Debug(fmt.Sprintf("Category id from request is %v", id))
 	ctx := c.Request.Context()
@@ -377,6 +381,29 @@ func (delivery *Delivery) DeleteCategory(c *gin.Context) {
 	}
 	delivery.logger.Debug(fmt.Sprintf("deletedCategory: %v", deletedCategory))
 
+	if deletedCategory.Name == "NoCategory" {
+		err = fmt.Errorf("category NoCategory protected by deleting")
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
+		return
+	}
+
+	quantity, err := delivery.itemUsecase.ItemsQuantityInCategory(ctx, deletedCategory.Name)
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusInternalServerError, err)
+		return
+	}
+	var items []models.Item
+	if quantity > 0 {
+		items, err = delivery.itemUsecase.GetItemsByCategory(ctx, deletedCategory.Name, 0, quantity)
+		if err != nil {
+			delivery.logger.Error(err.Error())
+			delivery.SetError(c, http.StatusInternalServerError, err)
+			return
+		}
+	}
+
 	err = delivery.categoryUsecase.DeleteCategory(ctx, uid)
 	if err != nil {
 		delivery.logger.Error(err.Error())
@@ -392,20 +419,11 @@ func (delivery *Delivery) DeleteCategory(c *gin.Context) {
 		}
 	}
 
-	quantity, err := delivery.itemUsecase.ItemsQuantity(ctx)
-	if err != nil {
-		delivery.logger.Error(err.Error())
-		delivery.SetError(c, http.StatusInternalServerError, err)
+	if quantity == 0 {
+		delivery.logger.Sugar().Infof("Category with id: %s deleted success", id)
+		c.JSON(http.StatusOK, gin.H{})
 		return
 	}
-
-	items, err := delivery.itemUsecase.GetItemsByCategory(ctx, deletedCategory.Name, 0, quantity)
-	if err != nil {
-		delivery.logger.Error(err.Error())
-		delivery.SetError(c, http.StatusInternalServerError, err)
-		return
-	}
-
 	noCategory, err := delivery.categoryUsecase.GetCategoryByName(ctx, "NoCategory")
 	if err != nil {
 		delivery.logger.Error(fmt.Sprintf("error on get category by name: %v", err))
@@ -427,6 +445,7 @@ func (delivery *Delivery) DeleteCategory(c *gin.Context) {
 				delivery.logger.Error(fmt.Sprintf("error on update item: %v", err))
 			}
 		}
+		delivery.logger.Sugar().Infof("Category with id: %s deleted success", id)
 		c.JSON(http.StatusOK, gin.H{})
 		return
 	}
@@ -437,5 +456,6 @@ func (delivery *Delivery) DeleteCategory(c *gin.Context) {
 			delivery.logger.Error(fmt.Sprintf("error on update item: %v", err))
 		}
 	}
+	delivery.logger.Sugar().Infof("Category with id: %s deleted success", id)
 	c.JSON(http.StatusOK, gin.H{})
 }
