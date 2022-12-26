@@ -3,7 +3,7 @@ package delivery
 import (
 	fstor "OnlineShopBackend/internal/filestorage"
 	fs "OnlineShopBackend/internal/filestorage/mocks"
-	"OnlineShopBackend/internal/handlers/mocks"
+	"OnlineShopBackend/internal/usecase/mocks"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -19,8 +19,8 @@ func TestIndex(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	logger := zap.L()
-	itemHandlers := mocks.NewMockIItemHandlers(ctrl)
-	categoryHandlers := mocks.NewMockICategoryHandlers(ctrl)
+	itemHandlers := mocks.NewMockIItemUsecase(ctrl)
+	categoryHandlers := mocks.NewMockICategoryUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
 	delivery := NewDelivery(itemHandlers, categoryHandlers, logger, filestorage)
 
@@ -38,8 +38,8 @@ func TestGetFileList(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	logger := zap.L()
-	itemHandlers := mocks.NewMockIItemHandlers(ctrl)
-	categoryHandlers := mocks.NewMockICategoryHandlers(ctrl)
+	itemHandlers := mocks.NewMockIItemUsecase(ctrl)
+	categoryHandlers := mocks.NewMockICategoryUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
 	delivery := NewDelivery(itemHandlers, categoryHandlers, logger, filestorage)
 
@@ -62,7 +62,7 @@ func TestGetFileList(t *testing.T) {
 	}
 
 	info := new(fstor.FileInStorageInfo)
-	info.Name="testName"
+	info.Name = "testName"
 	res := []fstor.FileInStorageInfo{*info}
 	filestorage.EXPECT().GetFileList().Return(res, nil)
 	delivery.GetFileList(c)

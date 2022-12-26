@@ -169,6 +169,20 @@ func (mr *MockIItemUsecaseMockRecorder) UpdateItem(ctx, item interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateItem", reflect.TypeOf((*MockIItemUsecase)(nil).UpdateItem), ctx, item)
 }
 
+// UpdateItemsInCategoryCash mocks base method.
+func (m *MockIItemUsecase) UpdateItemsInCategoryCash(ctx context.Context, newItem *models.Item, op string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateItemsInCategoryCash", ctx, newItem, op)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateItemsInCategoryCash indicates an expected call of UpdateItemsInCategoryCash.
+func (mr *MockIItemUsecaseMockRecorder) UpdateItemsInCategoryCash(ctx, newItem, op interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateItemsInCategoryCash", reflect.TypeOf((*MockIItemUsecase)(nil).UpdateItemsInCategoryCash), ctx, newItem, op)
+}
+
 // MockICategoryUsecase is a mock of ICategoryUsecase interface.
 type MockICategoryUsecase struct {
 	ctrl     *gomock.Controller

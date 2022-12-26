@@ -326,7 +326,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/category.Category"
+                            "$ref": "#/definitions/category.ShortCategory"
                         }
                     }
                 ],
@@ -1035,6 +1035,9 @@ const docTemplate = `{
                     "type": "string",
                     "example": "Электротехнические товары для дома"
                 },
+                "image": {
+                    "type": "string"
+                },
                 "name": {
                     "type": "string",
                     "example": "Электротехника"
@@ -1116,7 +1119,7 @@ const docTemplate = `{
                     "format": "uuid",
                     "example": "00000000-0000-0000-0000-000000000000"
                 },
-                "images": {
+                "image": {
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -1185,7 +1188,7 @@ const docTemplate = `{
                     "format": "uuid",
                     "example": "00000000-0000-0000-0000-000000000000"
                 },
-                "images": {
+                "image": {
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -1223,6 +1226,12 @@ const docTemplate = `{
                 "description": {
                     "type": "string",
                     "example": "Мощность всасывания 1.5 кВт"
+                },
+                "image": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "price": {
                     "type": "integer",

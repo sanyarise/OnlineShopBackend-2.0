@@ -12,7 +12,7 @@ package delivery
 import (
 	"OnlineShopBackend/internal/delivery/category"
 	"OnlineShopBackend/internal/delivery/item"
-	"OnlineShopBackend/internal/handlers"
+	"OnlineShopBackend/internal/models"
 	"context"
 	"fmt"
 	"io"
@@ -21,16 +21,17 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-module/carbon/v2"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
+
+type QuantityOptions struct {
+	CategoryName string `form:"categoryName"`
+}
 
 type Options struct {
 	Offset int `form:"offset"`
 	Limit  int `form:"limit"`
-}
-
-type QuantityOptions struct {
-	CategoryName string `form:"categoryName"`
 }
 
 type SearchOptions struct {
@@ -74,14 +75,14 @@ func (delivery *Delivery) CreateItem(c *gin.Context) {
 	}
 
 	if deliveryItem.Category == "" {
-		noCategory, err := delivery.categoryHandlers.GetCategoryByName(ctx, "NoCategory")
+		noCategory, err := delivery.categoryUsecase.GetCategoryByName(ctx, "NoCategory")
 		if err != nil {
 			delivery.logger.Sugar().Errorf("NoCategory is not exists: %v", err)
-			noCategory := handlers.Category{
+			noCategory := models.Category{
 				Name:        "NoCategory",
 				Description: "Category for items without categories",
 			}
-			noCategoryId, err := delivery.categoryHandlers.CreateCategory(ctx, noCategory)
+			noCategoryId, err := delivery.categoryUsecase.CreateCategory(ctx, &noCategory)
 			if err != nil {
 				delivery.logger.Error(fmt.Sprintf("error on create no category: %v", err))
 				delivery.SetError(c, http.StatusInternalServerError, err)
@@ -89,21 +90,27 @@ func (delivery *Delivery) CreateItem(c *gin.Context) {
 			}
 			deliveryItem.Category = noCategoryId.String()
 		} else {
-			deliveryItem.Category = noCategory.Id
+			deliveryItem.Category = noCategory.Id.String()
 		}
 	}
-	handlersItem := handlers.Item{
+	categoryId, err := uuid.Parse(deliveryItem.Category)
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
+		return
+	}
+	modelsItem := models.Item{
 		Title:       deliveryItem.Title,
 		Description: deliveryItem.Description,
 		Price:       deliveryItem.Price,
-		Category: handlers.Category{
-			Id: deliveryItem.Category,
+		Category: models.Category{
+			Id: categoryId,
 		},
 		Vendor: deliveryItem.Vendor,
 		Images: deliveryItem.Images,
 	}
 
-	id, err := delivery.itemHandlers.CreateItem(ctx, handlersItem)
+	id, err := delivery.itemUsecase.CreateItem(ctx, &modelsItem)
 	if err != nil {
 		delivery.SetError(c, http.StatusInternalServerError, err)
 		return
@@ -135,8 +142,15 @@ func (delivery *Delivery) GetItem(c *gin.Context) {
 		return
 	}
 	delivery.logger.Debug(id)
+
+	uid, err := uuid.Parse(id)
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
+		return
+	}
 	ctx := c.Request.Context()
-	handlersItem, err := delivery.itemHandlers.GetItem(ctx, id)
+	modelsItem, err := delivery.itemUsecase.GetItem(ctx, uid)
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusInternalServerError, err)
@@ -144,18 +158,18 @@ func (delivery *Delivery) GetItem(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, item.OutItem{
-		Id:          handlersItem.Id,
-		Title:       handlersItem.Title,
-		Description: handlersItem.Description,
+		Id:          modelsItem.Id.String(),
+		Title:       modelsItem.Title,
+		Description: modelsItem.Description,
 		Category: category.Category{
-			Id:          handlersItem.Category.Id,
-			Name:        handlersItem.Category.Name,
-			Description: handlersItem.Category.Description,
-			Image:       handlersItem.Category.Image,
+			Id:          modelsItem.Category.Id.String(),
+			Name:        modelsItem.Category.Name,
+			Description: modelsItem.Category.Description,
+			Image:       modelsItem.Category.Image,
 		},
-		Price:  handlersItem.Price,
-		Vendor: handlersItem.Vendor,
-		Images: handlersItem.Images,
+		Price:  modelsItem.Price,
+		Vendor: modelsItem.Vendor,
+		Images: modelsItem.Images,
 	})
 }
 
@@ -182,12 +196,24 @@ func (delivery *Delivery) UpdateItem(c *gin.Context) {
 		delivery.SetError(c, http.StatusBadRequest, err)
 		return
 	}
-	err := delivery.itemHandlers.UpdateItem(ctx, handlers.Item{
-		Id:          deliveryItem.Id,
+	uid, err := uuid.Parse(deliveryItem.Id)
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
+		return
+	}
+	categoryUid, err := uuid.Parse(deliveryItem.Category)
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
+		return
+	}
+	err = delivery.itemUsecase.UpdateItem(ctx, &models.Item{
+		Id:          uid,
 		Title:       deliveryItem.Title,
 		Description: deliveryItem.Description,
-		Category: handlers.Category{
-			Id: deliveryItem.Category,
+		Category: models.Category{
+			Id: categoryUid,
 		},
 		Price:  deliveryItem.Price,
 		Vendor: deliveryItem.Vendor,
@@ -226,9 +252,9 @@ func (delivery *Delivery) ItemsList(c *gin.Context) {
 		return
 	}
 	delivery.logger.Debug(fmt.Sprintf("options is %v", options))
-
+	ctx := c.Request.Context()
 	if options.Limit == 0 {
-		quantity, err := delivery.itemHandlers.ItemsQuantity(c.Request.Context())
+		quantity, err := delivery.itemUsecase.ItemsQuantity(ctx)
 		if err != nil {
 			delivery.logger.Error(err.Error())
 		}
@@ -245,22 +271,27 @@ func (delivery *Delivery) ItemsList(c *gin.Context) {
 	}
 	delivery.logger.Sugar().Debugf("options limit is set in default value: %d", options.Limit)
 
-	list, err := delivery.itemHandlers.ItemsList(c.Request.Context(), options.Offset, options.Limit)
+	list, err := delivery.itemUsecase.ItemsList(ctx, options.Offset, options.Limit)
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusInternalServerError, err)
 		return
 	}
 	items := make([]item.OutItem, len(list))
-	for i, it := range list {
-		items[i] = item.OutItem{
-			Id:          it.Id,
-			Title:       it.Title,
-			Description: it.Description,
-			Category:    category.Category(it.Category),
-			Price:       it.Price,
-			Vendor:      it.Vendor,
-			Images:      it.Images,
+	for idx, modelsItem := range list {
+		items[idx] = item.OutItem{
+			Id:          modelsItem.Id.String(),
+			Title:       modelsItem.Title,
+			Description: modelsItem.Description,
+			Category: category.Category{
+				Id:          modelsItem.Category.Id.String(),
+				Name:        modelsItem.Category.Name,
+				Description: modelsItem.Category.Description,
+				Image:       modelsItem.Category.Image,
+			},
+			Price:  modelsItem.Price,
+			Vendor: modelsItem.Vendor,
+			Images: modelsItem.Images,
 		}
 	}
 	c.JSON(http.StatusOK, items)
@@ -290,7 +321,7 @@ func (delivery *Delivery) ItemsQuantity(c *gin.Context) {
 	delivery.logger.Debug(fmt.Sprintf("options is %v", options))
 	ctx := c.Request.Context()
 	if options.CategoryName == "" {
-		quantity, err := delivery.itemHandlers.ItemsQuantity(ctx)
+		quantity, err := delivery.itemUsecase.ItemsQuantity(ctx)
 		if err != nil {
 			delivery.logger.Error(err.Error())
 			delivery.SetError(c, http.StatusInternalServerError, err)
@@ -299,7 +330,7 @@ func (delivery *Delivery) ItemsQuantity(c *gin.Context) {
 		itemsQuantity := item.ItemsQuantity{Quantity: quantity}
 		c.JSON(http.StatusOK, itemsQuantity)
 	} else {
-		quantity, err := delivery.itemHandlers.ItemsQuantityInCategory(ctx, options.CategoryName)
+		quantity, err := delivery.itemUsecase.ItemsQuantityInCategory(ctx, options.CategoryName)
 		if err != nil {
 			delivery.logger.Error(err.Error())
 			delivery.SetError(c, http.StatusInternalServerError, err)
@@ -348,23 +379,28 @@ func (delivery *Delivery) SearchLine(c *gin.Context) {
 	}
 
 	delivery.logger.Sugar().Debugf("options limit is set in default value: %d", options.Limit)
-
-	list, err := delivery.itemHandlers.SearchLine(c.Request.Context(), options.Param, options.Offset, options.Limit)
+	ctx := c.Request.Context()
+	list, err := delivery.itemUsecase.SearchLine(ctx, options.Param, options.Offset, options.Limit)
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusInternalServerError, err)
 		return
 	}
 	items := make([]item.OutItem, len(list))
-	for i, it := range list {
-		items[i] = item.OutItem{
-			Id:          it.Id,
-			Title:       it.Title,
-			Description: it.Description,
-			Category:    category.Category(it.Category),
-			Price:       it.Price,
-			Vendor:      it.Vendor,
-			Images:      it.Images,
+	for idx, modelsItem := range list {
+		items[idx] = item.OutItem{
+			Id:          modelsItem.Id.String(),
+			Title:       modelsItem.Title,
+			Description: modelsItem.Description,
+			Category: category.Category{
+				Id:          modelsItem.Category.Id.String(),
+				Name:        modelsItem.Category.Name,
+				Description: modelsItem.Category.Description,
+				Image:       modelsItem.Category.Image,
+			},
+			Price:  modelsItem.Price,
+			Vendor: modelsItem.Vendor,
+			Images: modelsItem.Images,
 		}
 	}
 	c.JSON(http.StatusOK, items)
@@ -407,22 +443,28 @@ func (delivery *Delivery) GetItemsByCategory(c *gin.Context) {
 	}
 	delivery.logger.Sugar().Debugf("options limit is set in default value: %d", options.Limit)
 
-	list, err := delivery.itemHandlers.GetItemsByCategory(c.Request.Context(), options.Param, options.Offset, options.Limit)
+	ctx := c.Request.Context()
+	list, err := delivery.itemUsecase.GetItemsByCategory(ctx, options.Param, options.Offset, options.Limit)
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusInternalServerError, err)
 		return
 	}
 	items := make([]item.OutItem, len(list))
-	for i, it := range list {
-		items[i] = item.OutItem{
-			Id:          it.Id,
-			Title:       it.Title,
-			Description: it.Description,
-			Category:    category.Category(it.Category),
-			Price:       it.Price,
-			Vendor:      it.Vendor,
-			Images:      it.Images,
+	for idx, modelsItem := range list {
+		items[idx] = item.OutItem{
+			Id:          modelsItem.Id.String(),
+			Title:       modelsItem.Title,
+			Description: modelsItem.Description,
+			Category: category.Category{
+				Id:          modelsItem.Category.Id.String(),
+				Name:        modelsItem.Category.Name,
+				Description: modelsItem.Category.Description,
+				Image:       modelsItem.Category.Image,
+			},
+			Price:  modelsItem.Price,
+			Vendor: modelsItem.Vendor,
+			Images: modelsItem.Images,
 		}
 	}
 	c.JSON(http.StatusOK, items)
@@ -451,6 +493,12 @@ func (delivery *Delivery) UploadItemImage(c *gin.Context) {
 	id := c.Param("itemID")
 	if id == "" {
 		err := fmt.Errorf("empty search request")
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
+		return
+	}
+	uid, err := uuid.Parse(id)
+	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusBadRequest, err)
 		return
@@ -485,7 +533,7 @@ func (delivery *Delivery) UploadItemImage(c *gin.Context) {
 		return
 	}
 
-	item, err := delivery.itemHandlers.GetItem(ctx, id)
+	item, err := delivery.itemUsecase.GetItem(ctx, uid)
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusInternalServerError, err)
@@ -493,7 +541,7 @@ func (delivery *Delivery) UploadItemImage(c *gin.Context) {
 	}
 	item.Images = append(item.Images, path)
 
-	err = delivery.itemHandlers.UpdateItem(ctx, item)
+	err = delivery.itemUsecase.UpdateItem(ctx, item)
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusInternalServerError, err)
@@ -535,6 +583,11 @@ func (delivery *Delivery) DeleteItemImage(c *gin.Context) {
 		delivery.SetError(c, http.StatusBadRequest, err)
 		return
 	}
+	uid, err := uuid.Parse(imageOptions.Id)
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
+	}
 	err = delivery.filestorage.DeleteItemImage(imageOptions.Id, imageOptions.Name)
 	if err != nil {
 		delivery.logger.Error(err.Error())
@@ -543,7 +596,7 @@ func (delivery *Delivery) DeleteItemImage(c *gin.Context) {
 
 	}
 	ctx := c.Request.Context()
-	item, err := delivery.itemHandlers.GetItem(ctx, imageOptions.Id)
+	item, err := delivery.itemUsecase.GetItem(ctx, uid)
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusInternalServerError, err)
@@ -555,7 +608,7 @@ func (delivery *Delivery) DeleteItemImage(c *gin.Context) {
 			break
 		}
 	}
-	err = delivery.itemHandlers.UpdateItem(ctx, item)
+	err = delivery.itemUsecase.UpdateItem(ctx, item)
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusInternalServerError, err)

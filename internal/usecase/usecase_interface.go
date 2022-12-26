@@ -17,6 +17,7 @@ type IItemUsecase interface {
 	SearchLine(ctx context.Context, param string, offset, limit int) ([]models.Item, error)
 	GetItemsByCategory(ctx context.Context, categoryName string, offset, limit int) ([]models.Item, error)
 	UpdateCash(ctx context.Context, id uuid.UUID, op string) error
+	UpdateItemsInCategoryCash(ctx context.Context, newItem *models.Item, op string) error
 }
 
 type ICategoryUsecase interface {
