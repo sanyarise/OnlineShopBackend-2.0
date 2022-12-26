@@ -259,6 +259,12 @@ func (usecase *ItemUsecase) UpdateCash(ctx context.Context, id uuid.UUID, op str
 	if err != nil {
 		return fmt.Errorf("error on get cash: %w", err)
 	}
+
+	err = usecase.UpdateItemsInCategoryCash(ctx, newItem, op)
+	if err != nil {
+		usecase.logger.Error(err.Error())
+	}
+
 	if op == "update" {
 		for i, item := range items {
 			if item.Id == id {
@@ -274,6 +280,36 @@ func (usecase *ItemUsecase) UpdateCash(ctx context.Context, id uuid.UUID, op str
 			return fmt.Errorf("error on create items quantity cash: %w", err)
 		}
 	}
-
 	return usecase.itemCash.CreateItemsCash(ctx, items, itemsListKey)
+}
+
+// UpdateItemsInCategoryCash update cash items from category
+func (usecase *ItemUsecase) UpdateItemsInCategoryCash(ctx context.Context, newItem *models.Item, op string) error {
+	usecase.logger.Debug(fmt.Sprintf("Enter in usecase UpdateItemsInCategoryCash() with args: ctx, newItem: %v, op: %s", newItem, op))
+	categoryItemsKey := newItem.Category.Name
+	categoryItemsQuantityKey := categoryItemsKey + "Quantity"
+
+	if !usecase.itemCash.CheckCash(ctx, categoryItemsKey) {
+		return fmt.Errorf("cash with key: %s is not exist", categoryItemsKey)
+	}
+	items, err := usecase.itemCash.GetItemsCash(ctx, categoryItemsKey)
+	if err != nil {
+		return fmt.Errorf("error on get cash: %w", err)
+	}
+	if op == "update" {
+		for i, item := range items {
+			if item.Id == newItem.Id {
+				items[i] = *newItem
+				break
+			}
+		}
+	}
+	if op == "create" {
+		items = append(items, *newItem)
+		err := usecase.itemCash.CreateItemsQuantityCash(ctx, len(items), categoryItemsQuantityKey)
+		if err != nil {
+			return fmt.Errorf("error on create items quantity cash: %w", err)
+		}
+	}
+	return usecase.itemCash.CreateItemsCash(ctx, items, categoryItemsKey)
 }
