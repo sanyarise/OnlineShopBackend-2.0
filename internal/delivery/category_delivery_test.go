@@ -50,6 +50,11 @@ var (
 		Name:        "testName",
 		Description: "testDescription",
 	}
+	testModelsCategoryWithId2 = &models.Category{
+		Id:          testId,
+		Name:        "testName",
+		Description: "testDescription",
+	}
 	testEmptyCategory = category.ShortCategory{
 		Name:        "",
 		Description: "",
@@ -504,7 +509,7 @@ func TestDeleteCategoryImage(t *testing.T) {
 	c.Request.URL, _ = url.Parse(fmt.Sprintf("?id=%s&name=testImagePath", testId.String()))
 	filestorage.EXPECT().DeleteCategoryImage(testId.String(), "testImagePath").Return(nil)
 	categoryHandlers.EXPECT().GetCategory(ctx, testId).Return(&testCategoryWithImage, nil)
-	categoryHandlers.EXPECT().UpdateCategory(ctx, testModelsCategoryWithId).Return(fmt.Errorf("error"))
+	categoryHandlers.EXPECT().UpdateCategory(ctx, testModelsCategoryWithId2).Return(fmt.Errorf("error"))
 	delivery.DeleteCategoryImage(c)
 	require.Equal(t, 500, w.Code)
 
@@ -517,7 +522,7 @@ func TestDeleteCategoryImage(t *testing.T) {
 	c.Request.URL, _ = url.Parse(fmt.Sprintf("?id=%s&name=testImagePath", testId.String()))
 	filestorage.EXPECT().DeleteCategoryImage(testId.String(), "testImagePath").Return(nil)
 	categoryHandlers.EXPECT().GetCategory(ctx, testId).Return(&testCategoryWithImage, nil)
-	categoryHandlers.EXPECT().UpdateCategory(ctx, testModelsCategoryWithId).Return(nil)
+	categoryHandlers.EXPECT().UpdateCategory(ctx, testModelsCategoryWithId2).Return(nil)
 	delivery.DeleteCategoryImage(c)
 	require.Equal(t, 200, w.Code)
 }
@@ -601,7 +606,7 @@ func TestDeleteCategory(t *testing.T) {
 			Value: testId.String(),
 		},
 	}
-	categoryHandlers.EXPECT().GetCategory(ctx, testId).Return(&testCategoryWithImage, nil)
+	categoryHandlers.EXPECT().GetCategory(ctx, testId).Return(testModelsCategoryWithId, nil)
 	categoryHandlers.EXPECT().DeleteCategory(ctx, testId).Return(nil)
 	filestorage.EXPECT().DeleteCategoryImageById(testId.String()).Return(fmt.Errorf("error"))
 	itemHandlers.EXPECT().ItemsQuantity(ctx).Return(-1, fmt.Errorf("error"))
@@ -620,7 +625,7 @@ func TestDeleteCategory(t *testing.T) {
 			Value: testId.String(),
 		},
 	}
-	categoryHandlers.EXPECT().GetCategory(ctx, testId).Return(&testCategoryWithImage, nil)
+	categoryHandlers.EXPECT().GetCategory(ctx, testId).Return(testModelsCategoryWithId, nil)
 	categoryHandlers.EXPECT().DeleteCategory(ctx, testId).Return(nil)
 	filestorage.EXPECT().DeleteCategoryImageById(testId.String()).Return(fmt.Errorf("error"))
 	itemHandlers.EXPECT().ItemsQuantity(ctx).Return(1, nil)
@@ -640,7 +645,7 @@ func TestDeleteCategory(t *testing.T) {
 			Value: testId.String(),
 		},
 	}
-	categoryHandlers.EXPECT().GetCategory(ctx, testId).Return(&testCategoryWithImage, nil)
+	categoryHandlers.EXPECT().GetCategory(ctx, testId).Return(testModelsCategoryWithId, nil)
 	categoryHandlers.EXPECT().DeleteCategory(ctx, testId).Return(nil)
 	filestorage.EXPECT().DeleteCategoryImageById(testId.String()).Return(fmt.Errorf("error"))
 	itemHandlers.EXPECT().ItemsQuantity(ctx).Return(1, nil)
@@ -662,7 +667,7 @@ func TestDeleteCategory(t *testing.T) {
 			Value: testId.String(),
 		},
 	}
-	categoryHandlers.EXPECT().GetCategory(ctx, testId).Return(&testCategoryWithImage, nil)
+	categoryHandlers.EXPECT().GetCategory(ctx, testId).Return(testModelsCategoryWithId, nil)
 	categoryHandlers.EXPECT().DeleteCategory(ctx, testId).Return(nil)
 	filestorage.EXPECT().DeleteCategoryImageById(testId.String()).Return(nil)
 	itemHandlers.EXPECT().ItemsQuantity(ctx).Return(1, nil)
@@ -685,7 +690,7 @@ func TestDeleteCategory(t *testing.T) {
 			Value: testId.String(),
 		},
 	}
-	categoryHandlers.EXPECT().GetCategory(ctx, testId).Return(&testCategoryWithImage, nil)
+	categoryHandlers.EXPECT().GetCategory(ctx, testId).Return(testModelsCategoryWithId, nil)
 	categoryHandlers.EXPECT().DeleteCategory(ctx, testId).Return(nil)
 	filestorage.EXPECT().DeleteCategoryImageById(testId.String()).Return(nil)
 	itemHandlers.EXPECT().ItemsQuantity(ctx).Return(1, nil)
