@@ -7,7 +7,6 @@ import (
 	"OnlineShopBackend/internal/app/server"
 	"OnlineShopBackend/internal/delivery"
 	"OnlineShopBackend/internal/filestorage"
-	"OnlineShopBackend/internal/handlers"
 	"OnlineShopBackend/internal/repository"
 	"OnlineShopBackend/internal/repository/cash"
 	"OnlineShopBackend/internal/usecase"
@@ -17,6 +16,8 @@ import (
 	"os"
 	"os/signal"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 func main() {
@@ -28,18 +29,6 @@ func main() {
 	logger := logger.NewLogger(cfg.LogLevel)
 	lsug := logger.Logger.Sugar()
 	l := logger.Logger
-	defer func(){
-		err := l.Sync()
-		if err != nil {
-			l.Error(err.Error())
-		}
-	}()
-	defer func(){
-		err := lsug.Sync()
-		if err != nil {
-			l.Error(err.Error())
-		}
-	}()
 
 	l.Info("Configuration sucessfully load")
 
@@ -62,14 +51,8 @@ func main() {
 	categoryUsecase := usecase.NewCategoryUsecase(categoryStore, categoriesCash, l)
 	userUsecase := usecase.NewUserUsecase(userStore, l)
 
-	itemHandlers := handlers.NewItemHandlers(itemUsecase, l)
-	categoryHandlers := handlers.NewCategoryHandlers(categoryUsecase, l)
-	userHandlers := handlers.NewUserHandlers(userUsecase, l)
-
-
-
 	filestorage := filestorage.NewOnDiskLocalStorage(cfg.ServerURL, cfg.FsPath, l)
-	delivery := delivery.NewDelivery(itemHandlers, categoryHandlers, userHandlers, l, filestorage)
+	delivery := delivery.NewDelivery(itemUsecase, categoryUsecase, userUsecase, l, filestorage)
 	router := router.NewRouter(delivery, l)
 	serverOptions := map[string]int{
 		"ReadTimeout":       cfg.ReadTimeout,
@@ -78,18 +61,10 @@ func main() {
 	}
 	server := server.NewServer(cfg.Port, router, l, serverOptions)
 
-	l.Debug("Start create cash...")
-	_, err = categoryUsecase.GetCategoryList(ctx)
+	err = createCashOnStartService(ctx, categoryUsecase, itemUsecase, l)
 	if err != nil {
-		l.Sugar().Errorf("error on create category cash: %w", err)
+		l.Sugar().Fatalf("error on create cash on start: %v", err)
 	}
-	l.Info("Category list cash create success")
-
-	_, err = itemUsecase.ItemsList(ctx, 0, 0)
-	if err != nil {
-		l.Sugar().Errorf("error on create items list cash: %w", err)
-	}
-	l.Info("Items list cash create success")
 
 	server.Start()
 	l.Info(fmt.Sprintf("Server start successful on port: %v", cfg.Port))
@@ -105,4 +80,32 @@ func main() {
 	server.ShutDown(cfg.Timeout)
 	l.Info("Server stopped successful")
 	cancel()
+}
+
+func createCashOnStartService(ctx context.Context, categoryUsecase usecase.ICategoryUsecase, itemUsecase usecase.IItemUsecase, l *zap.Logger) error {
+	l.Debug("Enter in main createCashOnStartService")
+	l.Debug("Start create cash...")
+	categoryList, err := categoryUsecase.GetCategoryList(ctx)
+	if err != nil {
+		l.Sugar().Errorf("error on create category cash: %w", err)
+		return err
+	}
+	l.Info("Category list cash create success")
+
+	_, err = itemUsecase.ItemsList(ctx, 0, 0)
+	if err != nil {
+		l.Sugar().Errorf("error on create items list cash: %w", err)
+		return err
+	}
+	l.Info("Items list cash create success")
+
+	for _, category := range categoryList {
+		_, err := itemUsecase.GetItemsByCategory(ctx, category.Name, 0, 0)
+		if err != nil {
+			l.Sugar().Errorf("error on create items list in category: %s cash: %w", category.Name, err)
+			return err
+		}
+	}
+	l.Info("Items lists in categories cash create success")
+	return nil
 }

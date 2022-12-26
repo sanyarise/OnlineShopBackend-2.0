@@ -10,7 +10,7 @@
 package delivery
 
 import (
-	"OnlineShopBackend/internal/handlers"
+	"OnlineShopBackend/internal/models"
 	"fmt"
 	"net/http"
 	"unicode"
@@ -49,24 +49,24 @@ var sessionStore = sessions.NewCookieStore([]byte(sessionSecret), nil)
 func (delivery *Delivery) CreateUser(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery CreateUser()")
 	ctx := c.Request.Context()
-	var deliveryUser handlers.User
+	var deliveryUser *models.User
 	if err := c.ShouldBindJSON(&deliveryUser); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	// Check if this a new user
-	if _, err := delivery.userHandlers.GetUserByEmail(ctx, deliveryUser.Email); err != nil {
+	if _, err := delivery.userUsecase.GetUserByEmail(ctx, deliveryUser.Email); err != nil {
 		return
 	}
 
 
-	if err := validationCheck(deliveryUser); err != nil {
+	if err := validationCheck(*deliveryUser); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	id, err := delivery.userHandlers.CreateUser(ctx, deliveryUser)
+	id, err := delivery.userUsecase.CreateUser(ctx, deliveryUser)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
@@ -76,12 +76,12 @@ func (delivery *Delivery) CreateUser(c *gin.Context) {
 // LoginUser -
 func (delivery *Delivery) LoginUser(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery LoginUser()")
-	var deliveryUser handlers.User
+	var deliveryUser models.User
 	if err := c.ShouldBindJSON(&deliveryUser); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	user, err := delivery.userHandlers.GetUserByEmail(c.Request.Context(), deliveryUser.Email); if err != nil {
+	user, err := delivery.userUsecase.GetUserByEmail(c.Request.Context(), deliveryUser.Email); if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -141,8 +141,8 @@ func (delivery *Delivery) LogoutUser(c *gin.Context) {
 	c.Redirect(http.StatusTemporaryRedirect, "/")
 }
 
-func validationCheck(user handlers.User) error {
-	if user.Email == "" && user.FirstName == "" && user.LastName == "" {
+func validationCheck(user models.User) error {
+	if user.Email == "" && user.Firstname == "" && user.Lastname == "" {
 		return fmt.Errorf("empty filed")
 	}
 	if len(user.Password) < 5 {

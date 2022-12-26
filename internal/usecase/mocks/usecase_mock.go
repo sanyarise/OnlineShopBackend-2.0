@@ -111,6 +111,21 @@ func (mr *MockIItemUsecaseMockRecorder) ItemsQuantity(ctx interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ItemsQuantity", reflect.TypeOf((*MockIItemUsecase)(nil).ItemsQuantity), ctx)
 }
 
+// ItemsQuantityInCategory mocks base method.
+func (m *MockIItemUsecase) ItemsQuantityInCategory(ctx context.Context, categoryName string) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ItemsQuantityInCategory", ctx, categoryName)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ItemsQuantityInCategory indicates an expected call of ItemsQuantityInCategory.
+func (mr *MockIItemUsecaseMockRecorder) ItemsQuantityInCategory(ctx, categoryName interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ItemsQuantityInCategory", reflect.TypeOf((*MockIItemUsecase)(nil).ItemsQuantityInCategory), ctx, categoryName)
+}
+
 // SearchLine mocks base method.
 func (m *MockIItemUsecase) SearchLine(ctx context.Context, param string, offset, limit int) ([]models.Item, error) {
 	m.ctrl.T.Helper()
@@ -152,6 +167,20 @@ func (m *MockIItemUsecase) UpdateItem(ctx context.Context, item *models.Item) er
 func (mr *MockIItemUsecaseMockRecorder) UpdateItem(ctx, item interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateItem", reflect.TypeOf((*MockIItemUsecase)(nil).UpdateItem), ctx, item)
+}
+
+// UpdateItemsInCategoryCash mocks base method.
+func (m *MockIItemUsecase) UpdateItemsInCategoryCash(ctx context.Context, newItem *models.Item, op string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateItemsInCategoryCash", ctx, newItem, op)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateItemsInCategoryCash indicates an expected call of UpdateItemsInCategoryCash.
+func (mr *MockIItemUsecaseMockRecorder) UpdateItemsInCategoryCash(ctx, newItem, op interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateItemsInCategoryCash", reflect.TypeOf((*MockIItemUsecase)(nil).UpdateItemsInCategoryCash), ctx, newItem, op)
 }
 
 // MockICategoryUsecase is a mock of ICategoryUsecase interface.

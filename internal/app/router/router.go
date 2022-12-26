@@ -13,7 +13,6 @@ import (
 	"OnlineShopBackend/internal/delivery"
 	"OnlineShopBackend/internal/delivery/swagger/docs"
 	"net/http"
-	//"time"
 
 	"github.com/gin-contrib/cors"
 	ginzap "github.com/gin-contrib/zap"
@@ -153,7 +152,7 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 		{
 			"ItemsQuantity",
 			http.MethodGet,
-			"/items/quantity",
+			"/items/quantity", //?categoryName={categoryName} - if category name is empty returns quantity of all items
 			delivery.ItemsQuantity,
 		},
 		{

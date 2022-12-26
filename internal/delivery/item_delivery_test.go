@@ -4,8 +4,8 @@ import (
 	"OnlineShopBackend/internal/delivery/category"
 	"OnlineShopBackend/internal/delivery/item"
 	fs "OnlineShopBackend/internal/filestorage/mocks"
-	"OnlineShopBackend/internal/handlers"
-	"OnlineShopBackend/internal/handlers/mocks"
+	"OnlineShopBackend/internal/models"
+	"OnlineShopBackend/internal/usecase/mocks"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -48,6 +48,12 @@ var (
 		Price:       10,
 		Vendor:      "testVendor",
 	}
+	testShortItemWithoutCat = item.ShortItem{
+		Title:       "testTitle",
+		Description: "testDescription",
+		Price:       10,
+		Vendor:      "testVendor",
+	}
 	wrongShortItem = WrongShortItem{
 		Title:       10,
 		Description: 11,
@@ -55,11 +61,11 @@ var (
 		Price:       "5",
 		Vendor:      5,
 	}
-	testHandlersItemWithoutId = handlers.Item{
+	testModelsItemWithoutId = &models.Item{
 		Title:       "testTitle",
 		Description: "testDescription",
-		Category: handlers.Category{
-			Id: testShortItem.Category,
+		Category: models.Category{
+			Id: testId,
 		},
 		Price:  10,
 		Vendor: "testVendor",
@@ -84,34 +90,47 @@ var (
 		Price:  10,
 		Vendor: "testVendor",
 	}
-	testHandlersItemWithId = handlers.Item{
-		Id:          testId.String(),
+	testModelsItemWithId = &models.Item{
+		Id:          testId,
 		Title:       "testTitle",
 		Description: "testDescription",
-		Category: handlers.Category{
-			Id:          testInItem.Category,
+		Category: models.Category{
+			Id:          testId,
 			Name:        "testName",
 			Description: "testDescription",
 		},
 		Price:  10,
 		Vendor: "testVendor",
 	}
-	testShortHandlersItemWithId = handlers.Item{
-		Id:          testId.String(),
+
+	testModelsItemWithId2 = &models.Item{
+		Id:          testId,
 		Title:       "testTitle",
 		Description: "testDescription",
-		Category: handlers.Category{
-			Id: testInItem.Category,
+		Category: models.Category{
+			Id:          testId,
+			Name:        "testName",
+			Description: "testDescription",
 		},
 		Price:  10,
 		Vendor: "testVendor",
 	}
-	testHandlersItemWithImage = handlers.Item{
-		Id:          testId.String(),
+	testShortModelsItemWithId = &models.Item{
+		Id:          testId,
 		Title:       "testTitle",
 		Description: "testDescription",
-		Category: handlers.Category{
-			Id:          testInItem.Category,
+		Category: models.Category{
+			Id: testId,
+		},
+		Price:  10,
+		Vendor: "testVendor",
+	}
+	testModelsItemWithImage = models.Item{
+		Id:          testId,
+		Title:       "testTitle",
+		Description: "testDescription",
+		Category: models.Category{
+			Id:          testId,
 			Name:        "testName",
 			Description: "testDescription",
 		},
@@ -119,12 +138,12 @@ var (
 		Vendor: "testVendor",
 		Images: []string{"testName"},
 	}
-	testHandlersItemWithImage2 = handlers.Item{
-		Id:          testId.String(),
+	testModelsItemWithImage2 = models.Item{
+		Id:          testId,
 		Title:       "testTitle",
 		Description: "testDescription",
-		Category: handlers.Category{
-			Id:          testInItem.Category,
+		Category: models.Category{
+			Id:          testId,
 			Name:        "testName",
 			Description: "testDescription",
 		},
@@ -141,7 +160,7 @@ var (
 	}
 	post         = "POST"
 	put          = "PUT"
-	testItems    = []handlers.Item{testHandlersItemWithId}
+	testItems    = []models.Item{*testModelsItemWithId}
 	testOutItems = item.ItemsList{
 		List: []item.OutItem{testOutItem},
 	}
@@ -180,8 +199,8 @@ func TestCreateItem(t *testing.T) {
 	defer ctrl.Finish()
 	ctx := context.Background()
 	logger := zap.L()
-	itemHandlers := mocks.NewMockIItemHandlers(ctrl)
-	categoryHandlers := mocks.NewMockICategoryHandlers(ctrl)
+	itemHandlers := mocks.NewMockIItemUsecase(ctrl)
+	categoryHandlers := mocks.NewMockICategoryUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
 	delivery := NewDelivery(itemHandlers, categoryHandlers, logger, filestorage)
 
@@ -193,7 +212,7 @@ func TestCreateItem(t *testing.T) {
 	}
 	MockJson(c, testShortItem, post)
 	bytesRes, _ := json.Marshal(&testItemId)
-	itemHandlers.EXPECT().CreateItem(ctx, testHandlersItemWithoutId).Return(testId, nil)
+	itemHandlers.EXPECT().CreateItem(ctx, testModelsItemWithoutId).Return(testId, nil)
 	delivery.CreateItem(c)
 	require.Equal(t, 201, w.Code)
 	require.Equal(t, bytesRes, w.Body.Bytes())
@@ -222,9 +241,36 @@ func TestCreateItem(t *testing.T) {
 		Header: make(http.Header),
 	}
 	MockJson(c, testShortItem, post)
-	itemHandlers.EXPECT().CreateItem(ctx, testHandlersItemWithoutId).Return(uuid.Nil, fmt.Errorf("error"))
+	itemHandlers.EXPECT().CreateItem(ctx, testModelsItemWithoutId).Return(uuid.Nil, fmt.Errorf("error"))
 	delivery.CreateItem(c)
 	require.Equal(t, 500, w.Code)
+
+	testNoCategory := models.Category{
+		Name:        "NoCategory",
+		Description: "Category for items without categories",
+	}
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	MockJson(c, testShortItemWithoutCat, post)
+	categoryHandlers.EXPECT().GetCategoryByName(ctx, "NoCategory").Return(nil, fmt.Errorf("error"))
+	categoryHandlers.EXPECT().CreateCategory(ctx, &testNoCategory).Return(uuid.Nil, fmt.Errorf("error"))
+	delivery.CreateItem(c)
+	require.Equal(t, 500, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	MockJson(c, testShortItemWithoutCat, post)
+	categoryHandlers.EXPECT().GetCategoryByName(ctx, "NoCategory").Return(nil, fmt.Errorf("error"))
+	categoryHandlers.EXPECT().CreateCategory(ctx, &testNoCategory).Return(testId, nil)
+	itemHandlers.EXPECT().CreateItem(ctx, testModelsItemWithoutId).Return(testId, nil)
+	delivery.CreateItem(c)
+	require.Equal(t, 201, w.Code)
 }
 
 func TestGetItem(t *testing.T) {
@@ -232,8 +278,8 @@ func TestGetItem(t *testing.T) {
 	defer ctrl.Finish()
 	ctx := context.Background()
 	logger := zap.L()
-	itemHandlers := mocks.NewMockIItemHandlers(ctrl)
-	categoryHandlers := mocks.NewMockICategoryHandlers(ctrl)
+	itemHandlers := mocks.NewMockIItemUsecase(ctrl)
+	categoryHandlers := mocks.NewMockICategoryUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
 	delivery := NewDelivery(itemHandlers, categoryHandlers, logger, filestorage)
 
@@ -250,7 +296,7 @@ func TestGetItem(t *testing.T) {
 		},
 	}
 	bytesRes, _ := json.Marshal(&testOutItem)
-	itemHandlers.EXPECT().GetItem(ctx, testId.String()).Return(testHandlersItemWithId, nil)
+	itemHandlers.EXPECT().GetItem(ctx, testId).Return(testModelsItemWithId, nil)
 	delivery.GetItem(c)
 	require.Equal(t, 200, w.Code)
 	require.Equal(t, bytesRes, w.Body.Bytes())
@@ -276,7 +322,7 @@ func TestGetItem(t *testing.T) {
 			Value: testId.String(),
 		},
 	}
-	itemHandlers.EXPECT().GetItem(ctx, testId.String()).Return(handlers.Item{}, fmt.Errorf("error"))
+	itemHandlers.EXPECT().GetItem(ctx, testId).Return(&models.Item{}, fmt.Errorf("error"))
 	delivery.GetItem(c)
 	require.Equal(t, 500, w.Code)
 }
@@ -286,8 +332,8 @@ func TestUpdateItem(t *testing.T) {
 	defer ctrl.Finish()
 	ctx := context.Background()
 	logger := zap.L()
-	itemHandlers := mocks.NewMockIItemHandlers(ctrl)
-	categoryHandlers := mocks.NewMockICategoryHandlers(ctrl)
+	itemHandlers := mocks.NewMockIItemUsecase(ctrl)
+	categoryHandlers := mocks.NewMockICategoryUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
 	delivery := NewDelivery(itemHandlers, categoryHandlers, logger, filestorage)
 
@@ -298,7 +344,7 @@ func TestUpdateItem(t *testing.T) {
 		Header: make(http.Header),
 	}
 	MockJson(c, testInItem, put)
-	itemHandlers.EXPECT().UpdateItem(ctx, testShortHandlersItemWithId).Return(nil)
+	itemHandlers.EXPECT().UpdateItem(ctx, testShortModelsItemWithId).Return(nil)
 	delivery.UpdateItem(c)
 	require.Equal(t, 200, w.Code)
 
@@ -309,7 +355,7 @@ func TestUpdateItem(t *testing.T) {
 		Header: make(http.Header),
 	}
 	MockJson(c, testInItem, put)
-	itemHandlers.EXPECT().UpdateItem(ctx, testShortHandlersItemWithId).Return(fmt.Errorf("error"))
+	itemHandlers.EXPECT().UpdateItem(ctx, testShortModelsItemWithId).Return(fmt.Errorf("error"))
 	delivery.UpdateItem(c)
 	require.Equal(t, 500, w.Code)
 
@@ -329,8 +375,8 @@ func TestItemsList(t *testing.T) {
 	defer ctrl.Finish()
 	ctx := context.Background()
 	logger := zap.L()
-	itemHandlers := mocks.NewMockIItemHandlers(ctrl)
-	categoryHandlers := mocks.NewMockICategoryHandlers(ctrl)
+	itemHandlers := mocks.NewMockIItemUsecase(ctrl)
+	categoryHandlers := mocks.NewMockICategoryUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
 	delivery := NewDelivery(itemHandlers, categoryHandlers, logger, filestorage)
 
@@ -356,7 +402,7 @@ func TestItemsList(t *testing.T) {
 	}
 	c.Request.URL, _ = url.Parse("?offset=0&limit=1")
 
-	itemHandlers.EXPECT().ItemsList(ctx, 0, 1).Return([]handlers.Item{}, fmt.Errorf("error"))
+	itemHandlers.EXPECT().ItemsList(ctx, 0, 1).Return([]models.Item{}, fmt.Errorf("error"))
 	delivery.ItemsList(c)
 	require.Equal(t, 500, w.Code)
 
@@ -416,8 +462,8 @@ func TestItemsQuantity(t *testing.T) {
 	defer ctrl.Finish()
 	ctx := context.Background()
 	logger := zap.L()
-	itemHandlers := mocks.NewMockIItemHandlers(ctrl)
-	categoryHandlers := mocks.NewMockICategoryHandlers(ctrl)
+	itemHandlers := mocks.NewMockIItemUsecase(ctrl)
+	categoryHandlers := mocks.NewMockICategoryUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
 	delivery := NewDelivery(itemHandlers, categoryHandlers, logger, filestorage)
 
@@ -453,8 +499,8 @@ func TestSearchLine(t *testing.T) {
 	defer ctrl.Finish()
 	ctx := context.Background()
 	logger := zap.L()
-	itemHandlers := mocks.NewMockIItemHandlers(ctrl)
-	categoryHandlers := mocks.NewMockICategoryHandlers(ctrl)
+	itemHandlers := mocks.NewMockIItemUsecase(ctrl)
+	categoryHandlers := mocks.NewMockICategoryUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
 	delivery := NewDelivery(itemHandlers, categoryHandlers, logger, filestorage)
 
@@ -480,7 +526,7 @@ func TestSearchLine(t *testing.T) {
 	}
 	c.Request.URL, _ = url.Parse("?param=test&offset=0&limit=1")
 
-	itemHandlers.EXPECT().SearchLine(ctx, "test", 0, 1).Return([]handlers.Item{}, fmt.Errorf("error"))
+	itemHandlers.EXPECT().SearchLine(ctx, "test", 0, 1).Return([]models.Item{}, fmt.Errorf("error"))
 	delivery.SearchLine(c)
 	require.Equal(t, 500, w.Code)
 
@@ -525,8 +571,8 @@ func TestGetItemsByCategory(t *testing.T) {
 	defer ctrl.Finish()
 	ctx := context.Background()
 	logger := zap.L()
-	itemHandlers := mocks.NewMockIItemHandlers(ctrl)
-	categoryHandlers := mocks.NewMockICategoryHandlers(ctrl)
+	itemHandlers := mocks.NewMockIItemUsecase(ctrl)
+	categoryHandlers := mocks.NewMockICategoryUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
 	delivery := NewDelivery(itemHandlers, categoryHandlers, logger, filestorage)
 
@@ -552,7 +598,7 @@ func TestGetItemsByCategory(t *testing.T) {
 	}
 	c.Request.URL, _ = url.Parse("?param=test&offset=0&limit=1")
 
-	itemHandlers.EXPECT().GetItemsByCategory(ctx, "test", 0, 1).Return([]handlers.Item{}, fmt.Errorf("error"))
+	itemHandlers.EXPECT().GetItemsByCategory(ctx, "test", 0, 1).Return([]models.Item{}, fmt.Errorf("error"))
 	delivery.GetItemsByCategory(c)
 	require.Equal(t, 500, w.Code)
 
@@ -597,8 +643,8 @@ func TestUploadItemImage(t *testing.T) {
 	defer ctrl.Finish()
 	ctx := context.Background()
 	logger := zap.L()
-	itemHandlers := mocks.NewMockIItemHandlers(ctrl)
-	categoryHandlers := mocks.NewMockICategoryHandlers(ctrl)
+	itemHandlers := mocks.NewMockIItemUsecase(ctrl)
+	categoryHandlers := mocks.NewMockICategoryUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
 	delivery := NewDelivery(itemHandlers, categoryHandlers, logger, filestorage)
 
@@ -674,7 +720,7 @@ func TestUploadItemImage(t *testing.T) {
 	}
 	MockFile(c, "jpeg", testFile)
 	filestorage.EXPECT().PutItemImage(testId.String(), carbon.Now().ToShortDateTimeString()+".jpeg", testFile).Return("testName", nil)
-	itemHandlers.EXPECT().GetItem(ctx, testId.String()).Return(handlers.Item{}, fmt.Errorf("error"))
+	itemHandlers.EXPECT().GetItem(ctx, testId).Return(&models.Item{}, fmt.Errorf("error"))
 	delivery.UploadItemImage(c)
 	require.Equal(t, 500, w.Code)
 
@@ -692,8 +738,8 @@ func TestUploadItemImage(t *testing.T) {
 	}
 	MockFile(c, "jpeg", testFile)
 	filestorage.EXPECT().PutItemImage(testId.String(), carbon.Now().ToShortDateTimeString()+".jpeg", testFile).Return("testName", nil)
-	itemHandlers.EXPECT().GetItem(ctx, testId.String()).Return(testHandlersItemWithId, nil)
-	itemHandlers.EXPECT().UpdateItem(ctx, testHandlersItemWithImage).Return(fmt.Errorf("error"))
+	itemHandlers.EXPECT().GetItem(ctx, testId).Return(testModelsItemWithId, nil)
+	itemHandlers.EXPECT().UpdateItem(ctx, &testModelsItemWithImage).Return(fmt.Errorf("error"))
 	delivery.UploadItemImage(c)
 	require.Equal(t, 500, w.Code)
 
@@ -711,8 +757,8 @@ func TestUploadItemImage(t *testing.T) {
 	}
 	MockFile(c, "jpeg", testFile)
 	filestorage.EXPECT().PutItemImage(testId.String(), carbon.Now().ToShortDateTimeString()+".jpeg", testFile).Return("testName", nil)
-	itemHandlers.EXPECT().GetItem(ctx, testId.String()).Return(testHandlersItemWithId, nil)
-	itemHandlers.EXPECT().UpdateItem(ctx, testHandlersItemWithImage).Return(nil)
+	itemHandlers.EXPECT().GetItem(ctx, testId).Return(testModelsItemWithId2, nil)
+	itemHandlers.EXPECT().UpdateItem(ctx, &testModelsItemWithImage).Return(nil)
 	delivery.UploadItemImage(c)
 	require.Equal(t, 201, w.Code)
 }
@@ -722,8 +768,8 @@ func TestDeleteItemImage(t *testing.T) {
 	defer ctrl.Finish()
 	ctx := context.Background()
 	logger := zap.L()
-	itemHandlers := mocks.NewMockIItemHandlers(ctrl)
-	categoryHandlers := mocks.NewMockICategoryHandlers(ctrl)
+	itemHandlers := mocks.NewMockIItemUsecase(ctrl)
+	categoryHandlers := mocks.NewMockICategoryUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
 	delivery := NewDelivery(itemHandlers, categoryHandlers, logger, filestorage)
 
@@ -755,7 +801,7 @@ func TestDeleteItemImage(t *testing.T) {
 	}
 	c.Request.URL, _ = url.Parse(fmt.Sprintf("?id=%s&name=testName.jpeg", testId.String()))
 	filestorage.EXPECT().DeleteItemImage(testId.String(), "testName.jpeg").Return(nil)
-	itemHandlers.EXPECT().GetItem(ctx, testId.String()).Return(handlers.Item{}, fmt.Errorf("error"))
+	itemHandlers.EXPECT().GetItem(ctx, testId).Return(&models.Item{}, fmt.Errorf("error"))
 	delivery.DeleteItemImage(c)
 	require.Equal(t, 500, w.Code)
 
@@ -767,9 +813,9 @@ func TestDeleteItemImage(t *testing.T) {
 	}
 	c.Request.URL, _ = url.Parse(fmt.Sprintf("?id=%s&name=testName.jpeg", testId.String()))
 	filestorage.EXPECT().DeleteItemImage(testId.String(), "testName.jpeg").Return(nil)
-	itemHandlers.EXPECT().GetItem(ctx, testId.String()).Return(testHandlersItemWithImage2, nil)
-	testHandlersItemWithImage2.Images = []string{}
-	itemHandlers.EXPECT().UpdateItem(ctx, testHandlersItemWithImage2).Return(fmt.Errorf("error"))
+	itemHandlers.EXPECT().GetItem(ctx, testId).Return(&testModelsItemWithImage2, nil)
+	testModelsItemWithImage2.Images = []string{}
+	itemHandlers.EXPECT().UpdateItem(ctx, &testModelsItemWithImage2).Return(fmt.Errorf("error"))
 	delivery.DeleteItemImage(c)
 	require.Equal(t, 500, w.Code)
 
@@ -781,9 +827,9 @@ func TestDeleteItemImage(t *testing.T) {
 	}
 	c.Request.URL, _ = url.Parse(fmt.Sprintf("?id=%s&name=testName.jpeg", testId.String()))
 	filestorage.EXPECT().DeleteItemImage(testId.String(), "testName.jpeg").Return(nil)
-	itemHandlers.EXPECT().GetItem(ctx, testId.String()).Return(testHandlersItemWithImage2, nil)
-	testHandlersItemWithImage2.Images = []string{}
-	itemHandlers.EXPECT().UpdateItem(ctx, testHandlersItemWithImage2).Return(nil)
+	itemHandlers.EXPECT().GetItem(ctx, testId).Return(&testModelsItemWithImage2, nil)
+	testModelsItemWithImage2.Images = []string{}
+	itemHandlers.EXPECT().UpdateItem(ctx, &testModelsItemWithImage2).Return(nil)
 	delivery.DeleteItemImage(c)
 	require.Equal(t, 200, w.Code)
 }
