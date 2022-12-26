@@ -11,6 +11,7 @@ package router
 
 import (
 	"OnlineShopBackend/internal/delivery"
+	"OnlineShopBackend/internal/delivery"
 	"OnlineShopBackend/internal/delivery/swagger/docs"
 
 	"net/http"
