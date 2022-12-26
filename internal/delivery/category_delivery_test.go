@@ -89,7 +89,7 @@ var (
 		Name:        "NoCategory",
 		Description: "Category for items from deleting categories",
 	}
-	testCategoryWithImage2 = & models.Category{
+	testCategoryWithImage2 = &models.Category{
 		Id:          testId,
 		Name:        "testName",
 		Description: "testDescription",
@@ -101,7 +101,7 @@ var (
 		Description: "testDescription",
 		Category:    testNoCategoryWithId,
 		Price:       10,
-		Vendor: "testVendor",
+		Vendor:      "testVendor",
 	}
 )
 
@@ -248,7 +248,7 @@ func TestUpdateCategory(t *testing.T) {
 	c.Params = []gin.Param{
 		{
 			Key:   "categoryID",
-			Value: testId.String()+"l",
+			Value: testId.String() + "l",
 		},
 	}
 	MockCatJson(c, testCategoryWithId, put)
@@ -359,7 +359,7 @@ func TestGetCategory(t *testing.T) {
 	c.Params = []gin.Param{
 		{
 			Key:   "categoryID",
-			Value: testId.String()+"n",
+			Value: testId.String() + "n",
 		},
 	}
 	delivery.GetCategory(c)
@@ -428,7 +428,7 @@ func TestUploadCategoryImage(t *testing.T) {
 	c.Params = []gin.Param{
 		{
 			Key:   "categoryID",
-			Value: testId.String()+"l",
+			Value: testId.String() + "l",
 		},
 	}
 

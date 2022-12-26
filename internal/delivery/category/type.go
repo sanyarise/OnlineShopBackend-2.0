@@ -3,7 +3,7 @@ package category
 type ShortCategory struct {
 	Name        string `json:"name" binding:"required" example:"Электротехника"`
 	Description string `json:"description" binding:"required" example:"Электротехнические товары для дома"`
-	Image string `json:"image,omitempty"`
+	Image       string `json:"image,omitempty"`
 }
 
 type CategoryId struct {

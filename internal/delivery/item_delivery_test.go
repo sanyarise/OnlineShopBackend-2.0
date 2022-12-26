@@ -98,7 +98,6 @@ var (
 		Vendor: "testVendor",
 	}
 
-	
 	testModelsItemWithId2 = &models.Item{
 		Id:          testId,
 		Title:       "testTitle",
