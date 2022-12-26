@@ -34,6 +34,7 @@ services:
     image: postgres:latest
     container_name: postgres
     hostname: postgres
+    restart: always
     ports:
       - "5432:5432" # database port (host:container)
     environment:

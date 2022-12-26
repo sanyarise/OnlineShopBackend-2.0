@@ -50,6 +50,7 @@ func main() {
 	}
 	itemStore := repository.NewItemRepo(pgstore, lsug)
 	categoryStore := repository.NewCategoryRepo(pgstore, lsug)
+	userStore := repository.NewUser(pgstore, lsug)
 	redis, err := cash.NewRedisCash(cfg.CashHost, cfg.CashPort, time.Duration(cfg.CashTTL), l)
 	if err != nil {
 		log.Fatalf("can't initialize cash: %v", err)
@@ -59,6 +60,7 @@ func main() {
 
 	itemUsecase := usecase.NewItemUsecase(itemStore, itemsCash, l)
 	categoryUsecase := usecase.NewCategoryUsecase(categoryStore, categoriesCash, l)
+	userUsecase := usecase.NewUserUsecase(userStore, l)
 
 	itemHandlers := handlers.NewItemHandlers(itemUsecase, l)
 	categoryHandlers := handlers.NewCategoryHandlers(categoryUsecase, l)

@@ -34,7 +34,18 @@ const (
 var sessionStore = sessions.NewCookieStore([]byte(sessionSecret), nil)
 
 
-// CreateUser -
+// CreateUser create a new user
+//
+//	@Summary		Create a new user
+//	@Description	Method provides to get quantity of items
+//	@Tags			user
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{object}	id	"user id"
+//	@Failure		404	"Bad Request"
+//	@Failure		404	{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500	{object}	ErrorResponse
+//	@Router			/user/create [post]
 func (delivery *Delivery) CreateUser(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery CreateUser()")
 	ctx := c.Request.Context()
@@ -66,26 +77,21 @@ func (delivery *Delivery) CreateUser(c *gin.Context) {
 func (delivery *Delivery) LoginUser(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery LoginUser()")
 	var deliveryUser handlers.User
-	//var user models.User
 	if err := c.ShouldBindJSON(&deliveryUser); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
 	user, err := delivery.userHandlers.GetUserByEmail(c.Request.Context(), deliveryUser.Email); if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
-	//session := sessionStore.New(sessionName)
 	session := sessions.NewSession(sessionStore, sessionName)
 	session.Values[sessionUserID] = user.ID
 	if err := session.Save(c.Writer); err != nil {
 		delivery.logger.Error("saving session error")
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"id": session.Values[sessionUserID]})
-
+	c.JSON(http.StatusOK, gin.H{"token": session.Values[sessionUserID]})
 }
 
 // LoginUserGoogle -
@@ -150,6 +156,9 @@ func validationCheck(user handlers.User) error {
 	return nil
 }
 
+func randSession(n int)  {
+
+}
 
 
 

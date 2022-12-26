@@ -94,7 +94,7 @@ INSERT INTO items(id, name, category, description, price, vendor, pictures) VALU
 INSERT INTO items(id, name, category, description, price, vendor, pictures) VALUES ('223ba075-8c96-4760-8620-f0adbe3f2e7e', 'smartphone bq', 'd0d3df2d-f6c8-4956-9d76-998ee1ec8a39', 'best smartphone', 6990, 'samsung', '{"http://localhost:8000/files/items/223ba075-8c96-4760-8620-f0adbe3f2e7e/20221213132809.jpeg"}');
 INSERT INTO items(id, name, category, description, price, vendor, pictures) VALUES ('3f05a859-1806-4851-a457-c9cb69b22846', 'smartphone techno', 'd0d3df2d-f6c8-4956-9d76-998ee1ec8a39', 'best smartphone', 9990, 'samsung', '{"http://localhost:8000/files/items/3f05a859-1806-4851-a457-c9cb69b22846/20221213132821.jpeg"}');
 INSERT INTO items(id, name, category, description, price, vendor, pictures) VALUES ('7eb10fc6-20e8-4b3b-95a3-0f55cf0145d6', 'smartphone techno', 'd0d3df2d-f6c8-4956-9d76-998ee1ec8a39', 'best smartphone', 8990, 'samsung', '{"http://localhost:8000/files/items/7eb10fc6-20e8-4b3b-95a3-0f55cf0145d6/20221213132833.jpeg"}');
-
+INSERT INTO rights(name, rules) VALUES ('Customer', '{common}');
 
 
 
