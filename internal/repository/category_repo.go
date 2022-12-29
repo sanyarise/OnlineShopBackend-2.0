@@ -122,7 +122,7 @@ func (repo *categoryRepo) GetCategory(ctx context.Context, id uuid.UUID) (*model
 	category := models.Category{}
 	pool := repo.storage.GetPool()
 	row := pool.QueryRow(ctx,
-		`SELECT id, name, description, picture FROM categories WHERE id = $1`, id)
+		`SELECT id, name, description, picture FROM categories WHERE deleted_at is null AND id = $1`, id)
 	err := row.Scan(
 		&category.Id,
 		&category.Name,
@@ -141,7 +141,7 @@ func (repo *categoryRepo) GetCategoryByName(ctx context.Context, name string) (*
 	category := models.Category{}
 	pool := repo.storage.GetPool()
 	row := pool.QueryRow(ctx,
-		`SELECT id, name, description, picture FROM categories WHERE name = $1`, name)
+		`SELECT id, name, description, picture FROM categories WHERE deleted_at is null AND name = $1`, name)
 	err := row.Scan(
 		&category.Id,
 		&category.Name,
@@ -218,6 +218,6 @@ func (repo *categoryRepo) DeleteCategory(ctx context.Context, id uuid.UUID) erro
 		repo.logger.Errorf("error on delete category %s: %s", id, err)
 		return fmt.Errorf("error on delete category %s: %w", id, err)
 	}
-	repo.logger.Infof("category %s successfully deleted", id)
+	repo.logger.Infof("Category %s successfully deleted from database", id)
 	return nil
 }
