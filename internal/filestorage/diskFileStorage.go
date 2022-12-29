@@ -16,6 +16,7 @@ type FileStorager interface {
 	DeleteItemImage(id string, filename string) error
 	DeleteCategoryImage(id string, filename string) error
 	DeleteCategoryImageById(id string) error
+	DeleteItemImageById(id string) error
 }
 
 type FileInStorageInfo struct {
@@ -101,15 +102,27 @@ func (imagestorage *OnDiskLocalStorage) DeleteCategoryImage(id string, filename 
 	return nil
 }
 
-func (imagestorage *OnDiskLocalStorage) DeleteCategoryImageById(folderName string) error {
+func (imagestorage *OnDiskLocalStorage) DeleteCategoryImageById(id string) error {
 	imagestorage.logger.Debug("Enter in filestorage DeleteCategoryImageById()")
-	imagestorage.logger.Debug(fmt.Sprintf("name of deleting folder: %s", folderName))
-	err := os.RemoveAll(imagestorage.path + "categories/" + folderName)
+	imagestorage.logger.Debug(fmt.Sprintf("name of deleting folder: %s", id))
+	err := os.RemoveAll(imagestorage.path + "categories/" + id)
 	if err != nil {
 		imagestorage.logger.Debug(fmt.Sprintf("error on delete folder: %v", err))
 		return fmt.Errorf("error on delete folder: %w", err)
 	}
-	imagestorage.logger.Info("Category folder delete success")
+	imagestorage.logger.Info("Category image folder delete success")
+	return nil
+}
+
+func (imagestorage *OnDiskLocalStorage) DeleteItemImageById(id string) error {
+	imagestorage.logger.Debug("Enter in filestorage DeleteItemImageById()")
+	imagestorage.logger.Debug(fmt.Sprintf("name of deleting folder: %s", id))
+	err := os.RemoveAll(imagestorage.path + "items/" + id)
+	if err != nil {
+		imagestorage.logger.Debug(fmt.Sprintf("error on delete folder: %v", err))
+		return fmt.Errorf("error on delete folder: %w", err)
+	}
+	imagestorage.logger.Info("Item images folder delete success")
 	return nil
 }
 

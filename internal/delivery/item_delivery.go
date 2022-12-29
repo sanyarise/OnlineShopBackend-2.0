@@ -616,3 +616,58 @@ func (delivery *Delivery) DeleteItemImage(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{})
 }
+
+// DeleteItem deleted item by id
+//
+//	@Summary		Method provides to delete item
+//	@Description	Method provides to delete item.
+//	@Tags			items
+//	@Accept			json
+//	@Produce		json
+//	@Param			itemID	path	string	true	"id of item"
+//	@Success		200
+//	@Failure		400	{object}	ErrorResponse
+//	@Failure		403	"Forbidden"
+//	@Failure		404	{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500	{object}	ErrorResponse
+//	@Router			/items/delete/{itemID} [delete]
+func (delivery *Delivery) DeleteItem(c *gin.Context) {
+	delivery.logger.Debug("Enter in delivery DeleteItem()")
+	id := c.Param("itemID")
+	if id == "" {
+		err := fmt.Errorf("empty item id in request")
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
+		return
+	}
+	uid, err := uuid.Parse(id)
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
+		return
+	}
+	ctx := c.Request.Context()
+	deletedItem, err := delivery.itemUsecase.GetItem(ctx, uid)
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusInternalServerError, err)
+		return
+	}
+	delivery.logger.Debug(fmt.Sprintf("deletedItem: %v", deletedItem))
+
+	err = delivery.itemUsecase.DeleteItem(ctx, uid)
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusInternalServerError, err)
+		return
+	}
+
+	if len(deletedItem.Images) > 0 {
+		err = delivery.filestorage.DeleteItemImageById(id)
+		if err != nil {
+			delivery.logger.Error(err.Error())
+		}
+	}
+	delivery.logger.Sugar().Infof("Item with id: %s deleted success", id)
+	c.JSON(http.StatusOK, gin.H{})
+}
