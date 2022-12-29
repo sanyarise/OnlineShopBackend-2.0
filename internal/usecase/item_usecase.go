@@ -280,6 +280,14 @@ func (usecase *ItemUsecase) UpdateCash(ctx context.Context, id uuid.UUID, op str
 			return fmt.Errorf("error on create items quantity cash: %w", err)
 		}
 	}
+	if op == "delete" {
+		for i, item := range items {
+			if item.Id == id {
+				items = append(items[:i], items[i+1:]...)
+				break
+			}
+		}
+	}
 	return usecase.itemCash.CreateItemsCash(ctx, items, itemsListKey)
 }
 
@@ -311,5 +319,27 @@ func (usecase *ItemUsecase) UpdateItemsInCategoryCash(ctx context.Context, newIt
 			return fmt.Errorf("error on create items quantity cash: %w", err)
 		}
 	}
+	if op == "delete" {
+		for i, item := range items {
+			if item.Id == newItem.Id {
+				items = append(items[:i], items[i+1:]...)
+				break
+			}
+		}
+	}
 	return usecase.itemCash.CreateItemsCash(ctx, items, categoryItemsKey)
+}
+
+// DeleteItem call database method for deleting item
+func (usecase *ItemUsecase) DeleteItem(ctx context.Context, id uuid.UUID) error {
+	usecase.logger.Debug("Enter in usecase DeleteItem()")
+	err := usecase.itemStore.DeleteItem(ctx, id)
+	if err != nil {
+		return err
+	}
+	err = usecase.UpdateCash(ctx, id, "delete")
+	if err != nil {
+		usecase.logger.Error(fmt.Sprintf("error on update cash: %v", err))
+	}
+	return nil
 }

@@ -14,6 +14,7 @@ type ItemStore interface {
 	ItemsList(ctx context.Context) (chan models.Item, error)
 	SearchLine(ctx context.Context, param string) (chan models.Item, error)
 	GetItemsByCategory(ctx context.Context, categoryName string) (chan models.Item, error)
+	DeleteItem(ctx context.Context, id uuid.UUID) error
 }
 
 type CategoryStore interface {

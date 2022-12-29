@@ -105,7 +105,7 @@ func (usecase *CategoryUsecase) DeleteCategory(ctx context.Context, id uuid.UUID
 	}
 	err = usecase.UpdateCash(ctx, id, "delete")
 	if err != nil {
-		usecase.logger.Error(fmt.Sprintf("error on update cast: %v", err))
+		usecase.logger.Error(fmt.Sprintf("error on update cash: %v", err))
 	}
 	return nil
 }
@@ -148,6 +148,7 @@ func (usecase *CategoryUsecase) UpdateCash(ctx context.Context, id uuid.UUID, op
 		for i, category := range categories {
 			if category.Id == id {
 				categories = append(categories[:i], categories[i+1:]...)
+				break
 			}
 		}
 	}
