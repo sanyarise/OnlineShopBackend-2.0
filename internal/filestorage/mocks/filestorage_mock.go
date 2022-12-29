@@ -76,6 +76,20 @@ func (mr *MockFileStoragerMockRecorder) DeleteItemImage(id, filename interface{}
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteItemImage", reflect.TypeOf((*MockFileStorager)(nil).DeleteItemImage), id, filename)
 }
 
+// DeleteItemImagesFolderById mocks base method.
+func (m *MockFileStorager) DeleteItemImagesFolderById(id string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteItemImagesFolderById", id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteItemImagesFolderById indicates an expected call of DeleteItemImagesFolderById.
+func (mr *MockFileStoragerMockRecorder) DeleteItemImagesFolderById(id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteItemImagesFolderById", reflect.TypeOf((*MockFileStorager)(nil).DeleteItemImagesFolderById), id)
+}
+
 // GetFileList mocks base method.
 func (m *MockFileStorager) GetFileList() ([]filestorage.FileInStorageInfo, error) {
 	m.ctrl.T.Helper()

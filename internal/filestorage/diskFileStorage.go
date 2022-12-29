@@ -16,7 +16,7 @@ type FileStorager interface {
 	DeleteItemImage(id string, filename string) error
 	DeleteCategoryImage(id string, filename string) error
 	DeleteCategoryImageById(id string) error
-	DeleteItemImageById(id string) error
+	DeleteItemImagesFolderById(id string) error
 }
 
 type FileInStorageInfo struct {
@@ -114,7 +114,7 @@ func (imagestorage *OnDiskLocalStorage) DeleteCategoryImageById(id string) error
 	return nil
 }
 
-func (imagestorage *OnDiskLocalStorage) DeleteItemImageById(id string) error {
+func (imagestorage *OnDiskLocalStorage) DeleteItemImagesFolderById(id string) error {
 	imagestorage.logger.Debug("Enter in filestorage DeleteItemImageById()")
 	imagestorage.logger.Debug(fmt.Sprintf("name of deleting folder: %s", id))
 	err := os.RemoveAll(imagestorage.path + "items/" + id)

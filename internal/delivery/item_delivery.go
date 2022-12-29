@@ -663,7 +663,7 @@ func (delivery *Delivery) DeleteItem(c *gin.Context) {
 	}
 
 	if len(deletedItem.Images) > 0 {
-		err = delivery.filestorage.DeleteItemImageById(id)
+		err = delivery.filestorage.DeleteItemImagesFolderById(id)
 		if err != nil {
 			delivery.logger.Error(err.Error())
 		}

@@ -828,3 +828,89 @@ func TestDeleteItemImage(t *testing.T) {
 	delivery.DeleteItemImage(c)
 	require.Equal(t, 200, w.Code)
 }
+
+func TestDeleteItem(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	ctx := context.Background()
+	logger := zap.L()
+	itemHandlers := mocks.NewMockIItemUsecase(ctrl)
+	categoryHandlers := mocks.NewMockICategoryUsecase(ctrl)
+	filestorage := fs.NewMockFileStorager(ctrl)
+	delivery := NewDelivery(itemHandlers, categoryHandlers, logger, filestorage)
+
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	delivery.DeleteItem(c)
+	require.Equal(t, 400, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Params = []gin.Param{
+		{
+			Key:   "itemID",
+			Value: testId.String()+"l",
+		},
+	}
+	delivery.DeleteItem(c)
+	require.Equal(t, 400, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Params = []gin.Param{
+		{
+			Key:   "itemID",
+			Value: testId.String(),
+		},
+	}
+	itemHandlers.EXPECT().GetItem(ctx, testId).Return(nil, fmt.Errorf("error"))
+	delivery.DeleteItem(c)
+	require.Equal(t, 500, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Params = []gin.Param{
+		{
+			Key:   "itemID",
+			Value: testId.String(),
+		},
+	}
+	itemHandlers.EXPECT().GetItem(ctx, testId).Return(testModelsItemWithId, nil)
+	itemHandlers.EXPECT().DeleteItem(ctx, testId).Return(fmt.Errorf(""))
+	delivery.DeleteItem(c)
+	require.Equal(t, 500, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Params = []gin.Param{
+		{
+			Key:   "itemID",
+			Value: testId.String(),
+		},
+	}
+	itemHandlers.EXPECT().GetItem(ctx, testId).Return(&testModelsItemWithImage, nil)
+	itemHandlers.EXPECT().DeleteItem(ctx, testId).Return(nil)
+	filestorage.EXPECT().DeleteItemImagesFolderById(testId.String()).Return(fmt.Errorf("error"))
+	delivery.DeleteItem(c)
+	require.Equal(t, 200, w.Code)
+}
