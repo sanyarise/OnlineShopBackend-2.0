@@ -662,6 +662,11 @@ func (delivery *Delivery) DeleteItem(c *gin.Context) {
 		return
 	}
 
+	err = delivery.itemUsecase.UpdateItemsInCategoryCash(ctx, deletedItem, "delete")
+	if err != nil {
+		delivery.logger.Sugar().Errorf("error on update cash in category items list: %v", err)
+	}
+
 	if len(deletedItem.Images) > 0 {
 		err = delivery.filestorage.DeleteItemImagesFolderById(id)
 		if err != nil {

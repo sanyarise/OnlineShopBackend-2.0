@@ -221,7 +221,7 @@ func (repo *itemRepo) GetItemsByCategory(ctx context.Context, categoryName strin
 		item := &models.Item{}
 		pool := repo.storage.GetPool()
 		rows, err := pool.Query(ctx, `
-		SELECT items.id, items.name, category, categories.name, categories.description,categories.picture, items.description, price, vendor, pictures FROM items INNER JOIN categories ON category=categories.id WHERE WHERE items.deleted_at is null AND categories.deleted_at is null AND categories.name=$1`,
+		SELECT items.id, items.name, category, categories.name, categories.description,categories.picture, items.description, price, vendor, pictures FROM items INNER JOIN categories ON category=categories.id WHERE items.deleted_at is null AND categories.deleted_at is null AND categories.name=$1`,
 			categoryName)
 		if err != nil {
 			msg := fmt.Errorf("error on get items by category query context: %w", err)

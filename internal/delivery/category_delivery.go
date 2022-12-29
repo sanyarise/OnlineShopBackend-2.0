@@ -411,6 +411,11 @@ func (delivery *Delivery) DeleteCategory(c *gin.Context) {
 		return
 	}
 
+	err = delivery.categoryUsecase.DeleteCategoryCash(ctx, deletedCategory.Name)
+	if err != nil {
+		delivery.logger.Error(fmt.Sprintf("error on delete category cash: %v", err))
+	}
+	
 	if deletedCategory.Image != "" {
 		err = delivery.filestorage.DeleteCategoryImageById(id)
 		if err != nil {

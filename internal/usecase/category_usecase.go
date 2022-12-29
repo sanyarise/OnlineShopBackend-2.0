@@ -127,7 +127,11 @@ func (usecase *CategoryUsecase) UpdateCash(ctx context.Context, id uuid.UUID, op
 	}
 	newCategory, err := usecase.categoryStore.GetCategory(ctx, id)
 	if err != nil {
-		return fmt.Errorf("error on get category: %w", err)
+		if op == "delete" {
+			newCategory = &models.Category{Id: id}
+		} else {
+			return fmt.Errorf("error on get category: %w", err)
+		}
 	}
 	categories, err := usecase.categoriesCash.GetCategoriesListCash(ctx, categoriesListKey)
 	if err != nil {
@@ -153,4 +157,21 @@ func (usecase *CategoryUsecase) UpdateCash(ctx context.Context, id uuid.UUID, op
 		}
 	}
 	return usecase.categoriesCash.CreateCategoriesListCash(ctx, categories, categoriesListKey)
+}
+
+// DeleteCategoryCash deleted cash by deleting categories
+func (usecase *CategoryUsecase) DeleteCategoryCash(ctx context.Context, name string) error {
+	usecase.logger.Debug(fmt.Sprintf("Enter in usecase DeleteCategoryCash() with args: ctx, name: %s", name))
+	err := usecase.categoriesCash.DeleteCash(ctx, name)
+	if err != nil {
+		usecase.logger.Error(fmt.Sprintf("error on delete cash with key: %s, error is %v", name, err))
+		return err
+	}
+	err = usecase.categoriesCash.DeleteCash(ctx, name+"Quantity")
+	if err != nil {
+		usecase.logger.Error(fmt.Sprintf("error on delete cash with key: %s, error is %v", name, err))
+		return err
+	}
+	usecase.logger.Info("Category cash deleted success")
+	return nil
 }
