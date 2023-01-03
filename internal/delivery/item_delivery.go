@@ -208,7 +208,15 @@ func (delivery *Delivery) UpdateItem(c *gin.Context) {
 		delivery.SetError(c, http.StatusBadRequest, err)
 		return
 	}
-	err = delivery.itemUsecase.UpdateItem(ctx, &models.Item{
+
+	itemBeforUpdate, err := delivery.itemUsecase.GetItem(ctx, uid)
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
+		return
+	}
+
+	updatingItem := &models.Item{
 		Id:          uid,
 		Title:       deliveryItem.Title,
 		Description: deliveryItem.Description,
@@ -218,12 +226,41 @@ func (delivery *Delivery) UpdateItem(c *gin.Context) {
 		Price:  deliveryItem.Price,
 		Vendor: deliveryItem.Vendor,
 		Images: deliveryItem.Images,
-	})
+	}
+
+	err = delivery.itemUsecase.UpdateItem(ctx, updatingItem)
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusInternalServerError, err)
 		return
 	}
+
+	if itemBeforUpdate.Category.Id != categoryUid {
+		updCategory, err := delivery.categoryUsecase.GetCategory(ctx, categoryUid)
+		if err != nil {
+			delivery.logger.Error(err.Error())
+			delivery.SetError(c, http.StatusInternalServerError, err)
+			return
+		}
+		updatingItem.Category = *updCategory
+		err = delivery.itemUsecase.UpdateItemsInCategoryCash(ctx, updatingItem, "create")
+		if err != nil {
+			delivery.logger.Error(err.Error())
+			delivery.SetError(c, http.StatusInternalServerError, err)
+			return
+		} else {
+			delivery.logger.Info("Category cash of updating item updated success")
+		}
+		err = delivery.itemUsecase.UpdateItemsInCategoryCash(ctx, itemBeforUpdate, "delete")
+		if err != nil {
+			delivery.logger.Error(err.Error())
+			delivery.SetError(c, http.StatusInternalServerError, err)
+			return
+		} else {
+			delivery.logger.Info("Category cash of old item updated success")
+		}
+	}
+
 	c.JSON(http.StatusOK, gin.H{})
 }
 

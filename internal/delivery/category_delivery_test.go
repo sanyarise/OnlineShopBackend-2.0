@@ -755,6 +755,7 @@ func TestDeleteCategory(t *testing.T) {
 	filestorage.EXPECT().DeleteCategoryImageById(testId.String()).Return(nil)
 	categoryUsecase.EXPECT().GetCategoryByName(ctx, "NoCategory").Return(&testNoCategoryWithId, nil)
 	itemUsecase.EXPECT().UpdateItem(ctx, &testModelsItemNoCat).Return(fmt.Errorf("error"))
+	itemUsecase.EXPECT().UpdateItemsInCategoryCash(ctx, &testModelsItemNoCat, "create").Return(fmt.Errorf("error"))
 	delivery.DeleteCategory(c)
 	require.Equal(t, 200, w.Code)
 
@@ -820,6 +821,7 @@ func TestDeleteCategory(t *testing.T) {
 	categoryUsecase.EXPECT().GetCategoryByName(ctx, "NoCategory").Return(nil, fmt.Errorf("error"))
 	categoryUsecase.EXPECT().CreateCategory(ctx, &testNoCategory).Return(testId, nil)
 	itemUsecase.EXPECT().UpdateItem(ctx, &testModelsItemNoCat).Return(fmt.Errorf("error"))
+	itemUsecase.EXPECT().UpdateItemsInCategoryCash(ctx, &testModelsItemNoCat, "create").Return(fmt.Errorf("error"))
 	delivery.DeleteCategory(c)
 	require.Equal(t, 200, w.Code)
 }

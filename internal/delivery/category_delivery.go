@@ -415,7 +415,7 @@ func (delivery *Delivery) DeleteCategory(c *gin.Context) {
 	if err != nil {
 		delivery.logger.Error(fmt.Sprintf("error on delete category cash: %v", err))
 	}
-	
+
 	if deletedCategory.Image != "" {
 		err = delivery.filestorage.DeleteCategoryImageById(id)
 		if err != nil {
@@ -449,6 +449,10 @@ func (delivery *Delivery) DeleteCategory(c *gin.Context) {
 			if err != nil {
 				delivery.logger.Error(fmt.Sprintf("error on update item: %v", err))
 			}
+			err = delivery.itemUsecase.UpdateItemsInCategoryCash(ctx, &item, "create")
+			if err != nil {
+				delivery.logger.Error(fmt.Sprintf("error on update cash of no category: %v", err))
+			}
 		}
 		delivery.logger.Sugar().Infof("Category with id: %s deleted success", id)
 		c.JSON(http.StatusOK, gin.H{})
@@ -459,6 +463,10 @@ func (delivery *Delivery) DeleteCategory(c *gin.Context) {
 		err := delivery.itemUsecase.UpdateItem(ctx, &item)
 		if err != nil {
 			delivery.logger.Error(fmt.Sprintf("error on update item: %v", err))
+		}
+		err = delivery.itemUsecase.UpdateItemsInCategoryCash(ctx, &item, "create")
+		if err != nil {
+			delivery.logger.Error(fmt.Sprintf("error on update cash of no category: %v", err))
 		}
 	}
 	delivery.logger.Sugar().Infof("Category with id: %s deleted success", id)
