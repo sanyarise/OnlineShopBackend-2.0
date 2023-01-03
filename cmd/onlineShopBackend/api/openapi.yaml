@@ -438,8 +438,8 @@ components:
       description: This API uses OAuth 2
       flows:
         implicit:
-          authorizationUrl: ""
+          authorizationUrl: "https://someurl.com"
           scopes:
             item: create and change an item
-          tokenUrl: ' '
+          # tokenUrl: ' '
       type: oauth2

@@ -203,9 +203,10 @@ func TestItemGet(t *testing.T) {
 	cat := models.Category{
 		Name:        "1",
 		Description: "1des",
+		Image:       "imageUrl",
 	}
-	row := store.GetPool().QueryRow(context.Background(), `INSERT INTO categories (name, description) VALUES
-	('1', '1des') RETURNING id`)
+	row := store.GetPool().QueryRow(context.Background(), `INSERT INTO categories (name, description, picture) VALUES
+	('1', '1des', 'imageUrl') RETURNING id`)
 	err = row.Scan(&cat.Id)
 	defer store.GetPool().Exec(context.Background(), `DELETE FROM categories`)
 	assert.NoError(t, err)
@@ -215,14 +216,17 @@ func TestItemGet(t *testing.T) {
 		Description: "desc",
 		Price:       300,
 		Category:    cat,
+		Vendor:      "vendor",
+		Images:      []string{"1.jpg"},
 	}
-	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO items(name, category, description, price, vendor)
-	values ($1, $2, $3, $4, $5) RETURNING id`,
+	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO items(name, category, description, price, vendor, pictures)
+	values ($1, $2, $3, $4, $5, $6) RETURNING id`,
 		item.Title,
 		item.Category.Id,
 		item.Description,
 		item.Price,
 		item.Vendor,
+		item.Images,
 	)
 	row.Scan(&item.Id)
 	defer store.GetPool().Exec(context.Background(), `DELETE FROM items`)
@@ -817,7 +821,7 @@ func TestOrderCreate(t *testing.T) {
 		ShipmentTime: time.Now().Add(2 * time.Hour),
 		User:         user,
 		Address:      user.Address,
-		Status:       models.Processed,
+		Status:       models.StatusProcessed,
 		Items:        []models.Item{item1, item2},
 	}
 	res, err := ordr.Create(context.Background(), &order)
@@ -908,7 +912,7 @@ func TestOrderDelete(t *testing.T) {
 		ShipmentTime: time.Now().Add(2 * time.Hour),
 		User:         user,
 		Address:      user.Address,
-		Status:       models.Processed,
+		Status:       models.StatusProcessed,
 		Items:        []models.Item{item1, item2},
 	}
 
@@ -1011,7 +1015,7 @@ func TestOrderChangeAddres(t *testing.T) {
 		ShipmentTime: time.Now().Add(2 * time.Hour),
 		User:         user,
 		Address:      user.Address,
-		Status:       models.Processed,
+		Status:       models.StatusProcessed,
 		Items:        []models.Item{item1, item2},
 	}
 
@@ -1121,7 +1125,7 @@ func TestOrderChangeStatus(t *testing.T) {
 		ShipmentTime: time.Now().Add(2 * time.Hour),
 		User:         user,
 		Address:      user.Address,
-		Status:       models.Processed,
+		Status:       models.StatusProcessed,
 		Items:        []models.Item{item1, item2},
 	}
 
@@ -1134,14 +1138,14 @@ func TestOrderChangeStatus(t *testing.T) {
 		`INSERT INTO order_items (order_id, item_id) VALUES ($1, $2), ($1, $3)`, order.ID, order.Items[0].Id, order.ID, order.Items[1].Id)
 
 	rdrRp := repository.NewOrderRepo(store, logger)
-	err = rdrRp.ChangeStatus(context.Background(), &order, models.Courier)
+	err = rdrRp.ChangeStatus(context.Background(), &order, models.StatusCourier)
 	defer store.GetPool().Exec(context.Background(), `DELETE FROM orders`)
 	defer store.GetPool().Exec(context.Background(), `DELETE FROM order_items`)
 	require.NoError(t, err)
 	row = store.GetPool().QueryRow(context.Background(), `SELECT status FROM orders`)
 	var status models.Status
 	row.Scan(&status)
-	assert.Equal(t, models.Courier, status)
+	assert.Equal(t, models.StatusCourier, status)
 
 }
 
@@ -1226,7 +1230,7 @@ func TestOrdersGetOrderByID(t *testing.T) {
 		ShipmentTime: time.Now().Add(2 * time.Hour),
 		User:         user,
 		Address:      user.Address,
-		Status:       models.Processed,
+		Status:       models.StatusProcessed,
 		Items:        []models.Item{item1, item2},
 	}
 
@@ -1329,7 +1333,7 @@ func TestOrdersGetOrders(t *testing.T) {
 		ShipmentTime: time.Now().Add(2 * time.Hour),
 		User:         user,
 		Address:      user.Address,
-		Status:       models.Processed,
+		Status:       models.StatusProcessed,
 		Items:        []models.Item{item1, item2},
 	}
 
@@ -1337,7 +1341,7 @@ func TestOrdersGetOrders(t *testing.T) {
 		ShipmentTime: time.Now().Add(2 * time.Hour),
 		User:         user,
 		Address:      user.Address,
-		Status:       models.Courier,
+		Status:       models.StatusCourier,
 		Items:        []models.Item{item1},
 	}
 
