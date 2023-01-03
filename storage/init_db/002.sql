@@ -39,6 +39,7 @@ CREATE TABLE items (
     price INTEGER NOT NULL,
     vendor TEXT NOT NULL,
     pictures text[],
+    deleted_at timestamptz NULL,
     CONSTRAINT fk_category
         FOREIGN KEY(category) REFERENCES categories(id)
 );

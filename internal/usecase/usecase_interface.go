@@ -18,6 +18,7 @@ type IItemUsecase interface {
 	GetItemsByCategory(ctx context.Context, categoryName string, offset, limit int) ([]models.Item, error)
 	UpdateCash(ctx context.Context, id uuid.UUID, op string) error
 	UpdateItemsInCategoryCash(ctx context.Context, newItem *models.Item, op string) error
+	DeleteItem(ctx context.Context, id uuid.UUID) error
 }
 
 type ICategoryUsecase interface {
@@ -28,4 +29,5 @@ type ICategoryUsecase interface {
 	UpdateCash(ctx context.Context, id uuid.UUID, op string) error
 	DeleteCategory(ctx context.Context, id uuid.UUID) error
 	GetCategoryByName(ctx context.Context, name string) (*models.Category, error)
+	DeleteCategoryCash(ctx context.Context, name string) error
 }

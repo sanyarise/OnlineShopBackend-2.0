@@ -51,6 +51,20 @@ func (mr *MockItemStoreMockRecorder) CreateItem(ctx, item interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateItem", reflect.TypeOf((*MockItemStore)(nil).CreateItem), ctx, item)
 }
 
+// DeleteItem mocks base method.
+func (m *MockItemStore) DeleteItem(ctx context.Context, id uuid.UUID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteItem", ctx, id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteItem indicates an expected call of DeleteItem.
+func (mr *MockItemStoreMockRecorder) DeleteItem(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteItem", reflect.TypeOf((*MockItemStore)(nil).DeleteItem), ctx, id)
+}
+
 // GetItem mocks base method.
 func (m *MockItemStore) GetItem(ctx context.Context, id uuid.UUID) (*models.Item, error) {
 	m.ctrl.T.Helper()

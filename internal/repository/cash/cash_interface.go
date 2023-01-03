@@ -17,4 +17,5 @@ type ICategoriesCash interface {
 	CheckCash(ctx context.Context, key string) bool
 	CreateCategoriesListCash(ctx context.Context, categories []models.Category, key string) error
 	GetCategoriesListCash(ctx context.Context, key string) ([]models.Category, error)
+	DeleteCash(ctx context.Context, key string) error
 }

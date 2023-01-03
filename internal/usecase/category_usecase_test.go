@@ -256,3 +256,27 @@ func TestGetCategoryByName(t *testing.T) {
 	require.NotNil(t, res)
 	require.Equal(t, res, testModelCategoryWithId)
 }
+
+func TestDeleteCategoryCash(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	ctx := context.Background()
+	logger := zap.L()
+	categoryRepo := mocks.NewMockCategoryStore(ctrl)
+	cash := mocks.NewMockICategoriesCash(ctrl)
+	usecase := NewCategoryUsecase(categoryRepo, cash, logger)
+
+	cash.EXPECT().DeleteCash(ctx, "testName").Return(err)
+	err := usecase.DeleteCategoryCash(ctx, "testName")
+	require.Error(t, err)
+
+	cash.EXPECT().DeleteCash(ctx, "testName").Return(nil)
+	cash.EXPECT().DeleteCash(ctx, "testNameQuantity").Return(err)
+	err = usecase.DeleteCategoryCash(ctx, "testName")
+	require.Error(t, err)
+
+	cash.EXPECT().DeleteCash(ctx, "testName").Return(nil)
+	cash.EXPECT().DeleteCash(ctx, "testNameQuantity").Return(nil)
+	err = usecase.DeleteCategoryCash(ctx, "testName")
+	require.NoError(t, err)
+}
