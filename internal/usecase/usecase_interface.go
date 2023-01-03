@@ -31,3 +31,12 @@ type ICategoryUsecase interface {
 	GetCategoryByName(ctx context.Context, name string) (*models.Category, error)
 	DeleteCategoryCash(ctx context.Context, name string) error
 }
+
+type IOrderUsecase interface {
+	PlaceOrder(ctx context.Context, cart *models. Cart, user *models.User) (*models.Order, error)
+	ChangeStatus(ctx context.Context, order *models.Order, newStatus models.Status) error
+	GetOrdersForUser(ctx context.Context, user *models.User) ([]models.Order, error)
+	DeleteOrder(ctx context.Context, order *models.Order) error
+	ChangeAddress(ctx context.Context, order *models.Order, newAddress models.UserAddress) error
+	GetOrder(ctx context.Context, id uuid.UUID) (models.Order, error)
+}
