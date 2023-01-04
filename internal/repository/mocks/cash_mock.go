@@ -158,6 +158,20 @@ func (mr *MockICategoriesCashMockRecorder) CreateCategoriesListCash(ctx, categor
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateCategoriesListCash", reflect.TypeOf((*MockICategoriesCash)(nil).CreateCategoriesListCash), ctx, categories, key)
 }
 
+// DeleteCash mocks base method.
+func (m *MockICategoriesCash) DeleteCash(ctx context.Context, key string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteCash", ctx, key)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteCash indicates an expected call of DeleteCash.
+func (mr *MockICategoriesCashMockRecorder) DeleteCash(ctx, key interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteCash", reflect.TypeOf((*MockICategoriesCash)(nil).DeleteCash), ctx, key)
+}
+
 // GetCategoriesListCash mocks base method.
 func (m *MockICategoriesCash) GetCategoriesListCash(ctx context.Context, key string) ([]models.Category, error) {
 	m.ctrl.T.Helper()

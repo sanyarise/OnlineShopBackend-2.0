@@ -11,6 +11,7 @@ import (
 )
 
 var _ ICategoriesCash = &CategoriesCash{}
+
 type CategoriesCash struct {
 	*RedisCash
 	logger *zap.Logger
@@ -77,4 +78,10 @@ func (cash *CategoriesCash) GetCategoriesListCash(ctx context.Context, key strin
 		return nil, err
 	}
 	return categories.Categories, nil
+}
+
+// DeleteCash deleted cash by key
+func (cash *CategoriesCash) DeleteCash(ctx context.Context, key string) error {
+	cash.logger.Debug(fmt.Sprintf("Enter in cash DeleteCash with args: ctx, key: %s", key))
+	return cash.Del(ctx, key).Err()
 }

@@ -168,6 +168,12 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 			delivery.SearchLine,
 		},
 		{
+			"DeleteItem",
+			http.MethodDelete,
+			"/items/delete/:itemID",
+			delivery.DeleteItem,
+		},
+		{
 			"GetCart",
 			http.MethodGet,
 			"/cart/:userID",

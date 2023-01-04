@@ -4,6 +4,7 @@ import (
 	"OnlineShopBackend/internal/models"
 	"OnlineShopBackend/internal/repository/mocks"
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -51,6 +52,7 @@ var (
 		Vendor:      "test",
 	}
 	testCategoryName = "testName"
+	err              = errors.New("error")
 )
 
 func TestCreateItem(t *testing.T) {
@@ -539,47 +541,69 @@ func TestUpdateCash(t *testing.T) {
 	err := usecase.UpdateCash(ctx, uuid.New(), "create")
 	require.Error(t, err)
 
+	cash.EXPECT().CheckCash(ctx, itemsListKey).Return(true)
+	cash.EXPECT().GetItemsCash(ctx, itemsListKey).Return(nil, err)
+	err = usecase.UpdateCash(ctx, testId, "create")
+	require.Error(t, err)
+
 	cashResults := make([]models.Item, 0, 1)
 	cashResults = append(cashResults, cashItem)
-	updateResults := make([]models.Item, 0, 1)
-	updateResults = append(updateResults, *newItem)
-
 	cash.EXPECT().CheckCash(ctx, itemsListKey).Return(true)
-	itemRepo.EXPECT().GetItem(ctx, testItemId).Return(newItem, nil)
-	cash.EXPECT().GetItemsCash(ctx, itemsListKey).Return(nil, fmt.Errorf("error on get cash"))
-	err = usecase.UpdateCash(ctx, testItemId, "create")
-	require.Error(t, err)
-
-	cash.EXPECT().CheckCash(ctx, itemsListKey).Return(true)
-	itemRepo.EXPECT().GetItem(ctx, testItemId).Return(newItem, err)
-	err = usecase.UpdateCash(ctx, testItemId, "create")
-	require.Error(t, err)
-
-	cash.EXPECT().CheckCash(ctx, itemsListKey).Return(true)
-	itemRepo.EXPECT().GetItem(ctx, testItemId).Return(newItem, nil)
 	cash.EXPECT().GetItemsCash(ctx, itemsListKey).Return(cashResults, nil)
-	cash.EXPECT().CheckCash(ctx, newItem.Category.Name).Return(false)
-	cash.EXPECT().CreateItemsCash(ctx, updateResults, itemsListKey).Return(fmt.Errorf("error on create cash"))
-	err = usecase.UpdateCash(ctx, testItemId, "update")
+	itemRepo.EXPECT().GetItem(ctx, testId).Return(nil, err)
+	err = usecase.UpdateCash(ctx, testId, "create")
 	require.Error(t, err)
 
-	updateResults = append(cashResults, *newItem)
+	cashResults = make([]models.Item, 0, 1)
+	cashResults = append(cashResults, cashItem)
 	cash.EXPECT().CheckCash(ctx, itemsListKey).Return(true)
-	itemRepo.EXPECT().GetItem(ctx, testItemId).Return(newItem, nil)
 	cash.EXPECT().GetItemsCash(ctx, itemsListKey).Return(cashResults, nil)
-	cash.EXPECT().CheckCash(ctx, newItem.Category.Name).Return(false)
+	itemRepo.EXPECT().GetItem(ctx, testId).Return(&testItemWithId, nil)
+	cash.EXPECT().CheckCash(ctx, testItemWithId.Category.Name).Return(false)
+	cash.EXPECT().CreateItemsCash(ctx, cashResults, itemsListKey).Return(err)
+	err = usecase.UpdateCash(ctx, testId, "update")
+	require.Error(t, err)
+
+	cashResults = make([]models.Item, 0, 1)
+	cashResults = append(cashResults, cashItem)
+	updateResults := append(cashResults, cashItem)
+	cash.EXPECT().CheckCash(ctx, itemsListKey).Return(true)
+	cash.EXPECT().GetItemsCash(ctx, itemsListKey).Return(cashResults, nil)
+	itemRepo.EXPECT().GetItem(ctx, testId).Return(&testItemWithId, nil)
+	cash.EXPECT().CheckCash(ctx, testItemWithId.Category.Name).Return(false)
+	cash.EXPECT().CreateItemsQuantityCash(ctx, len(updateResults), itemsQuantityKey).Return(err)
+	err = usecase.UpdateCash(ctx, testId, "create")
+	require.Error(t, err)
+
+	cashResults = make([]models.Item, 0, 1)
+	cashResults = append(cashResults, cashItem)
+	updateResults = append(cashResults, testItemWithId)
+	cash.EXPECT().CheckCash(ctx, itemsListKey).Return(true)
+	cash.EXPECT().GetItemsCash(ctx, itemsListKey).Return(cashResults, nil)
+	itemRepo.EXPECT().GetItem(ctx, testId).Return(&testItemWithId, nil)
+	cash.EXPECT().CheckCash(ctx, testItemWithId.Category.Name).Return(false)
 	cash.EXPECT().CreateItemsQuantityCash(ctx, len(updateResults), itemsQuantityKey).Return(nil)
 	cash.EXPECT().CreateItemsCash(ctx, updateResults, itemsListKey).Return(nil)
-	err = usecase.UpdateCash(ctx, testItemId, "create")
+	err = usecase.UpdateCash(ctx, testId, "create")
 	require.NoError(t, err)
+}
 
-	updateResults = append(cashResults, *newItem)
+func TestUpdateCash2(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	logger := zap.L()
+	itemRepo := mocks.NewMockItemStore(ctrl)
+	cash := mocks.NewMockIItemsCash(ctrl)
+	usecase := NewItemUsecase(itemRepo, cash, logger)
+	ctx := context.Background()
+
+	delResults := make([]models.Item, 0, 1)
+	delResults = append(delResults, testItemWithId)
+	updResults := append(delResults, testItemWithId)
 	cash.EXPECT().CheckCash(ctx, itemsListKey).Return(true)
-	itemRepo.EXPECT().GetItem(ctx, testItemId).Return(newItem, nil)
-	cash.EXPECT().GetItemsCash(ctx, itemsListKey).Return(cashResults, nil)
-	cash.EXPECT().CheckCash(ctx, newItem.Category.Name).Return(false)
-	cash.EXPECT().CreateItemsQuantityCash(ctx, len(updateResults), itemsQuantityKey).Return(fmt.Errorf("error"))
-	err = usecase.UpdateCash(ctx, testItemId, "create")
+	cash.EXPECT().GetItemsCash(ctx, itemsListKey).Return(updResults, nil)
+	cash.EXPECT().CreateItemsQuantityCash(ctx, len(delResults), itemsQuantityKey).Return(err)
+	err = usecase.UpdateCash(ctx, testItemId, "delete")
 	require.Error(t, err)
 }
 
@@ -625,4 +649,33 @@ func TestUpdateItemsInCategoryCash(t *testing.T) {
 	cash.EXPECT().CreateItemsCash(ctx, cashResults, newItem.Category.Name).Return(nil)
 	err = usecase.UpdateItemsInCategoryCash(ctx, newItem, "update")
 	require.NoError(t, err)
+
+	deletedResults := []models.Item{testItemWithId}
+	deleteResults := []models.Item{}
+	cash.EXPECT().CheckCash(ctx, newItem.Category.Name).Return(true)
+	cash.EXPECT().GetItemsCash(ctx, newItem.Category.Name).Return(deletedResults, nil)
+	cash.EXPECT().CreateItemsQuantityCash(ctx, len(deleteResults), testItemWithId.Category.Name+"Quantity").Return(err)
+	cash.EXPECT().CreateItemsCash(ctx, deleteResults, newItem.Category.Name).Return(nil)
+	err = usecase.UpdateItemsInCategoryCash(ctx, newItem, "delete")
+	require.NoError(t, err)
+}
+
+func TestDeleteItem(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	logger := zap.L()
+	itemRepo := mocks.NewMockItemStore(ctrl)
+	cash := mocks.NewMockIItemsCash(ctrl)
+	usecase := NewItemUsecase(itemRepo, cash, logger)
+	ctx := context.Background()
+
+	itemRepo.EXPECT().DeleteItem(ctx, testId).Return(err)
+	err := usecase.DeleteItem(ctx, testId)
+	require.Error(t, err)
+
+	itemRepo.EXPECT().DeleteItem(ctx, testId).Return(nil)
+	cash.EXPECT().CheckCash(ctx, itemsListKey).Return(false)
+	err = usecase.DeleteItem(ctx, testId)
+	require.NoError(t, err)
+
 }

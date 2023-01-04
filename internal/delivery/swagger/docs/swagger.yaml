@@ -606,6 +606,39 @@ paths:
       summary: Method provides to create store item
       tags:
       - items
+  /items/delete/{itemID}:
+    delete:
+      consumes:
+      - application/json
+      description: Method provides to delete item.
+      parameters:
+      - description: id of item
+        in: path
+        name: itemID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Method provides to delete item
+      tags:
+      - items
   /items/image/delete:
     delete:
       consumes:
