@@ -10,29 +10,35 @@
 package delivery
 
 import (
+	"OnlineShopBackend/internal/delivery/user"
 	"OnlineShopBackend/internal/models"
+	"encoding/base64"
+	"errors"
 	"fmt"
 	"net/http"
+	"strings"
+	"time"
 	"unicode"
 
 	//"github.com/dghubble/gologin/v2"
 	//"github.com/dghubble/gologin/v2/google"
 	"github.com/dghubble/sessions"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt"
 
 	"golang.org/x/oauth2"
 	og2 "golang.org/x/oauth2/google"
 )
 
 const (
-	sessionName     = "example-google-app"
-	sessionSecret   = "example cookie signing secret"
-	sessionUserKey  = "key"
-	sessionUserID = "user"
+	sessionName    = "example-google-app"
+	sessionSecret  = "example cookie signing secret"
+	sessionUserKey = "key"
+	sessionUserID  = "user"
 )
 
+// var tl int64 // TODO исправить
 var sessionStore = sessions.NewCookieStore([]byte(sessionSecret), nil)
-
 
 // CreateUser create a new user
 //
@@ -41,7 +47,7 @@ var sessionStore = sessions.NewCookieStore([]byte(sessionSecret), nil)
 //	@Tags			user
 //	@Accept			json
 //	@Produce		json
-//	@Success		200	{object}	id	"user id"
+//	@Success		200	string //TODO
 //	@Failure		404	"Bad Request"
 //	@Failure		404	{object}	ErrorResponse	"404 Not Found"
 //	@Failure		500	{object}	ErrorResponse
@@ -57,9 +63,9 @@ func (delivery *Delivery) CreateUser(c *gin.Context) {
 
 	// Check if this a new user
 	if _, err := delivery.userUsecase.GetUserByEmail(ctx, deliveryUser.Email); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
 
 	if err := validationCheck(*deliveryUser); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -76,36 +82,58 @@ func (delivery *Delivery) CreateUser(c *gin.Context) {
 // LoginUser -
 func (delivery *Delivery) LoginUser(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery LoginUser()")
-	var deliveryUser models.User
-	if err := c.ShouldBindJSON(&deliveryUser); err != nil {
+	var userCreds user.Credentials
+	if err := c.ShouldBindJSON(&userCreds); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	user, err := delivery.userUsecase.GetUserByEmail(c.Request.Context(), deliveryUser.Email); if err != nil {
+	userExist, err := delivery.userUsecase.GetUserByEmail(c.Request.Context(), userCreds.Email)
+	if  err != nil  {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error() })
+		return
+	}
+
+	if userExist.Email == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error56": err.Error()})
+		return
+	}
+
+	payload := user.Payload{
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(time.Hour * 72).Unix(),
+		},
+		Name: userExist.ID,
+	}
+
+	token, err := user.NewJWT(payload); if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
+	c.JSON(http.StatusOK, gin.H{"token": token})
+
 	session := sessions.NewSession(sessionStore, sessionName)
-	session.Values[sessionUserID] = user.ID
+	session.Values[sessionUserID] = userExist.ID
 	if err := session.Save(c.Writer); err != nil {
 		delivery.logger.Error("saving session error")
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"token": session.Values[sessionUserID]})
+	c.JSON(http.StatusOK, gin.H{"id": session.Values[sessionUserID]},
+		)
 }
 
 // LoginUserGoogle -
 func (delivery *Delivery) LoginUserGoogle(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery LogoutUser()")
 	oauth2Config := &oauth2.Config{
-		ClientID: "614400740650-ioroeqq2rvn45k5tv5rc8noa7058m1l9.apps.googleusercontent.com",
+		ClientID:     "614400740650-ioroeqq2rvn45k5tv5rc8noa7058m1l9.apps.googleusercontent.com",
 		ClientSecret: "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",
 		RedirectURL:  "http://localhost:8000/user/callbackGoogle",
 		Endpoint:     og2.Endpoint,
 		Scopes:       []string{"profile", "email"},
 	}
 	url := oauth2Config.AuthCodeURL("random")
-	http.Redirect(c.Writer, c.Request, url,  http.StatusTemporaryRedirect)
+	http.Redirect(c.Writer, c.Request, url, http.StatusTemporaryRedirect)
 	//stateConfig := gologin.DefaultCookieConfig
 	//google.StateHandler(stateConfig, google.CallbackHandler(oauth2Config, issueSession(), nil)).ServeHTTP(c.Writer, c.Request)
 }
@@ -136,8 +164,10 @@ func (delivery *Delivery) LogoutUser(c *gin.Context) {
 	//session.Values[sessionUserID] = nil
 	//session.Save(c.Writer)
 
-	sessionStore.Destroy(c.Writer, sessionName)
+	sessionStore.Destroy(c.Writer, sessionUserID)
 	c.JSON(http.StatusOK, gin.H{"you have been successfully logged out": nil})
+
+
 	c.Redirect(http.StatusTemporaryRedirect, "/")
 }
 
@@ -156,11 +186,9 @@ func validationCheck(user models.User) error {
 	return nil
 }
 
-func randSession(n int)  {
+func randSession(n int) {
 
 }
-
-
 
 //func issueSession() http.Handler {
 //	fn := func(w http.ResponseWriter, req *http.Request) {
@@ -179,3 +207,38 @@ func randSession(n int)  {
 //	}
 //	return http.HandlerFunc(fn)
 //}
+
+func customerIdentity(c *gin.Context)  {
+	id, err := parseAuthHeader(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.Set("Customer", id)
+}
+
+func parseAuthHeader(c *gin.Context) (user.Credentials, error) {
+	header := c.GetHeader("authorizationHeader")
+	if header == "" {
+		return user.Credentials{}, errors.New("empty header")
+	}
+	headerSplit := strings.Split(header, " ")
+	if len(headerSplit) != 2 || headerSplit[0] != "Bearer" {
+		return user.Credentials{}, errors.New("header issue")
+	}
+	if len(headerSplit[1]) == 0 {
+		return user.Credentials{}, errors.New("empty token")
+	}
+
+	auth, err := base64.StdEncoding.DecodeString(headerSplit[1])
+	if err != nil {
+		return user.Credentials{}, errors.New("decode problem")
+	}
+
+	credentials := strings.Split(string(auth), ":")
+	userCred := user.Credentials{
+		Email: credentials[0],
+		Password: credentials[1],
+	}
+	return userCred, nil
+}
