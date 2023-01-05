@@ -138,7 +138,7 @@ func TestGetItem(t *testing.T) {
 	itemRepo.EXPECT().GetItem(ctx, testItemId).Return(&emptyItem, err)
 	res, err = usecase.GetItem(ctx, testItemId)
 	require.Error(t, err)
-	require.Equal(t, res, &emptyItem)
+	require.Nil(t, res)
 }
 
 func TestItemsList(t *testing.T) {

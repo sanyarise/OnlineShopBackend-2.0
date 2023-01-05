@@ -317,7 +317,6 @@ func (usecase *ItemUsecase) UpdateItemsInCategoryCash(ctx context.Context, newIt
 	if err != nil {
 		return fmt.Errorf("error on get cash: %w", err)
 	}
-	usecase.logger.Debug(fmt.Sprintf("items after get items cash: %v", items))
 	if op == "update" {
 		for i, item := range items {
 			if item.Id == newItem.Id {
@@ -337,7 +336,6 @@ func (usecase *ItemUsecase) UpdateItemsInCategoryCash(ctx context.Context, newIt
 		for i, item := range items {
 			if item.Id == newItem.Id {
 				items = append(items[:i], items[i+1:]...)
-				usecase.logger.Debug(fmt.Sprintf("items after delete item: %v", items))
 				err := usecase.itemCash.CreateItemsQuantityCash(ctx, len(items), categoryItemsQuantityKey)
 				if err != nil {
 					return fmt.Errorf("error on create items quantity cash: %w", err)

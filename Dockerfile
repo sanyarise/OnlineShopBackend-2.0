@@ -1,6 +1,6 @@
 FROM golang:1.19-alpine as builder
 
-WORKDIR ./shop/
+WORKDIR /shop
 
 COPY . .
 
