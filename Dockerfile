@@ -12,8 +12,15 @@ FROM alpine:latest
 
 COPY --from=builder /bin/shop /bin
 
-#COPY website /app/website/
-
 WORKDIR /bin
+
+RUN mkdir /bin/static
+RUN mkdir /bin/static/files
+RUN mkdir /bin/static/files/items
+RUN mkdir /bin/static/files/categories
+
+VOLUME /bin/static
+
+EXPOSE 8000
 
 ENTRYPOINT ["/bin/shop"]

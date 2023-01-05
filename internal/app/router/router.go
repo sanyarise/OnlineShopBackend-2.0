@@ -50,7 +50,7 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 	gin := gin.Default()
 	gin.Use(cors.Default())
 	gin.Use(ginzap.RecoveryWithZap(logger, true))
-	gin.Static("/files", "./storage/files")
+	gin.Static("/files", "./static/files")
 	docs.SwaggerInfo.BasePath = "/"
 	gin.Group("/docs").Any("/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	router := &Router{
