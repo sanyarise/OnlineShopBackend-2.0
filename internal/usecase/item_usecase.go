@@ -81,7 +81,6 @@ func (usecase *ItemUsecase) ItemsList(ctx context.Context, offset, limit int) ([
 		}
 		items := make([]models.Item, 0, 100)
 		for item := range itemIncomingChan {
-			usecase.logger.Debug(fmt.Sprintf("item from channel is: %v", item))
 			items = append(items, item)
 		}
 		err = usecase.itemCash.CreateItemsCash(ctx, items, itemsListKey)
@@ -176,7 +175,6 @@ func (usecase *ItemUsecase) SearchLine(ctx context.Context, param string, offset
 		}
 		items := make([]models.Item, 0, 100)
 		for item := range itemIncomingChan {
-			usecase.logger.Debug(fmt.Sprintf("item from channel is: %v", item))
 			items = append(items, item)
 		}
 		err = usecase.itemCash.CreateItemsCash(ctx, items, param)
@@ -214,7 +212,6 @@ func (usecase *ItemUsecase) GetItemsByCategory(ctx context.Context, categoryName
 		}
 		items := make([]models.Item, 0, 100)
 		for item := range itemIncomingChan {
-			usecase.logger.Debug(fmt.Sprintf("item from channel is: %v", item))
 			items = append(items, item)
 		}
 		err = usecase.itemCash.CreateItemsCash(ctx, items, categoryName)

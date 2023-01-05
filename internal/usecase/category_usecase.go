@@ -80,7 +80,6 @@ func (usecase *CategoryUsecase) GetCategoryList(ctx context.Context) ([]models.C
 		}
 		categories := make([]models.Category, 0, 100)
 		for category := range categoryIncomingChan {
-			usecase.logger.Debug(fmt.Sprintf("category from channel is: %v", category))
 			categories = append(categories, category)
 		}
 		err = usecase.categoriesCash.CreateCategoriesListCash(ctx, categories, categoriesListKey)
