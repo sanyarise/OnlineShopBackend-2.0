@@ -17,21 +17,21 @@
 version: '3.5'
 
 services:
- # shop:
-  #  build: .
-   # image: shop
-    #container_name: shop
-    #hostname: localhost
-    #restart: always
-    #depends_on:
-     # - redis
-    #ports:
-     # - "8000:8000"
+  shop:
+    build: .
+    image: shop
+    container_name: shop
+    hostname: localhost
+    restart: always
+    depends_on:
+      - redis
+    ports:
+      - "8000:8000"
  #   shm_size: "2gb"
-    #environment:
-    #  PORT: ":8000"
-     # DSN: "postgres://shopteam:123@postgres:5432/shop?sslmode=disable"
-      #CASH_HOST: "redis"
+    environment:
+      PORT: ":8000"
+      DSN: "postgres://shopteam:123@postgres:5432/shop?sslmode=disable"
+      CASH_HOST: "redis"
 #      SHOP_UID: ${UID:-1000}                   # user id, should match your host user id
 #      SHOP_GID: ${GID:-1000}                   # group id
 
@@ -60,14 +60,14 @@ services:
       - postgres
 
   #frontend:
-   # image: front:latest
-   # container_name: frontend
-   # hostname: frontend
-   # restart: always
-   # ports:
-   #   - 3000:3000
-   # depends_on:
-   #   - shop
+  #  image: front:latest
+  #  container_name: frontend
+  #  hostname: frontend
+  #  restart: always
+  #  ports:
+  #    - 3000:3000
+  #  depends_on:
+  #    - shop
 
 networks:
   default:
