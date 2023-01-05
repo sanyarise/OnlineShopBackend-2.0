@@ -34,7 +34,7 @@ func NewCategoryRepo(store *PGres, log *zap.SugaredLogger) CategoryStore {
 }
 
 func (repo *categoryRepo) CreateCategory(ctx context.Context, category *models.Category) (uuid.UUID, error) {
-	repo.logger.Debug("Enter in repository CreateCategory()")
+	repo.logger.Debugf("Enter in repository CreateCategory() with args: ctx, category: %v", category)
 
 	repoCategory := &Category{
 		Name:        category.Name,
@@ -46,21 +46,21 @@ func (repo *categoryRepo) CreateCategory(ctx context.Context, category *models.C
 
 	tx, err := pool.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
-		repo.logger.Errorf("can't create transaction: %s", err)
+		repo.logger.Errorf("Can't create transaction: %s", err)
 		return uuid.Nil, fmt.Errorf("can't create transaction: %w", err)
 	}
-	repo.logger.Debug("transaction begin success")
+	repo.logger.Debug("Transaction begin success")
 	defer func() {
 		if err != nil {
-			repo.logger.Errorf("transaction rolled back")
+			repo.logger.Errorf("Transaction rolled back")
 			if err = tx.Rollback(ctx); err != nil {
-				repo.logger.Errorf("can't rollback %s", err)
+				repo.logger.Errorf("Can't rollback %s", err)
 			}
 
 		} else {
-			repo.logger.Info("transaction commited")
+			repo.logger.Info("Transaction commited")
 			if err != tx.Commit(ctx) {
-				repo.logger.Errorf("can't commit %s", err)
+				repo.logger.Errorf("Can't commit %s", err)
 			}
 		}
 	}()
@@ -72,34 +72,34 @@ func (repo *categoryRepo) CreateCategory(ctx context.Context, category *models.C
 		nil,
 	)
 	if err := row.Scan(&id); err != nil {
-		repo.logger.Errorf("can't scan %s", err)
+		repo.logger.Errorf("Can't scan %s", err)
 		return uuid.Nil, fmt.Errorf("can't scan %w", err)
 	}
-
-	repo.logger.Debugf("id is %v\n", id)
+	repo.logger.Debug("Category created success")
+	repo.logger.Debugf("Id is %v\n", id)
 	return id, nil
 }
 
 func (repo *categoryRepo) UpdateCategory(ctx context.Context, category *models.Category) error {
-	repo.logger.Debug("Enter in repository UpdateCategory()")
+	repo.logger.Debugf("Enter in repository UpdateCategory() with args: ctx, category: %v", category)
 	pool := repo.storage.GetPool()
 	tx, err := pool.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
-		repo.logger.Errorf("can't create transaction: %s", err)
+		repo.logger.Errorf("Can't create transaction: %s", err)
 		return fmt.Errorf("can't create transaction: %w", err)
 	}
-	repo.logger.Debug("transaction begin success")
+	repo.logger.Debug("Transaction begin success")
 	defer func() {
 		if err != nil {
-			repo.logger.Errorf("transaction rolled back")
+			repo.logger.Errorf("Transaction rolled back")
 			if err = tx.Rollback(ctx); err != nil {
-				repo.logger.Errorf("can't rollback %s", err)
+				repo.logger.Errorf("Can't rollback %s", err)
 			}
 
 		} else {
-			repo.logger.Info("transaction commited")
+			repo.logger.Info("Transaction commited")
 			if err != tx.Commit(ctx) {
-				repo.logger.Errorf("can't commit %s", err)
+				repo.logger.Errorf("Can't commit %s", err)
 			}
 		}
 	}()
@@ -110,15 +110,15 @@ func (repo *categoryRepo) UpdateCategory(ctx context.Context, category *models.C
 		category.Image,
 		category.Id)
 	if err != nil {
-		repo.logger.Errorf("error on update category %s: %s", category.Id, err)
+		repo.logger.Errorf("Error on update category %s: %s", category.Id, err)
 		return fmt.Errorf("error on update category %s: %w", category.Id, err)
 	}
-	repo.logger.Infof("category %s successfully updated", category.Id)
+	repo.logger.Infof("Category with id %s successfully updated", category.Id)
 	return nil
 }
 
 func (repo *categoryRepo) GetCategory(ctx context.Context, id uuid.UUID) (*models.Category, error) {
-	repo.logger.Debug("Enter in repository GetCategory()")
+	repo.logger.Debugf("Enter in repository GetCategory() with args: ctx, id: %v", id)
 	category := models.Category{}
 	pool := repo.storage.GetPool()
 	row := pool.QueryRow(ctx,
@@ -130,14 +130,15 @@ func (repo *categoryRepo) GetCategory(ctx context.Context, id uuid.UUID) (*model
 		&category.Image,
 	)
 	if err != nil {
-		repo.logger.Errorf("error in rows scan get category by id: %s", err)
+		repo.logger.Errorf("Error in rows scan get category by id: %s", err)
 		return &models.Category{}, fmt.Errorf("error in rows scan get category by id: %w", err)
 	}
+	repo.logger.Info("Get category success")
 	return &category, nil
 }
 
 func (repo *categoryRepo) GetCategoryByName(ctx context.Context, name string) (*models.Category, error) {
-	repo.logger.Debug("Enter in repository GetCategoryByName()")
+	repo.logger.Debugf("Enter in repository GetCategoryByName() with args: ctx, name: %s", name)
 	category := models.Category{}
 	pool := repo.storage.GetPool()
 	row := pool.QueryRow(ctx,
@@ -149,14 +150,15 @@ func (repo *categoryRepo) GetCategoryByName(ctx context.Context, name string) (*
 		&category.Image,
 	)
 	if err != nil {
-		repo.logger.Errorf("error in rows scan get category by name: %s", err)
+		repo.logger.Errorf("Error in rows scan get category by name: %s", err)
 		return &models.Category{}, fmt.Errorf("error in rows scan get category by name: %w", err)
 	}
+	repo.logger.Info("Get category by name success")
 	return &category, nil
 }
 
 func (repo *categoryRepo) GetCategoryList(ctx context.Context) (chan models.Category, error) {
-	repo.logger.Debug("Enter in repository GetCategoryList()")
+	repo.logger.Debug("Enter in repository GetCategoryList() with args: ctx")
 	categoryChan := make(chan models.Category, 100)
 	go func() {
 		defer close(categoryChan)
@@ -166,8 +168,7 @@ func (repo *categoryRepo) GetCategoryList(ctx context.Context) (chan models.Cate
 		rows, err := pool.Query(ctx, `
 		SELECT id, name, description, picture FROM categories WHERE deleted_at is null`)
 		if err != nil {
-			msg := fmt.Errorf("error on categories list query context: %w", err)
-			repo.logger.Error(msg.Error())
+			repo.logger.Error(fmt.Errorf("error on categories list query context: %w", err).Error())
 			return
 		}
 		defer rows.Close()
@@ -190,34 +191,34 @@ func (repo *categoryRepo) GetCategoryList(ctx context.Context) (chan models.Cate
 }
 
 func (repo *categoryRepo) DeleteCategory(ctx context.Context, id uuid.UUID) error {
-	repo.logger.Debug("Enter in repository DeleteCategory()")
+	repo.logger.Debugf("Enter in repository DeleteCategory() with args: ctx, id: %v", id)
 	pool := repo.storage.GetPool()
 	tx, err := pool.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
-		repo.logger.Errorf("can't create transaction: %s", err)
+		repo.logger.Errorf("Can't create transaction: %s", err)
 		return fmt.Errorf("can't create transaction: %w", err)
 	}
-	repo.logger.Debug("transaction begin success")
+	repo.logger.Debug("Transaction begin success")
 	defer func() {
 		if err != nil {
-			repo.logger.Errorf("transaction rolled back")
+			repo.logger.Errorf("Transaction rolled back")
 			if err = tx.Rollback(ctx); err != nil {
-				repo.logger.Errorf("can't rollback %s", err)
+				repo.logger.Errorf("Can't rollback %s", err)
 			}
 
 		} else {
-			repo.logger.Info("transaction commited")
+			repo.logger.Info("Transaction commited")
 			if err != tx.Commit(ctx) {
-				repo.logger.Errorf("can't commit %s", err)
+				repo.logger.Errorf("Can't commit %s", err)
 			}
 		}
 	}()
 	_, err = tx.Exec(ctx, `UPDATE categories SET deleted_at=$1 WHERE id=$2`,
 		time.Now(), id)
 	if err != nil {
-		repo.logger.Errorf("error on delete category %s: %s", id, err)
+		repo.logger.Errorf("Error on delete category %s: %s", id, err)
 		return fmt.Errorf("error on delete category %s: %w", id, err)
 	}
-	repo.logger.Infof("Category %s successfully deleted from database", id)
+	repo.logger.Infof("Category with id: %s successfully deleted from database", id)
 	return nil
 }
