@@ -1,6 +1,6 @@
 FROM golang:1.19-alpine as builder
 
-WORKDIR ./shop/
+WORKDIR /shop
 
 COPY . .
 
@@ -12,8 +12,13 @@ FROM alpine:latest
 
 COPY --from=builder /bin/shop /bin
 
-#COPY website /app/website/
-
 WORKDIR /bin
+
+RUN mkdir /bin/static
+RUN mkdir /bin/static/files
+RUN mkdir /bin/static/files/items
+RUN mkdir /bin/static/files/categories
+
+VOLUME /bin/static
 
 ENTRYPOINT ["/bin/shop"]

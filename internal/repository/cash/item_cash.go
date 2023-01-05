@@ -5,17 +5,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"time"
 
 	"github.com/go-redis/redis/v8"
 	"go.uber.org/zap"
 )
 
-var _ Cash = &RedisCash{}
+var _ IItemsCash = &ItemsCash{}
 
-type RedisCash struct {
-	*redis.Client
-	TTL    time.Duration
+type ItemsCash struct {
+	*RedisCash
 	logger *zap.Logger
 }
 
@@ -23,37 +21,14 @@ type results struct {
 	Responses []models.Item
 }
 
-// NewRedisCash initialize redis client
-func NewRedisCash(host, port string, ttl time.Duration, logger *zap.Logger) (*RedisCash, error) {
-	logger.Debug("Enter in NewRedisCash()")
-	client := redis.NewClient(&redis.Options{
-		Addr:     fmt.Sprintf("%s:%s", host, port),
-		Password: "", // no password set
-		DB:       0,  // use default DB
-	})
-	err := client.Ping(context.Background()).Err()
-	if err != nil {
-		return nil, fmt.Errorf("try to ping to redis: %w", err)
-	}
-	logger.Debug("Redis Client ping success")
-	cashTTL := ttl * time.Minute
-	c := &RedisCash{
-		Client: client,
-		TTL:    cashTTL,
-		logger: logger,
-	}
-	return c, nil
-}
-
-// Close close redis client
-func (cash *RedisCash) Close() error {
-	cash.logger.Debug("Enter in RedisCash Close()")
-	return cash.Client.Close()
+func NewItemsCash(cash *RedisCash, logger *zap.Logger) IItemsCash {
+	logger.Debug("Enter in cash NewItemsCash")
+	return &ItemsCash{cash, logger}
 }
 
 // CheckCash checks for data in the cache
-func (cash *RedisCash) CheckCash(ctx context.Context, key string) bool {
-	cash.logger.Debug("Enter in cash CheckCash()")
+func (cash *ItemsCash) CheckCash(ctx context.Context, key string) bool {
+	cash.logger.Sugar().Debugf("Enter in cash CheckCash() with args: ctx, key: %s", key)
 	check := cash.Exists(ctx, key)
 	result, err := check.Result()
 	if err != nil {
@@ -62,17 +37,17 @@ func (cash *RedisCash) CheckCash(ctx context.Context, key string) bool {
 	}
 	cash.logger.Debug(fmt.Sprintf("Check Cash with key: %s is %v", key, result))
 	if result == 0 {
-		cash.logger.Debug(fmt.Sprintf("Redis: get record %q not exist", key))
+		cash.logger.Debug(fmt.Sprintf("Redis: get record %s not exist", key))
 		return false
 	} else {
-		cash.logger.Debug(fmt.Sprintf("Key %q in cash found success", key))
+		cash.logger.Debug(fmt.Sprintf("Key %s in cash found success", key))
 		return true
 	}
 }
 
 // CreateCash add data in the cash
-func (cash *RedisCash) CreateItemsCash(ctx context.Context, res []models.Item, key string) error {
-	cash.logger.Debug("Enter in cash CreateItemsListCash()")
+func (cash *ItemsCash) CreateItemsCash(ctx context.Context, res []models.Item, key string) error {
+	cash.logger.Sugar().Debugf("Enter in cash CreateItemsCash() with args: ctx, res, key: %s", key)
 	in := results{
 		Responses: res,
 	}
@@ -83,44 +58,53 @@ func (cash *RedisCash) CreateItemsCash(ctx context.Context, res []models.Item, k
 
 	err = cash.Set(ctx, key, data, cash.TTL).Err()
 	if err != nil {
-		return fmt.Errorf("redis: set key %q: %w", key, err)
+		return fmt.Errorf("redis: error on set key %s: %w", key, err)
 	}
+	cash.logger.Info(fmt.Sprintf("Cash with key: %s create success", key))
 	return nil
 }
 
-func (cash *RedisCash) CreateItemsQuantityCash(ctx context.Context, value int, key string) error {
-	cash.logger.Debug("Enter in cash CreateItemsQuantityCash()")
+// CreateItemsQuantityCash create cash for items quantity
+func (cash *ItemsCash) CreateItemsQuantityCash(ctx context.Context, value int, key string) error {
+	cash.logger.Sugar().Debugf("Enter in cash CreateItemsQuantityCash() with args: ctx, value: %d, key: %s", value, key)
 	err := cash.Set(ctx, key, value, cash.TTL).Err()
 	if err != nil {
-		return fmt.Errorf("redis: set key %q: %w", key, err)
+		return fmt.Errorf("redis: error on set key %q: %w", key, err)
 	}
+	cash.logger.Info(fmt.Sprintf("Cash with key: %s create success", key))
 	return nil
 }
 
-
-// GetCash retrieves data from the cache
-func (cash *RedisCash) GetItemsCash(ctx context.Context, key string) ([]models.Item, error) {
-	cash.logger.Debug("Enter in cash GetItemsListCash()")
+// GetItemsCash retrieves data from the cache
+func (cash *ItemsCash) GetItemsCash(ctx context.Context, key string) ([]models.Item, error) {
+	cash.logger.Sugar().Debugf("Enter in cash GetItemsCash() with args: ctx, key: %s", key)
 	res := results{}
 	data, err := cash.Get(ctx, key).Bytes()
 	if err == redis.Nil {
 		// we got empty result, it's not an error
+		cash.logger.Debug("Success get nil result")
 		return nil, nil
 	} else if err != nil {
+		cash.logger.Sugar().Errorf("Error on get cash: %v", err)
 		return nil, err
 	}
 	err = json.Unmarshal(data, &res)
 	if err != nil {
+		cash.logger.Sugar().Warnf("Can't json unmarshal data: %v", data)
 		return nil, err
 	}
+	cash.logger.Debug("Get cash success")
 	return res.Responses, nil
 }
 
-func (cash *RedisCash) GetItemsQuantityCash(ctx context.Context, key string) (int, error) {
-	cash.logger.Debug("Enter in cash GetItemsQuantityCash()")
+// GetItemsQuantityCash retrieves data from the cache
+func (cash *ItemsCash) GetItemsQuantityCash(ctx context.Context, key string) (int, error) {
+	cash.logger.Sugar().Debugf("Enter in cash GetItemsQuantityCash() with args: ctx, key: %s", key)
 	data, err := cash.Get(ctx, key).Int()
 	if err != nil {
+		cash.logger.Sugar().Errorf("Error on get cash: %v", err)
 		return data, err
 	}
+	cash.logger.Debug("Get cash success")
 	return data, nil
 }

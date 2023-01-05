@@ -2,29 +2,26 @@ package main
 
 import (
 	"OnlineShopBackend/config"
-	"OnlineShopBackend/internal/app"
 	"OnlineShopBackend/internal/app/logger"
 	"OnlineShopBackend/internal/app/router"
 	"OnlineShopBackend/internal/app/server"
 	"OnlineShopBackend/internal/delivery"
 	"OnlineShopBackend/internal/filestorage"
-	"OnlineShopBackend/internal/handlers"
 	"OnlineShopBackend/internal/repository"
 	"OnlineShopBackend/internal/repository/cash"
 	"OnlineShopBackend/internal/usecase"
 	"context"
+	"fmt"
 	"log"
 	"os"
+	"os/signal"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 func main() {
-	defer func() {
-		if r := recover(); r != nil {
-			os.Exit(1)
-		}
-	}()
-	ctx := context.Background()
+	log.Println("Start load configuration...")
 	cfg, err := config.NewConfig()
 	if err != nil {
 		log.Fatal("can't initialize configuration")
@@ -32,38 +29,82 @@ func main() {
 	logger := logger.NewLogger(cfg.LogLevel)
 	lsug := logger.Logger.Sugar()
 	l := logger.Logger
+
+	l.Info("Configuration sucessfully load")
+
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
+	time.Sleep(2 * time.Second)
 	pgstore, err := repository.NewPgxStorage(ctx, lsug, cfg.DSN)
 	if err != nil {
 		log.Fatalf("can't initalize storage: %v", err)
 	}
-
-	cartStore := repository.NewCartStore(pgstore, lsug)
 	itemStore := repository.NewItemRepo(pgstore, lsug)
 	categoryStore := repository.NewCategoryRepo(pgstore, lsug)
-	cash, err := cash.NewRedisCash(cfg.CashHost, cfg.CashPort, time.Duration(cfg.CashTTL), l)
+	redis, err := cash.NewRedisCash(cfg.CashHost, cfg.CashPort, time.Duration(cfg.CashTTL), l)
 	if err != nil {
 		log.Fatalf("can't initialize cash: %v", err)
 	}
+	itemsCash := cash.NewItemsCash(redis, l)
+	categoriesCash := cash.NewCategoriesCash(redis, l)
 
-	usecase.NewCartUseCase(&cartStore, l)
-	itemUsecase := usecase.NewItemUsecase(itemStore, cash, l)
-	categoryUsecase := usecase.NewCategoryUsecase(categoryStore, l)
-
-	itemHandlers := handlers.NewItemHandlers(itemUsecase, l)
-	categoryHandlers := handlers.NewCategoryHandlers(categoryUsecase, l)
+	itemUsecase := usecase.NewItemUsecase(itemStore, itemsCash, l)
+	categoryUsecase := usecase.NewCategoryUsecase(categoryStore, categoriesCash, l)
 
 	filestorage := filestorage.NewOnDiskLocalStorage(cfg.ServerURL, cfg.FsPath, l)
-	delivery := delivery.NewDelivery(itemHandlers, categoryHandlers, l, filestorage)
+	delivery := delivery.NewDelivery(itemUsecase, categoryUsecase, l, filestorage)
 	router := router.NewRouter(delivery, l)
-	server := server.NewServer(ctx, cfg.Port, router, l)
-	err = server.Start(ctx)
-	if err != nil {
-		log.Fatalf("can't start server: %v", err)
+	serverOptions := map[string]int{
+		"ReadTimeout":       cfg.ReadTimeout,
+		"WriteTimeout":      cfg.WriteTimeout,
+		"ReadHeaderTimeout": cfg.ReadHeaderTimeout,
 	}
-	var services []app.Service
+	server := server.NewServer(cfg.Port, router, l, serverOptions)
 
-	services = append(services, server)
-	a := app.NewApp(l, services)
-	log.Printf("Server started")
-	a.Start()
+	err = createCashOnStartService(ctx, categoryUsecase, itemUsecase, l)
+	if err != nil {
+		l.Sugar().Fatalf("error on create cash on start: %v", err)
+	}
+
+	server.Start()
+	l.Info(fmt.Sprintf("Server start successful on port: %v", cfg.Port))
+
+	<-ctx.Done()
+
+	pgstore.ShutDown(cfg.Timeout)
+	l.Info("Database connection stopped sucessful")
+
+	redis.ShutDown(cfg.Timeout)
+	l.Info("Cash connection stopped successful")
+
+	server.ShutDown(cfg.Timeout)
+	l.Info("Server stopped successful")
+	cancel()
+}
+
+func createCashOnStartService(ctx context.Context, categoryUsecase usecase.ICategoryUsecase, itemUsecase usecase.IItemUsecase, l *zap.Logger) error {
+	l.Debug("Enter in main createCashOnStartService")
+	l.Debug("Start create cash...")
+	categoryList, err := categoryUsecase.GetCategoryList(ctx)
+	if err != nil {
+		l.Sugar().Errorf("error on create category cash: %w", err)
+		return err
+	}
+	l.Info("Category list cash create success")
+
+	_, err = itemUsecase.ItemsList(ctx, 0, 0)
+	if err != nil {
+		l.Sugar().Errorf("error on create items list cash: %w", err)
+		return err
+	}
+	l.Info("Items list cash create success")
+
+	for _, category := range categoryList {
+		_, err := itemUsecase.GetItemsByCategory(ctx, category.Name, 0, 0)
+		if err != nil {
+			l.Sugar().Errorf("error on create items list in category: %s cash: %w", category.Name, err)
+			return err
+		}
+	}
+	l.Info("Items lists in categories cash create success")
+	return nil
 }

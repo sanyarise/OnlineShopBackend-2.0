@@ -26,7 +26,8 @@ CREATE TABLE categories (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(256) NOT NULL UNIQUE, 
     description TEXT NOT NULL,
-    picture TEXT
+    picture TEXT,
+    deleted_at timestamptz NULL
 );
 
 
@@ -38,6 +39,7 @@ CREATE TABLE items (
     price INTEGER NOT NULL,
     vendor TEXT NOT NULL,
     pictures text[],
+    deleted_at timestamptz NULL,
     CONSTRAINT fk_category
         FOREIGN KEY(category) REFERENCES categories(id)
 );
