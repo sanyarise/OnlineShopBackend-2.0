@@ -32,11 +32,11 @@ type UserStore interface {
 }
 
 type CartStore interface {
-	Create(ctx context.Context, cart *models.Cart) (*models.Cart, error)
-	AddItemToCart(ctx context.Context, cart *models.Cart, item *models.Item) error
-	DeleteCart(ctx context.Context, cart *models.Cart) error
-	DeleteItemFromCart(ctx context.Context, cart *models.Cart, item *models.Item) error
-	SelectItemsFromCart(ctx context.Context, cart *models.Cart) ([]*models.Item, error)
+	Create(ctx context.Context, cart *models.Cart) (uuid.UUID, error)
+	AddItemToCart(ctx context.Context, cartId uuid.UUID, itemId uuid.UUID) error
+	DeleteCart(ctx context.Context, cartId uuid.UUID) error
+	DeleteItemFromCart(ctx context.Context, cartId uuid.UUID, itemId uuid.UUID) error
+	SelectItemsFromCart(ctx context.Context, cartId uuid.UUID) ([]*models.Item, error)
 }
 
 type OrderStore interface {
