@@ -25,12 +25,13 @@ type ItemUsecase struct {
 }
 
 func NewItemUsecase(itemStore repository.ItemStore, itemCash cash.IItemsCash, logger *zap.Logger) IItemUsecase {
+	logger.Debug("Enter in usecase NewItemUsecase()")
 	return &ItemUsecase{itemStore: itemStore, itemCash: itemCash, logger: logger}
 }
 
 // CreateItem call database method and returns id of created item or error
 func (usecase *ItemUsecase) CreateItem(ctx context.Context, item *models.Item) (uuid.UUID, error) {
-	usecase.logger.Debug("Enter in usecase CreateItem()")
+	usecase.logger.Sugar().Debugf("Enter in usecase CreateItem() with args: ctx, item: %v", item)
 	id, err := usecase.itemStore.CreateItem(ctx, item)
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("error on create item: %w", err)
@@ -46,7 +47,7 @@ func (usecase *ItemUsecase) CreateItem(ctx context.Context, item *models.Item) (
 
 // UpdateItem call database method to update item and returns error or nil
 func (usecase *ItemUsecase) UpdateItem(ctx context.Context, item *models.Item) error {
-	usecase.logger.Debug("Enter in usecase UpdateItem()")
+	usecase.logger.Sugar().Debugf("Enter in usecase UpdateItem() with args: ctx, item: %v", item)
 	err := usecase.itemStore.UpdateItem(ctx, item)
 	if err != nil {
 		return fmt.Errorf("error on update item: %w", err)
@@ -62,17 +63,17 @@ func (usecase *ItemUsecase) UpdateItem(ctx context.Context, item *models.Item) e
 
 // GetItem call database and returns *models.Item with given id or returns error
 func (usecase *ItemUsecase) GetItem(ctx context.Context, id uuid.UUID) (*models.Item, error) {
-	usecase.logger.Debug("Enter in usecase GetItem()")
+	usecase.logger.Sugar().Debugf("Enter in usecase GetItem() with args: ctx, id: %v", id)
 	item, err := usecase.itemStore.GetItem(ctx, id)
 	if err != nil {
-		return &models.Item{}, fmt.Errorf("error on get item: %w", err)
+		return nil, fmt.Errorf("error on get item: %w", err)
 	}
 	return item, nil
 }
 
 // ItemsList call database method and returns slice with all models.Item or error
 func (usecase *ItemUsecase) ItemsList(ctx context.Context, offset, limit int) ([]models.Item, error) {
-	usecase.logger.Debug("Enter in usecase ItemsList()")
+	usecase.logger.Sugar().Debugf("Enter in usecase ItemsList() with args: ctx, offset: %d, limit: %d", offset, limit)
 	if ok := usecase.itemCash.CheckCash(ctx, itemsListKey); !ok {
 		itemIncomingChan, err := usecase.itemStore.ItemsList(ctx)
 		if err != nil {
@@ -80,7 +81,6 @@ func (usecase *ItemUsecase) ItemsList(ctx context.Context, offset, limit int) ([
 		}
 		items := make([]models.Item, 0, 100)
 		for item := range itemIncomingChan {
-			usecase.logger.Debug(fmt.Sprintf("item from channel is: %v", item))
 			items = append(items, item)
 		}
 		err = usecase.itemCash.CreateItemsCash(ctx, items, itemsListKey)
@@ -114,7 +114,7 @@ func (usecase *ItemUsecase) ItemsList(ctx context.Context, offset, limit int) ([
 // ItemsQuantity check cash and if cash not exists call database
 // method and write in cash and returns quantity of all items
 func (usecase *ItemUsecase) ItemsQuantity(ctx context.Context) (int, error) {
-	usecase.logger.Debug("Enter in usecase ItemsQuantity()")
+	usecase.logger.Debug("Enter in usecase ItemsQuantity() with args: ctx")
 	if ok := usecase.itemCash.CheckCash(ctx, itemsQuantityKey); !ok {
 		if ok := usecase.itemCash.CheckCash(ctx, itemsListKey); !ok {
 			_, err := usecase.ItemsList(ctx, 0, 1)
@@ -140,7 +140,7 @@ func (usecase *ItemUsecase) ItemsQuantity(ctx context.Context) (int, error) {
 }
 
 func (usecase *ItemUsecase) ItemsQuantityInCategory(ctx context.Context, categoryName string) (int, error) {
-	usecase.logger.Debug("Enter in usecase ItemsQuantityInCategory()")
+	usecase.logger.Sugar().Debugf("Enter in usecase ItemsQuantityInCategory() with args: ctx, categoryName: %s", categoryName)
 	if ok := usecase.itemCash.CheckCash(ctx, categoryName+"Quantity"); !ok {
 		if ok := usecase.itemCash.CheckCash(ctx, categoryName); !ok {
 			_, err := usecase.GetItemsByCategory(ctx, categoryName, 0, 1)
@@ -167,7 +167,7 @@ func (usecase *ItemUsecase) ItemsQuantityInCategory(ctx context.Context, categor
 
 // SearchLine call database method and returns chan with all models.Item with given params or error
 func (usecase *ItemUsecase) SearchLine(ctx context.Context, param string, offset, limit int) ([]models.Item, error) {
-	usecase.logger.Debug("Enter in usecase SearchLine()")
+	usecase.logger.Sugar().Debugf("Enter in usecase SearchLine() with args: ctx, param: %s, offset: %d, limit: %d", param, offset, limit)
 	if ok := usecase.itemCash.CheckCash(ctx, param); !ok {
 		itemIncomingChan, err := usecase.itemStore.SearchLine(ctx, param)
 		if err != nil {
@@ -175,7 +175,6 @@ func (usecase *ItemUsecase) SearchLine(ctx context.Context, param string, offset
 		}
 		items := make([]models.Item, 0, 100)
 		for item := range itemIncomingChan {
-			usecase.logger.Debug(fmt.Sprintf("item from channel is: %v", item))
 			items = append(items, item)
 		}
 		err = usecase.itemCash.CreateItemsCash(ctx, items, param)
@@ -205,7 +204,7 @@ func (usecase *ItemUsecase) SearchLine(ctx context.Context, param string, offset
 
 // GetItemsByCategory call database method and returns chan with all models.Item in category or error
 func (usecase *ItemUsecase) GetItemsByCategory(ctx context.Context, categoryName string, offset, limit int) ([]models.Item, error) {
-	usecase.logger.Debug("Enter in usecase GetItemsByCategory()")
+	usecase.logger.Sugar().Debugf("Enter in usecase GetItemsByCategory() with args: ctx, categoryName: %s, offset: %d, limit: %d", categoryName, offset, limit)
 	if ok := usecase.itemCash.CheckCash(ctx, categoryName); !ok {
 		itemIncomingChan, err := usecase.itemStore.GetItemsByCategory(ctx, categoryName)
 		if err != nil {
@@ -213,7 +212,6 @@ func (usecase *ItemUsecase) GetItemsByCategory(ctx context.Context, categoryName
 		}
 		items := make([]models.Item, 0, 100)
 		for item := range itemIncomingChan {
-			usecase.logger.Debug(fmt.Sprintf("item from channel is: %v", item))
 			items = append(items, item)
 		}
 		err = usecase.itemCash.CreateItemsCash(ctx, items, categoryName)
@@ -247,7 +245,7 @@ func (usecase *ItemUsecase) GetItemsByCategory(ctx context.Context, categoryName
 
 // UpdateCash updating cash when creating or updating item
 func (usecase *ItemUsecase) UpdateCash(ctx context.Context, id uuid.UUID, op string) error {
-	usecase.logger.Debug("Enter in usecase UpdateCash()")
+	usecase.logger.Sugar().Debugf("Enter in itemUsecase UpdateCash() with args: ctx, id: %v, op: %s", id, op)
 	if !usecase.itemCash.CheckCash(ctx, itemsListKey) {
 		return fmt.Errorf("cash is not exists")
 	}
@@ -298,7 +296,12 @@ func (usecase *ItemUsecase) UpdateCash(ctx context.Context, id uuid.UUID, op str
 			}
 		}
 	}
-	return usecase.itemCash.CreateItemsCash(ctx, items, itemsListKey)
+	err = usecase.itemCash.CreateItemsCash(ctx, items, itemsListKey)
+	if err != nil {
+		return err
+	}
+	usecase.logger.Info("Cash of items list update success")
+	return nil
 }
 
 // UpdateItemsInCategoryCash update cash items from category
@@ -314,7 +317,6 @@ func (usecase *ItemUsecase) UpdateItemsInCategoryCash(ctx context.Context, newIt
 	if err != nil {
 		return fmt.Errorf("error on get cash: %w", err)
 	}
-	usecase.logger.Debug(fmt.Sprintf("items after get items cash: %v", items))
 	if op == "update" {
 		for i, item := range items {
 			if item.Id == newItem.Id {
@@ -334,7 +336,6 @@ func (usecase *ItemUsecase) UpdateItemsInCategoryCash(ctx context.Context, newIt
 		for i, item := range items {
 			if item.Id == newItem.Id {
 				items = append(items[:i], items[i+1:]...)
-				usecase.logger.Debug(fmt.Sprintf("items after delete item: %v", items))
 				err := usecase.itemCash.CreateItemsQuantityCash(ctx, len(items), categoryItemsQuantityKey)
 				if err != nil {
 					return fmt.Errorf("error on create items quantity cash: %w", err)
@@ -343,12 +344,17 @@ func (usecase *ItemUsecase) UpdateItemsInCategoryCash(ctx context.Context, newIt
 			}
 		}
 	}
-	return usecase.itemCash.CreateItemsCash(ctx, items, categoryItemsKey)
+	err = usecase.itemCash.CreateItemsCash(ctx, items, categoryItemsKey)
+	if err != nil {
+		return err
+	}
+	usecase.logger.Info("Delete category list cash success")
+	return nil
 }
 
 // DeleteItem call database method for deleting item
 func (usecase *ItemUsecase) DeleteItem(ctx context.Context, id uuid.UUID) error {
-	usecase.logger.Debug("Enter in usecase DeleteItem()")
+	usecase.logger.Sugar().Debugf("Enter in usecase DeleteItem() with args: ctx, id: %v", id)
 	err := usecase.itemStore.DeleteItem(ctx, id)
 	if err != nil {
 		return err

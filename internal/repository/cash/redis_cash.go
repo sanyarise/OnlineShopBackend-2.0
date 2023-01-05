@@ -17,7 +17,7 @@ type RedisCash struct {
 
 // NewRedisCash initialize redis client
 func NewRedisCash(host, port string, ttl time.Duration, logger *zap.Logger) (*RedisCash, error) {
-	logger.Debug("Enter in NewRedisCash()")
+	logger.Sugar().Debugf("Enter in NewRedisCash() with args: host: %s, port: %s, ttl: %v, logger", host, port, ttl)
 	client := redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%s", host, port),
 		Password: "", // no password set
@@ -39,7 +39,7 @@ func NewRedisCash(host, port string, ttl time.Duration, logger *zap.Logger) (*Re
 
 // ShutDown is func for graceful shutdown redis connection
 func (cash *RedisCash) ShutDown(timeout int) {
-	cash.logger.Debug("Enter in cash ShutDown()")
+	cash.logger.Sugar().Debugf("Enter in cash ShutDown() with args: timeout: %d", timeout)
 	ctxWithTimiout, cancel := context.WithTimeout(context.Background(), time.Duration(timeout)*time.Second)
 	defer cancel()
 	status := cash.Shutdown(ctxWithTimiout)
