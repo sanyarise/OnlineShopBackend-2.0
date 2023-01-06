@@ -13,7 +13,7 @@
     },
     "basePath": "/",
     "paths": {
-        "/carts/addItem": {
+        "/cart/addItem": {
             "put": {
                 "description": "Method provides to add item to cart.",
                 "consumes": [
@@ -65,7 +65,7 @@
                 }
             }
         },
-        "/carts/create/:userID": {
+        "/cart/create/:userID": {
             "get": {
                 "description": "Method provides to create cart with items.",
                 "consumes": [
@@ -117,7 +117,7 @@
                 }
             }
         },
-        "/carts/delete/{cartID}": {
+        "/cart/delete/{cartID}": {
             "delete": {
                 "description": "Method provides to delete cart.",
                 "consumes": [
@@ -167,7 +167,7 @@
                 }
             }
         },
-        "/carts/deleteItem": {
+        "/cart/deleteItem": {
             "put": {
                 "description": "Method provides to delete item from cart.",
                 "consumes": [
@@ -219,7 +219,7 @@
                 }
             }
         },
-        "/carts/{cartID}": {
+        "/cart/{cartID}": {
             "get": {
                 "description": "The method allows you to get the cart by id.",
                 "consumes": [

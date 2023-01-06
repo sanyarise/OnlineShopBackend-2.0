@@ -21,7 +21,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/carts/addItem": {
+        "/cart/addItem": {
             "put": {
                 "description": "Method provides to add item to cart.",
                 "consumes": [
@@ -73,7 +73,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/carts/create/:userID": {
+        "/cart/create/:userID": {
             "get": {
                 "description": "Method provides to create cart with items.",
                 "consumes": [
@@ -125,7 +125,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/carts/delete/{cartID}": {
+        "/cart/delete/{cartID}": {
             "delete": {
                 "description": "Method provides to delete cart.",
                 "consumes": [
@@ -175,7 +175,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/carts/deleteItem": {
+        "/cart/deleteItem": {
             "put": {
                 "description": "Method provides to delete item from cart.",
                 "consumes": [
@@ -227,7 +227,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/carts/{cartID}": {
+        "/cart/{cartID}": {
             "get": {
                 "description": "The method allows you to get the cart by id.",
                 "consumes": [

@@ -263,7 +263,7 @@ info:
   title: Online Shop Backend Service
   version: "1.0"
 paths:
-  /carts/{cartID}:
+  /cart/{cartID}:
     get:
       consumes:
       - application/json
@@ -298,7 +298,7 @@ paths:
       summary: Get cart by id
       tags:
       - carts
-  /carts/addItem:
+  /cart/addItem:
     put:
       consumes:
       - application/json
@@ -332,7 +332,7 @@ paths:
       summary: Method provides to add item to cart
       tags:
       - carts
-  /carts/create/:userID:
+  /cart/create/:userID:
     get:
       consumes:
       - application/json
@@ -366,7 +366,7 @@ paths:
       summary: Method provides to create cart with items
       tags:
       - carts
-  /carts/delete/{cartID}:
+  /cart/delete/{cartID}:
     delete:
       consumes:
       - application/json
@@ -399,7 +399,7 @@ paths:
       summary: Method provides to delete cart
       tags:
       - carts
-  /carts/deleteItem:
+  /cart/deleteItem:
     put:
       consumes:
       - application/json
