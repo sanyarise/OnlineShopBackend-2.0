@@ -139,8 +139,9 @@ func TestCreateCategory(t *testing.T) {
 	logger := zap.L()
 	itemUsecase := mocks.NewMockIItemUsecase(ctrl)
 	categoryUsecase := mocks.NewMockICategoryUsecase(ctrl)
+	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
-	delivery := NewDelivery(itemUsecase, categoryUsecase, logger, filestorage)
+	delivery := NewDelivery(itemUsecase, categoryUsecase, cartUsecase, logger, filestorage)
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -202,8 +203,9 @@ func TestUpdateCategory(t *testing.T) {
 	logger := zap.L()
 	itemUsecase := mocks.NewMockIItemUsecase(ctrl)
 	categoryUsecase := mocks.NewMockICategoryUsecase(ctrl)
+	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
-	delivery := NewDelivery(itemUsecase, categoryUsecase, logger, filestorage)
+	delivery := NewDelivery(itemUsecase, categoryUsecase, cartUsecase, logger, filestorage)
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -288,8 +290,9 @@ func TestGetCategoryList(t *testing.T) {
 	logger := zap.L()
 	itemUsecase := mocks.NewMockIItemUsecase(ctrl)
 	categoryUsecase := mocks.NewMockICategoryUsecase(ctrl)
+	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
-	delivery := NewDelivery(itemUsecase, categoryUsecase, logger, filestorage)
+	delivery := NewDelivery(itemUsecase, categoryUsecase, cartUsecase, logger, filestorage)
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -322,8 +325,9 @@ func TestGetCategory(t *testing.T) {
 	logger := zap.L()
 	itemUsecase := mocks.NewMockIItemUsecase(ctrl)
 	categoryUsecase := mocks.NewMockICategoryUsecase(ctrl)
+	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
-	delivery := NewDelivery(itemUsecase, categoryUsecase, logger, filestorage)
+	delivery := NewDelivery(itemUsecase, categoryUsecase, cartUsecase, logger, filestorage)
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -391,8 +395,9 @@ func TestUploadCategoryImage(t *testing.T) {
 	logger := zap.L()
 	itemUsecase := mocks.NewMockIItemUsecase(ctrl)
 	categoryUsecase := mocks.NewMockICategoryUsecase(ctrl)
+	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
-	delivery := NewDelivery(itemUsecase, categoryUsecase, logger, filestorage)
+	delivery := NewDelivery(itemUsecase, categoryUsecase, cartUsecase, logger, filestorage)
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -516,8 +521,9 @@ func TestDeleteCategoryImage(t *testing.T) {
 	logger := zap.L()
 	itemUsecase := mocks.NewMockIItemUsecase(ctrl)
 	categoryUsecase := mocks.NewMockICategoryUsecase(ctrl)
+	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
-	delivery := NewDelivery(itemUsecase, categoryUsecase, logger, filestorage)
+	delivery := NewDelivery(itemUsecase, categoryUsecase, cartUsecase, logger, filestorage)
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -617,8 +623,9 @@ func TestDeleteCategory(t *testing.T) {
 	logger := zap.L()
 	itemUsecase := mocks.NewMockIItemUsecase(ctrl)
 	categoryUsecase := mocks.NewMockICategoryUsecase(ctrl)
+	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
-	delivery := NewDelivery(itemUsecase, categoryUsecase, logger, filestorage)
+	delivery := NewDelivery(itemUsecase, categoryUsecase, cartUsecase, logger, filestorage)
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -638,7 +645,7 @@ func TestDeleteCategory(t *testing.T) {
 	c.Params = []gin.Param{
 		{
 			Key:   "categoryID",
-			Value: testId.String()+"l",
+			Value: testId.String() + "l",
 		},
 	}
 	delivery.DeleteCategory(c)
@@ -833,9 +840,10 @@ func TestDeleteCategory2(t *testing.T) {
 	logger := zap.L()
 	itemUsecase := mocks.NewMockIItemUsecase(ctrl)
 	categoryUsecase := mocks.NewMockICategoryUsecase(ctrl)
+	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
-	delivery := NewDelivery(itemUsecase, categoryUsecase, logger, filestorage)
-	
+	delivery := NewDelivery(itemUsecase, categoryUsecase, cartUsecase, logger, filestorage)
+
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
 
