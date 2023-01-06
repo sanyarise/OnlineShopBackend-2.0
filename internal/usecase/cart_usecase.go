@@ -9,17 +9,17 @@ import (
 	"go.uber.org/zap"
 )
 
-var Cart *CartUseCase
+var _ ICartUsecase = &CartUseCase{}
 
 type CartUseCase struct {
 	store  repository.CartStore
 	logger *zap.Logger
 }
 
-func NewCartUseCase(store *repository.CartStore, logger *zap.Logger) *CartUseCase {
+func NewCartUseCase(store repository.CartStore, logger *zap.Logger) ICartUsecase {
 	logger.Debug("Enter in usecase NewCartUseCase()")
-	Cart = &CartUseCase{store: *store, logger: logger}
-	return Cart
+	cart := &CartUseCase{store: store, logger: logger}
+	return cart
 }
 
 // GetCart creates request in db and returns cart or error

@@ -31,3 +31,11 @@ type ICategoryUsecase interface {
 	GetCategoryByName(ctx context.Context, name string) (*models.Category, error)
 	DeleteCategoryCash(ctx context.Context, name string) error
 }
+
+type ICartUsecase interface {
+	GetCart(ctx context.Context, cartId uuid.UUID) (*models.Cart, error)
+	DeleteItemFromCart(ctx context.Context, cartId uuid.UUID, itemId uuid.UUID) error
+	Create(ctx context.Context, userId uuid.UUID) (uuid.UUID, error)
+	AddItemToCart(ctx context.Context, cartId uuid.UUID, itemId uuid.UUID) error
+	DeleteCart(ctx context.Context, cartId uuid.UUID) error
+}

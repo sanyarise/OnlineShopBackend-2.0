@@ -327,24 +327,24 @@ func (m *MockCartStore) EXPECT() *MockCartStoreMockRecorder {
 }
 
 // AddItemToCart mocks base method.
-func (m *MockCartStore) AddItemToCart(ctx context.Context, cart *models.Cart, item *models.Item) error {
+func (m *MockCartStore) AddItemToCart(ctx context.Context, cartId, itemId uuid.UUID) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddItemToCart", ctx, cart, item)
+	ret := m.ctrl.Call(m, "AddItemToCart", ctx, cartId, itemId)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // AddItemToCart indicates an expected call of AddItemToCart.
-func (mr *MockCartStoreMockRecorder) AddItemToCart(ctx, cart, item interface{}) *gomock.Call {
+func (mr *MockCartStoreMockRecorder) AddItemToCart(ctx, cartId, itemId interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddItemToCart", reflect.TypeOf((*MockCartStore)(nil).AddItemToCart), ctx, cart, item)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddItemToCart", reflect.TypeOf((*MockCartStore)(nil).AddItemToCart), ctx, cartId, itemId)
 }
 
 // Create mocks base method.
-func (m *MockCartStore) Create(ctx context.Context, cart *models.Cart) (*models.Cart, error) {
+func (m *MockCartStore) Create(ctx context.Context, cart *models.Cart) (uuid.UUID, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", ctx, cart)
-	ret0, _ := ret[0].(*models.Cart)
+	ret0, _ := ret[0].(uuid.UUID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -356,31 +356,46 @@ func (mr *MockCartStoreMockRecorder) Create(ctx, cart interface{}) *gomock.Call 
 }
 
 // DeleteCart mocks base method.
-func (m *MockCartStore) DeleteCart(cxt context.Context, cart *models.Cart) error {
+func (m *MockCartStore) DeleteCart(ctx context.Context, cartId uuid.UUID) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteCart", cxt, cart)
+	ret := m.ctrl.Call(m, "DeleteCart", ctx, cartId)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteCart indicates an expected call of DeleteCart.
-func (mr *MockCartStoreMockRecorder) DeleteCart(cxt, cart interface{}) *gomock.Call {
+func (mr *MockCartStoreMockRecorder) DeleteCart(ctx, cartId interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteCart", reflect.TypeOf((*MockCartStore)(nil).DeleteCart), cxt, cart)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteCart", reflect.TypeOf((*MockCartStore)(nil).DeleteCart), ctx, cartId)
 }
 
 // DeleteItemFromCart mocks base method.
-func (m *MockCartStore) DeleteItemFromCart(ctx context.Context, cart *models.Cart, item *models.Item) error {
+func (m *MockCartStore) DeleteItemFromCart(ctx context.Context, cartId, itemId uuid.UUID) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteItemFromCart", ctx, cart, item)
+	ret := m.ctrl.Call(m, "DeleteItemFromCart", ctx, cartId, itemId)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteItemFromCart indicates an expected call of DeleteItemFromCart.
-func (mr *MockCartStoreMockRecorder) DeleteItemFromCart(ctx, cart, item interface{}) *gomock.Call {
+func (mr *MockCartStoreMockRecorder) DeleteItemFromCart(ctx, cartId, itemId interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteItemFromCart", reflect.TypeOf((*MockCartStore)(nil).DeleteItemFromCart), ctx, cart, item)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteItemFromCart", reflect.TypeOf((*MockCartStore)(nil).DeleteItemFromCart), ctx, cartId, itemId)
+}
+
+// SelectItemsFromCart mocks base method.
+func (m *MockCartStore) SelectItemsFromCart(ctx context.Context, cartId uuid.UUID) ([]*models.Item, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SelectItemsFromCart", ctx, cartId)
+	ret0, _ := ret[0].([]*models.Item)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SelectItemsFromCart indicates an expected call of SelectItemsFromCart.
+func (mr *MockCartStoreMockRecorder) SelectItemsFromCart(ctx, cartId interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectItemsFromCart", reflect.TypeOf((*MockCartStore)(nil).SelectItemsFromCart), ctx, cartId)
 }
 
 // MockOrderStore is a mock of OrderStore interface.
