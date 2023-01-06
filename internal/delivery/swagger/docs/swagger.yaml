@@ -298,7 +298,7 @@ paths:
       summary: Get cart by id
       tags:
       - carts
-  /carts/add:
+  /carts/addItem:
     put:
       consumes:
       - application/json
@@ -340,7 +340,7 @@ paths:
       parameters:
       - description: Id of cart
         in: path
-        name: categoryID
+        name: cartID
         required: true
         type: string
       produces:
@@ -365,40 +365,6 @@ paths:
           schema:
             $ref: '#/definitions/delivery.ErrorResponse'
       summary: Method provides to create cart with items
-      tags:
-      - carts
-  /carts/delete:
-    put:
-      consumes:
-      - application/json
-      description: Method provides to delete item from cart.
-      parameters:
-      - description: Data for delete item from cart
-        in: body
-        name: cart
-        required: true
-        schema:
-          $ref: '#/definitions/cart.ShortCart'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/delivery.ErrorResponse'
-        "403":
-          description: Forbidden
-        "404":
-          description: 404 Not Found
-          schema:
-            $ref: '#/definitions/delivery.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/delivery.ErrorResponse'
-      summary: Method provides to delete item from cart
       tags:
       - carts
   /carts/delete/{cartID}:
@@ -432,6 +398,40 @@ paths:
           schema:
             $ref: '#/definitions/delivery.ErrorResponse'
       summary: Method provides to delete cart
+      tags:
+      - carts
+  /carts/deleteItem:
+    put:
+      consumes:
+      - application/json
+      description: Method provides to delete item from cart.
+      parameters:
+      - description: Data for delete item from cart
+        in: body
+        name: cart
+        required: true
+        schema:
+          $ref: '#/definitions/cart.ShortCart'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Method provides to delete item from cart
       tags:
       - carts
   /categories/{categoryID}:

@@ -21,7 +21,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/carts/add": {
+        "/carts/addItem": {
             "put": {
                 "description": "Method provides to add item to cart.",
                 "consumes": [
@@ -90,7 +90,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "Id of cart",
-                        "name": "categoryID",
+                        "name": "cartID",
                         "in": "path",
                         "required": true
                     }
@@ -101,58 +101,6 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/cart.CartId"
                         }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/delivery.ErrorResponse"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden"
-                    },
-                    "404": {
-                        "description": "404 Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/delivery.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/delivery.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/carts/delete": {
-            "put": {
-                "description": "Method provides to delete item from cart.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "carts"
-                ],
-                "summary": "Method provides to delete item from cart",
-                "parameters": [
-                    {
-                        "description": "Data for delete item from cart",
-                        "name": "cart",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/cart.ShortCart"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
                     },
                     "400": {
                         "description": "Bad Request",
@@ -198,6 +146,58 @@ const docTemplate = `{
                         "name": "cartID",
                         "in": "path",
                         "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "404 Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/carts/deleteItem": {
+            "put": {
+                "description": "Method provides to delete item from cart.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "carts"
+                ],
+                "summary": "Method provides to delete item from cart",
+                "parameters": [
+                    {
+                        "description": "Data for delete item from cart",
+                        "name": "cart",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/cart.ShortCart"
+                        }
                     }
                 ],
                 "responses": {

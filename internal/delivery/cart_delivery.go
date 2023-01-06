@@ -76,12 +76,12 @@ func (delivery *Delivery) GetCart(c *gin.Context) {
 //	@Tags			carts
 //	@Accept			json
 //	@Produce		json
-//	@Param			categoryID	path		string	true	"Id of cart"
-//	@Success		201			{object}	cart.CartId
-//	@Failure		400			{object}	ErrorResponse
-//	@Failure		403			"Forbidden"
-//	@Failure		404			{object}	ErrorResponse	"404 Not Found"
-//	@Failure		500			{object}	ErrorResponse
+//	@Param			cartID	path		string	true	"Id of cart"
+//	@Success		201		{object}	cart.CartId
+//	@Failure		400		{object}	ErrorResponse
+//	@Failure		403		"Forbidden"
+//	@Failure		404		{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500		{object}	ErrorResponse
 //	@Router			/carts/create/:userID [get]
 func (delivery *Delivery) CreateCart(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery CreateCart()")
@@ -125,7 +125,7 @@ func (delivery *Delivery) CreateCart(c *gin.Context) {
 //	@Failure		403	"Forbidden"
 //	@Failure		404	{object}	ErrorResponse	"404 Not Found"
 //	@Failure		500	{object}	ErrorResponse
-//	@Router			/carts/add [put]
+//	@Router			/carts/addItem [put]
 func (delivery *Delivery) AddItemToCart(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery AddItemToCart()")
 	ctx := c.Request.Context()
@@ -211,7 +211,7 @@ func (delivery *Delivery) DeleteCart(c *gin.Context) {
 //	@Failure		403	"Forbidden"
 //	@Failure		404	{object}	ErrorResponse	"404 Not Found"
 //	@Failure		500	{object}	ErrorResponse
-//	@Router			/carts/delete [put]
+//	@Router			/carts/deleteItem [put]
 func (delivery *Delivery) DeleteItemFromCart(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery AddItemToCart()")
 
