@@ -338,10 +338,9 @@ paths:
       - application/json
       description: Method provides to create cart with items.
       parameters:
-      - description: Id of cart
+      - description: Id of user (if user autorized)
         in: path
-        name: cartID
-        required: true
+        name: userID
         type: string
       produces:
       - application/json

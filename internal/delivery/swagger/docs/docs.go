@@ -89,10 +89,9 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Id of cart",
-                        "name": "cartID",
-                        "in": "path",
-                        "required": true
+                        "description": "Id of user (if user autorized)",
+                        "name": "userID",
+                        "in": "path"
                     }
                 ],
                 "responses": {
