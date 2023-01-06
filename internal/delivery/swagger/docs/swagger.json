@@ -13,6 +13,266 @@
     },
     "basePath": "/",
     "paths": {
+        "/carts/add": {
+            "put": {
+                "description": "Method provides to add item to cart.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "carts"
+                ],
+                "summary": "Method provides to add item to cart",
+                "parameters": [
+                    {
+                        "description": "Data for add item to cart",
+                        "name": "cart",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/cart.ShortCart"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "404 Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/carts/create/:userID": {
+            "get": {
+                "description": "Method provides to create cart with items.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "carts"
+                ],
+                "summary": "Method provides to create cart with items",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Id of cart",
+                        "name": "categoryID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/cart.CartId"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "404 Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/carts/delete": {
+            "put": {
+                "description": "Method provides to delete item from cart.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "carts"
+                ],
+                "summary": "Method provides to delete item from cart",
+                "parameters": [
+                    {
+                        "description": "Data for delete item from cart",
+                        "name": "cart",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/cart.ShortCart"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "404 Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/carts/delete/{cartID}": {
+            "delete": {
+                "description": "Method provides to delete cart.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "carts"
+                ],
+                "summary": "Method provides to delete cart",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id of cart",
+                        "name": "cartID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "404 Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/carts/{cartID}": {
+            "get": {
+                "description": "The method allows you to get the cart by id.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "carts"
+                ],
+                "summary": "Get cart by id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Id of cart",
+                        "name": "cartID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Cart structure",
+                        "schema": {
+                            "$ref": "#/definitions/cart.Cart"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "404 Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/categories/create": {
             "post": {
                 "description": "Method provides to create category of items.",
@@ -1027,6 +1287,91 @@
         }
     },
     "definitions": {
+        "cart.Cart": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "example": "00000000-0000-0000-0000-000000000000"
+                },
+                "items": {
+                    "type": "array",
+                    "minItems": 0,
+                    "items": {
+                        "$ref": "#/definitions/cart.CartItem"
+                    }
+                },
+                "user_id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "example": "00000000-0000-0000-0000-000000000000"
+                }
+            }
+        },
+        "cart.CartId": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "example": "00000000-0000-0000-0000-000000000000"
+                }
+            }
+        },
+        "cart.CartItem": {
+            "type": "object",
+            "required": [
+                "item_id",
+                "price",
+                "title"
+            ],
+            "properties": {
+                "image": {
+                    "type": "string"
+                },
+                "item_id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "example": "00000000-0000-0000-0000-000000000000"
+                },
+                "price": {
+                    "type": "integer",
+                    "default": 10,
+                    "minimum": 0,
+                    "example": 1990
+                },
+                "title": {
+                    "type": "string",
+                    "example": "Пылесос"
+                }
+            }
+        },
+        "cart.ShortCart": {
+            "type": "object",
+            "required": [
+                "cart_id",
+                "item_id"
+            ],
+            "properties": {
+                "cart_id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "example": "00000000-0000-0000-0000-000000000000"
+                },
+                "item_id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "example": "00000000-0000-0000-0000-000000000000"
+                }
+            }
+        },
         "category.Category": {
             "type": "object",
             "required": [

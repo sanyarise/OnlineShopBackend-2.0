@@ -25,12 +25,12 @@ import (
 //	@Tags			carts
 //	@Accept			json
 //	@Produce		json
-//	@Param			cartID	path		string				true	"Id of cart"
-//	@Success		200			{object}	cart.Cart	"Cart structure"
-//	@Failure		400			{object}	ErrorResponse
-//	@Failure		403			"Forbidden"
-//	@Failure		404			{object}	ErrorResponse	"404 Not Found"
-//	@Failure		500			{object}	ErrorResponse
+//	@Param			cartID	path		string		true	"Id of cart"
+//	@Success		200		{object}	cart.Cart	"Cart structure"
+//	@Failure		400		{object}	ErrorResponse
+//	@Failure		403		"Forbidden"
+//	@Failure		404		{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500		{object}	ErrorResponse
 //	@Router			/carts/{cartID} [get]
 func (delivery *Delivery) GetCart(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery GetCart()")
@@ -76,7 +76,7 @@ func (delivery *Delivery) GetCart(c *gin.Context) {
 //	@Tags			carts
 //	@Accept			json
 //	@Produce		json
-//	@Param			categoryID	path		string				true	"Id of cart"
+//	@Param			categoryID	path		string	true	"Id of cart"
 //	@Success		201			{object}	cart.CartId
 //	@Failure		400			{object}	ErrorResponse
 //	@Failure		403			"Forbidden"
