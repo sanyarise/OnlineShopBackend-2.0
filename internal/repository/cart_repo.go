@@ -4,6 +4,7 @@ import (
 	"OnlineShopBackend/internal/models"
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -34,7 +35,7 @@ func (c *cart) Create(ctx context.Context, cart *models.Cart) (uuid.UUID, error)
 	default:
 		pool := c.storage.GetPool()
 		row := pool.QueryRow(ctx, `INSERT INTO carts (user_id, expire_at) VALUES ($1, $2) RETURNING id`,
-			cart.UserId, cart.ExpireAt)
+			cart.UserId, time.Now())
 		err := row.Scan(&cart.Id)
 		if err != nil {
 			c.logger.Error(err)

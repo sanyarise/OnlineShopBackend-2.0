@@ -332,7 +332,7 @@ paths:
       summary: Method provides to add item to cart
       tags:
       - carts
-  /cart/create/:userID:
+  /cart/create/{userID}:
     get:
       consumes:
       - application/json

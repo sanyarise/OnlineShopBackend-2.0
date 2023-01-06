@@ -73,7 +73,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/cart/create/:userID": {
+        "/cart/create/{userID}": {
             "get": {
                 "description": "Method provides to create cart with items.",
                 "consumes": [

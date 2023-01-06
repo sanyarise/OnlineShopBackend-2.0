@@ -82,13 +82,14 @@ func (delivery *Delivery) GetCart(c *gin.Context) {
 //	@Failure		403		"Forbidden"
 //	@Failure		404		{object}	ErrorResponse	"404 Not Found"
 //	@Failure		500		{object}	ErrorResponse
-//	@Router			/cart/create/:userID [get]
+//	@Router			/cart/create/{userID} [get]
 func (delivery *Delivery) CreateCart(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery CreateCart()")
 	ctx := c.Request.Context()
 
 	userId := c.Param("userID")
-	if userId != "" {
+	fmt.Println(userId)
+	if userId != ":userID" {
 		userUid, err := uuid.Parse(userId)
 		if err != nil {
 			delivery.logger.Error(err.Error())
