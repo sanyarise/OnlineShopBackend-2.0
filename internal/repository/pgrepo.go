@@ -82,9 +82,22 @@ func (pg *PGres) GetPool() *pgxpool.Pool {
 }
 
 // ShutDown close connection with database
-func (pg *PGres) ShutDown(timeout int) {
+func (pg *PGres) ShutDown(timeout int) error{
 	pg.logger.Debug("Enter in pgrepo ShutDown()")
-	_, cancel := context.WithTimeout(context.Background(), time.Duration(timeout)*time.Second)
-	pg.pool.Close()
-	cancel()
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeout)*time.Second)
+	defer cancel()
+	err := func(ctx context.Context) error {
+		select {
+		case <-ctx.Done():
+			return fmt.Errorf("shutdown canceled: context timeout is over")
+		default:
+			pg.pool.Close()
+			return nil
+		}
+	}(ctx)
+	if err != nil {
+		pg.logger.Error(err.Error())
+		return err
+	}
+	return nil
 }

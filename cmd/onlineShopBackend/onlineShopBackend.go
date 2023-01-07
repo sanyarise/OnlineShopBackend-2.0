@@ -71,14 +71,26 @@ func main() {
 
 	<-ctx.Done()
 
-	pgstore.ShutDown(cfg.Timeout)
-	l.Info("Database connection stopped sucessful")
+	err = pgstore.ShutDown(cfg.Timeout)
+	if err != nil {
+		l.Error(err.Error())
+	} else {
+		l.Info("Database connection stopped sucessful")
+	}
 
-	redis.ShutDown(cfg.Timeout)
-	l.Info("Cash connection stopped successful")
+	err = redis.ShutDown(cfg.Timeout)
+	if err != nil {
+		l.Error(err.Error())
+	} else {
+		l.Info("Cash connection stopped successful")
+	}
 
-	server.ShutDown(cfg.Timeout)
-	l.Info("Server stopped successful")
+	err = server.ShutDown(cfg.Timeout)
+	if err != nil {
+		l.Error(err.Error())
+	} else {
+		l.Info("Server stopped successful")
+	}
 	cancel()
 }
 
