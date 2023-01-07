@@ -259,6 +259,7 @@ func TestCreateItem(t *testing.T) {
 	logger := zap.L()
 	itemUsecase := mocks.NewMockIItemUsecase(ctrl)
 	categoryUsecase := mocks.NewMockICategoryUsecase(ctrl)
+
 	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
 	delivery := NewDelivery(itemUsecase, categoryUsecase, cartUsecase, logger, filestorage)
@@ -339,6 +340,7 @@ func TestGetItem(t *testing.T) {
 	logger := zap.L()
 	itemUsecase := mocks.NewMockIItemUsecase(ctrl)
 	categoryUsecase := mocks.NewMockICategoryUsecase(ctrl)
+
 	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
 	delivery := NewDelivery(itemUsecase, categoryUsecase, cartUsecase, logger, filestorage)
@@ -394,6 +396,7 @@ func TestUpdateItem(t *testing.T) {
 	logger := zap.L()
 	itemUsecase := mocks.NewMockIItemUsecase(ctrl)
 	categoryUsecase := mocks.NewMockICategoryUsecase(ctrl)
+
 	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
 	delivery := NewDelivery(itemUsecase, categoryUsecase, cartUsecase, logger, filestorage)
@@ -471,6 +474,7 @@ func TestUpdateItem2(t *testing.T) {
 	logger := zap.L()
 	itemUsecase := mocks.NewMockIItemUsecase(ctrl)
 	categoryUsecase := mocks.NewMockICategoryUsecase(ctrl)
+
 	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
 	delivery := NewDelivery(itemUsecase, categoryUsecase, cartUsecase, logger, filestorage)
@@ -540,6 +544,7 @@ func TestItemsList(t *testing.T) {
 	logger := zap.L()
 	itemUsecase := mocks.NewMockIItemUsecase(ctrl)
 	categoryUsecase := mocks.NewMockICategoryUsecase(ctrl)
+
 	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
 	delivery := NewDelivery(itemUsecase, categoryUsecase, cartUsecase, logger, filestorage)
@@ -628,6 +633,7 @@ func TestItemsQuantity(t *testing.T) {
 	logger := zap.L()
 	itemUsecase := mocks.NewMockIItemUsecase(ctrl)
 	categoryUsecase := mocks.NewMockICategoryUsecase(ctrl)
+
 	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
 	delivery := NewDelivery(itemUsecase, categoryUsecase, cartUsecase, logger, filestorage)
@@ -666,6 +672,7 @@ func TestSearchLine(t *testing.T) {
 	logger := zap.L()
 	itemUsecase := mocks.NewMockIItemUsecase(ctrl)
 	categoryUsecase := mocks.NewMockICategoryUsecase(ctrl)
+
 	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
 	delivery := NewDelivery(itemUsecase, categoryUsecase, cartUsecase, logger, filestorage)
@@ -739,6 +746,7 @@ func TestGetItemsByCategory(t *testing.T) {
 	logger := zap.L()
 	itemUsecase := mocks.NewMockIItemUsecase(ctrl)
 	categoryUsecase := mocks.NewMockICategoryUsecase(ctrl)
+
 	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
 	delivery := NewDelivery(itemUsecase, categoryUsecase, cartUsecase, logger, filestorage)
@@ -812,6 +820,7 @@ func TestUploadItemImage(t *testing.T) {
 	logger := zap.L()
 	itemUsecase := mocks.NewMockIItemUsecase(ctrl)
 	categoryUsecase := mocks.NewMockICategoryUsecase(ctrl)
+
 	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
 	delivery := NewDelivery(itemUsecase, categoryUsecase, cartUsecase, logger, filestorage)
@@ -938,6 +947,7 @@ func TestDeleteItemImage(t *testing.T) {
 	logger := zap.L()
 	itemUsecase := mocks.NewMockIItemUsecase(ctrl)
 	categoryUsecase := mocks.NewMockICategoryUsecase(ctrl)
+
 	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
 	delivery := NewDelivery(itemUsecase, categoryUsecase, cartUsecase, logger, filestorage)
@@ -1010,6 +1020,7 @@ func TestDeleteItem(t *testing.T) {
 	logger := zap.L()
 	itemUsecase := mocks.NewMockIItemUsecase(ctrl)
 	categoryUsecase := mocks.NewMockICategoryUsecase(ctrl)
+
 	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
 	delivery := NewDelivery(itemUsecase, categoryUsecase, cartUsecase, logger, filestorage)

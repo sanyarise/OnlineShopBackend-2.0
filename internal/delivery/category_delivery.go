@@ -472,4 +472,3 @@
 	 delivery.logger.Sugar().Infof("Category with id: %s deleted success", id)
 	 c.JSON(http.StatusOK, gin.H{})
  }
- 

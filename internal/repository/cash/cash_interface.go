@@ -20,3 +20,4 @@ type ICategoriesCash interface {
 	DeleteCash(ctx context.Context, key string) error
 }
 
+
