@@ -49,7 +49,7 @@ func (delivery *Delivery) GetCart(c *gin.Context) {
 		delivery.SetError(c, http.StatusInternalServerError, err)
 		return
 	}
-
+	
 	cartItems := make([]cart.CartItem, len(modelCart.Items))
 	for idx, item := range modelCart.Items {
 		cartItems[idx].Id = item.Id.String()
