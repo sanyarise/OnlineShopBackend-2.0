@@ -181,7 +181,7 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 		},
 		{
 			"CreateCart",
-			http.MethodGet,
+			http.MethodPost,
 			"/cart/create/:userID",
 			delivery.CreateCart,
 		},
@@ -193,7 +193,7 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 		},
 		{
 			"DeleteItemFromCart",
-			http.MethodPut,
+			http.MethodDelete,
 			"/cart/deleteItem",
 			delivery.DeleteItemFromCart,
 		},

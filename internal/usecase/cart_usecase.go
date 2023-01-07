@@ -25,12 +25,10 @@ func NewCartUseCase(store repository.CartStore, logger *zap.Logger) ICartUsecase
 // GetCart creates request in db and returns cart or error
 func (c *CartUseCase) GetCart(ctx context.Context, cartId uuid.UUID) (*models.Cart, error) {
 	c.logger.Sugar().Debugf("Enter in usecase GetCart() with args: ctx, cartId: %v", cartId)
-	cart := &models.Cart{Id: cartId}
-	items, err := c.store.SelectItemsFromCart(ctx, cartId)
+	cart, err := c.store.GetCart(ctx, cartId)
 	if err != nil {
 		return nil, err
 	}
-	cart.Items = items
 	return cart, nil
 }
 
@@ -47,8 +45,7 @@ func (c *CartUseCase) DeleteItemFromCart(ctx context.Context, cartId uuid.UUID, 
 // Create create new cart
 func (c *CartUseCase) Create(ctx context.Context, userId uuid.UUID) (uuid.UUID, error) {
 	c.logger.Sugar().Debugf("Enter in usecase cart Create() with args: ctx, userId: %v", userId)
-	cart := &models.Cart{UserId: userId}
-	cartId, err := c.store.Create(ctx, cart)
+	cartId, err := c.store.Create(ctx, userId)
 	if err != nil {
 		return cartId, err
 	}

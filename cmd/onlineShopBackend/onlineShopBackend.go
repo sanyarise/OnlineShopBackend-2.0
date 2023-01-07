@@ -33,7 +33,6 @@ func main() {
 	l.Info("Configuration sucessfully load")
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
-	time.Sleep(2 * time.Second)
 	pgstore, err := repository.NewPgxStorage(ctx, lsug, cfg.DSN)
 	if err != nil {
 		log.Fatalf("can't initalize storage: %v", err)

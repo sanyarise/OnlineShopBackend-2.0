@@ -36,7 +36,7 @@ func (delivery *Delivery) GetCart(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery GetCart()")
 	ctx := c.Request.Context()
 
-	cartId, err := uuid.FromBytes([]byte(c.Param("cartID")))
+	cartId, err := uuid.Parse(c.Param("cartID"))
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusBadRequest, err)
@@ -76,41 +76,32 @@ func (delivery *Delivery) GetCart(c *gin.Context) {
 //	@Tags			carts
 //	@Accept			json
 //	@Produce		json
-//	@Param			userID	path		string	false	"Id of user (if user autorized)"
+//	@Param			userID	path		string	true	"Id of user (if user autorized)"
 //	@Success		201		{object}	cart.CartId
 //	@Failure		400		{object}	ErrorResponse
 //	@Failure		403		"Forbidden"
 //	@Failure		404		{object}	ErrorResponse	"404 Not Found"
 //	@Failure		500		{object}	ErrorResponse
-//	@Router			/cart/create/{userID} [get]
+//	@Router			/cart/create/{userID} [post]
 func (delivery *Delivery) CreateCart(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery CreateCart()")
 	ctx := c.Request.Context()
 
 	userId := c.Param("userID")
-	fmt.Println(userId)
-	if userId != ":userID" {
-		userUid, err := uuid.Parse(userId)
-		if err != nil {
-			delivery.logger.Error(err.Error())
-			delivery.SetError(c, http.StatusBadRequest, err)
-			return
-		}
-		cartId, err := delivery.cartUsecase.Create(ctx, userUid)
-		if err != nil {
-			delivery.logger.Error(err.Error())
-			delivery.SetError(c, http.StatusInternalServerError, err)
-			return
-		}
-		c.JSON(http.StatusCreated, cart.CartId{Value: cartId.String()})
+	userUid, err := uuid.Parse(userId)
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
+		return
 	}
-	cartId, err := delivery.cartUsecase.Create(ctx, uuid.Nil)
+	cartId, err := delivery.cartUsecase.Create(ctx, userUid)
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusInternalServerError, err)
 		return
 	}
 	c.JSON(http.StatusCreated, cart.CartId{Value: cartId.String()})
+
 }
 
 // AddItemToCart - add new item to cart
@@ -149,7 +140,7 @@ func (delivery *Delivery) AddItemToCart(c *gin.Context) {
 		delivery.SetError(c, http.StatusBadRequest, err)
 		return
 	}
-	itemId, err := uuid.Parse(deliveryCart.CartId)
+	itemId, err := uuid.Parse(deliveryCart.ItemId)
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusBadRequest, err)
@@ -183,7 +174,7 @@ func (delivery *Delivery) DeleteCart(c *gin.Context) {
 
 	ctx := c.Request.Context()
 
-	cartId, err := uuid.FromBytes([]byte(c.Param("cartID")))
+	cartId, err := uuid.Parse(c.Param("cartID"))
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusBadRequest, err)
@@ -212,7 +203,7 @@ func (delivery *Delivery) DeleteCart(c *gin.Context) {
 //	@Failure		403	"Forbidden"
 //	@Failure		404	{object}	ErrorResponse	"404 Not Found"
 //	@Failure		500	{object}	ErrorResponse
-//	@Router			/cart/deleteItem [put]
+//	@Router			/cart/deleteItem [delete]
 func (delivery *Delivery) DeleteItemFromCart(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery AddItemToCart()")
 
@@ -236,7 +227,7 @@ func (delivery *Delivery) DeleteItemFromCart(c *gin.Context) {
 		delivery.SetError(c, http.StatusBadRequest, err)
 		return
 	}
-	itemId, err := uuid.Parse(deliveryCart.CartId)
+	itemId, err := uuid.Parse(deliveryCart.ItemId)
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusBadRequest, err)

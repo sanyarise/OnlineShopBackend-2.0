@@ -21,4 +21,6 @@ RUN mkdir /bin/static/files/categories
 
 VOLUME /bin/static
 
+EXPOSE 8000
+
 ENTRYPOINT ["/bin/shop"]

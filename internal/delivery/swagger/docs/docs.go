@@ -74,7 +74,7 @@ const docTemplate = `{
             }
         },
         "/cart/create/{userID}": {
-            "get": {
+            "post": {
                 "description": "Method provides to create cart with items.",
                 "consumes": [
                     "application/json"
@@ -91,7 +91,8 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Id of user (if user autorized)",
                         "name": "userID",
-                        "in": "path"
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -176,7 +177,7 @@ const docTemplate = `{
             }
         },
         "/cart/deleteItem": {
-            "put": {
+            "delete": {
                 "description": "Method provides to delete item from cart.",
                 "consumes": [
                     "application/json"

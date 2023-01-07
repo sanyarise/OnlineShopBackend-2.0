@@ -18,6 +18,6 @@ import (
 type Cart struct {
 	Id       uuid.UUID
 	UserId   uuid.UUID
-	Items    []*Item
+	Items    []Item
 	ExpireAt time.Time
 }

@@ -4,7 +4,6 @@ import (
 	"OnlineShopBackend/internal/models"
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/google/uuid"
 
@@ -27,22 +26,23 @@ func NewCartStore(storage *PGres, logger *zap.SugaredLogger) CartStore {
 }
 
 // Create Shall we add items at the moment we create cart
-func (c *cart) Create(ctx context.Context, cart *models.Cart) (uuid.UUID, error) {
-	c.logger.Debugf("Enter in repository cart Create() with args: ctx, cart: %v", cart)
+func (c *cart) Create(ctx context.Context, userId uuid.UUID) (uuid.UUID, error) {
+	c.logger.Debugf("Enter in repository cart Create() with args: ctx, userId: %v", userId)
 	select {
 	case <-ctx.Done():
 		return uuid.Nil, fmt.Errorf("context closed")
 	default:
 		pool := c.storage.GetPool()
-		row := pool.QueryRow(ctx, `INSERT INTO carts (user_id, expire_at) VALUES ($1, $2) RETURNING id`,
-			cart.UserId, time.Now())
-		err := row.Scan(&cart.Id)
+		var cartId uuid.UUID
+		row := pool.QueryRow(ctx, `INSERT INTO carts (user_id) VALUES ($1) RETURNING id`,
+			userId)
+		err := row.Scan(&cartId)
 		if err != nil {
 			c.logger.Error(err)
 			return uuid.Nil, fmt.Errorf("can't create cart object: %w", err)
 		}
 		c.logger.Info("Create cart success")
-		return cart.Id, nil
+		return cartId, nil
 	}
 }
 
@@ -117,44 +117,52 @@ func (c *cart) DeleteItemFromCart(ctx context.Context, cartId uuid.UUID, itemId 
 	}
 }
 
-func (c *cart) SelectItemsFromCart(ctx context.Context, cartId uuid.UUID) ([]*models.Item, error) {
-	c.logger.Debug("Enter in repository cart SelectItemsFromCart() with")
+func (c *cart) GetCart(ctx context.Context, cartId uuid.UUID) (*models.Cart, error) {
+	c.logger.Debug("Enter in repository cart SelectItemsFromCart() with args: ctx, cartId: %v", cartId)
 	select {
 	case <-ctx.Done():
 		return nil, fmt.Errorf("context closed")
 	default:
 		pool := c.storage.GetPool()
+		var userId uuid.UUID
+		row := pool.QueryRow(ctx, `SELECT user_id FROM carts WHERE id = $1`, cartId)
+		err := row.Scan(&userId)
+		if err != nil {
+			c.logger.Error(err)
+			return nil, fmt.Errorf("can't read user id: %w", err)
+		}
+		c.logger.Debug("read user id success: %v", userId)
+		item := models.Item{}
 		rows, err := pool.Query(ctx, `
-				SELECT 	i.id, i.name, i.category, i.description, i.price, i.vendor, i.pictures
-				FROM cart_items c, items i
-				WHERE c.cart_id=$1 and i.id = c.item_id`, cartId)
+		SELECT 	i.id, i.name, i.price, i.pictures
+		FROM cart_items c, items i
+		WHERE c.cart_id=$1 and i.id = c.item_id`, cartId)
 		if err != nil {
 			c.logger.Errorf("can't select items from cart: %s", err)
 			return nil, fmt.Errorf("can't select items from cart: %w", err)
 		}
-		items := make([]*models.Item, 0)
+		defer rows.Close()
+		c.logger.Debug("read info from db in pool.Query success")
+		items := make([]models.Item, 0, 100)
 		for rows.Next() {
-			v, err := rows.Values()
-			if err != nil {
-				c.logger.Errorf("can't select items from cart: %s", err)
-				return nil, fmt.Errorf("can't select items from cart: %w", err)
+			if err := rows.Scan(
+				&item.Id,
+				&item.Title,
+				&item.Price,
+				&item.Images,
+			); err != nil {
+				c.logger.Error(err.Error())
+				return nil, err
 			}
-			i := models.Item{
-				Id:          v[0].(uuid.UUID),
-				Title:       v[1].(string),
-				Description: v[3].(string),
-				Price:       v[4].(int32),
-				Category: models.Category{
-					Id:          v[2].(uuid.UUID),
-					Name:        "",
-					Description: "",
-				},
-				Vendor: v[5].(string),
-				Images: v[6].([]string),
-			}
-			items = append(items, &i)
+
+			items = append(items, item)
 		}
 		c.logger.Info("Select items from cart success")
-		return items, nil
+		c.logger.Info("Get cart success")
+		return &models.Cart{
+			Id:     cartId,
+			UserId: userId,
+			Items:  items,
+		}, nil
 	}
 }

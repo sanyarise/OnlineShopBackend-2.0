@@ -59,15 +59,15 @@ services:
     depends_on:
       - postgres
 
- # frontend:
- #   image: front:latest
- #   container_name: frontend
- #   hostname: frontend
- #   restart: always
- #   ports:
- #     - 3000:3000
- #   depends_on:
- #     - shop
+  frontend:
+    image: front:latest
+    container_name: frontend
+    hostname: frontend
+    restart: always
+    ports:
+      - 3000:3000
+    depends_on:
+      - shop
 
 networks:
   default:

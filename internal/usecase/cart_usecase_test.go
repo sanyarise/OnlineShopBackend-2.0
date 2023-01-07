@@ -17,14 +17,10 @@ var (
 		Id:    testId,
 		Items: testItems,
 	}
-	testCreateModelsCart = &models.Cart{
-		UserId: testId,
-	}
-
-	testItem = &models.Item{
+	testItem = models.Item{
 		Id: testId,
 	}
-	testItems = []*models.Item{
+	testItems = []models.Item{
 		testItem,
 	}
 )
@@ -37,12 +33,12 @@ func TestGetCart(t *testing.T) {
 	usecase := NewCartUseCase(cartRepo, logger)
 	ctx := context.Background()
 
-	cartRepo.EXPECT().SelectItemsFromCart(ctx, testId).Return(nil, err)
+	cartRepo.EXPECT().GetCart(ctx, testId).Return(nil, err)
 	res, err := usecase.GetCart(ctx, testId)
 	require.Error(t, err)
 	require.Nil(t, res)
 
-	cartRepo.EXPECT().SelectItemsFromCart(ctx, testId).Return(testItems, nil)
+	cartRepo.EXPECT().GetCart(ctx, testId).Return(testModelsCart, nil)
 	res, err = usecase.GetCart(ctx, testId)
 	require.NoError(t, err)
 	require.NotNil(t, res)
@@ -74,12 +70,12 @@ func TestCreate(t *testing.T) {
 	usecase := NewCartUseCase(cartRepo, logger)
 	ctx := context.Background()
 
-	cartRepo.EXPECT().Create(ctx, testCreateModelsCart).Return(uuid.Nil, err)
+	cartRepo.EXPECT().Create(ctx, testId).Return(uuid.Nil, err)
 	res, err := usecase.Create(ctx, testId)
 	require.Error(t, err)
 	require.Equal(t, res, uuid.Nil)
 
-	cartRepo.EXPECT().Create(ctx, testCreateModelsCart).Return(testId, nil)
+	cartRepo.EXPECT().Create(ctx, testId).Return(testId, nil)
 	res, err = usecase.Create(ctx, testId)
 	require.NoError(t, err)
 	require.Equal(t, res, testId)
