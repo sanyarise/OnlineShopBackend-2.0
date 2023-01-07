@@ -47,7 +47,7 @@ func (server *Server) ShutDown(timeout int) error {
 	defer cancel()
 	err := server.srv.Shutdown(ctx)
 	if err != nil {
-		server.logger.Warn(fmt.Sprintf("error on server shutdown: %v", err))
+		server.logger.Error(fmt.Sprintf("error on server shutdown: %v", err))
 		return err
 	}
 	return nil
