@@ -33,13 +33,16 @@ func main() {
 	l.Info("Configuration sucessfully load")
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
-	time.Sleep(2 * time.Second)
+
 	pgstore, err := repository.NewPgxStorage(ctx, lsug, cfg.DSN)
 	if err != nil {
 		log.Fatalf("can't initalize storage: %v", err)
 	}
 	itemStore := repository.NewItemRepo(pgstore, lsug)
 	categoryStore := repository.NewCategoryRepo(pgstore, lsug)
+
+	cartStore := repository.NewCartStore(pgstore, lsug)
+
 	redis, err := cash.NewRedisCash(cfg.CashHost, cfg.CashPort, time.Duration(cfg.CashTTL), l)
 	if err != nil {
 		log.Fatalf("can't initialize cash: %v", err)
@@ -50,8 +53,11 @@ func main() {
 	itemUsecase := usecase.NewItemUsecase(itemStore, itemsCash, l)
 	categoryUsecase := usecase.NewCategoryUsecase(categoryStore, categoriesCash, l)
 
+	cartUsecase := usecase.NewCartUseCase(cartStore, l)
+
 	filestorage := filestorage.NewOnDiskLocalStorage(cfg.ServerURL, cfg.FsPath, l)
-	delivery := delivery.NewDelivery(itemUsecase, categoryUsecase, l, filestorage)
+	delivery := delivery.NewDelivery(itemUsecase, categoryUsecase, cartUsecase, l, filestorage)
+
 	router := router.NewRouter(delivery, l)
 	serverOptions := map[string]int{
 		"ReadTimeout":       cfg.ReadTimeout,
@@ -70,14 +76,28 @@ func main() {
 
 	<-ctx.Done()
 
-	pgstore.ShutDown(cfg.Timeout)
-	l.Info("Database connection stopped sucessful")
 
-	redis.ShutDown(cfg.Timeout)
-	l.Info("Cash connection stopped successful")
+	err = pgstore.ShutDown(cfg.Timeout)
+	if err != nil {
+		l.Error(err.Error())
+	} else {
+		l.Info("Database connection stopped sucessful")
+	}
 
-	server.ShutDown(cfg.Timeout)
-	l.Info("Server stopped successful")
+	err = redis.ShutDown(cfg.Timeout)
+	if err != nil {
+		l.Error(err.Error())
+	} else {
+		l.Info("Cash connection stopped successful")
+	}
+
+	err = server.ShutDown(cfg.Timeout)
+	if err != nil {
+		l.Error(err.Error())
+	} else {
+		l.Info("Server stopped successful")
+	}
+
 	cancel()
 }
 

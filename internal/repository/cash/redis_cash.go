@@ -38,14 +38,15 @@ func NewRedisCash(host, port string, ttl time.Duration, logger *zap.Logger) (*Re
 }
 
 // ShutDown is func for graceful shutdown redis connection
-func (cash *RedisCash) ShutDown(timeout int) {
+func (cash *RedisCash) ShutDown(timeout int) error{
 	cash.logger.Sugar().Debugf("Enter in cash ShutDown() with args: timeout: %d", timeout)
-	ctxWithTimiout, cancel := context.WithTimeout(context.Background(), time.Duration(timeout)*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeout)*time.Second)
 	defer cancel()
-	status := cash.Shutdown(ctxWithTimiout)
-	_, err := status.Result()
+	status := cash.Shutdown(ctx)
+	result, err := status.Result()
 	if err != nil {
-		cash.logger.Warn(fmt.Sprintf("cash shutdown error: %v", err))
-		return
+		return err
 	}
+	cash.logger.Info(result)
+	return nil
 }

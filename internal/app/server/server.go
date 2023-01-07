@@ -41,13 +41,15 @@ func (server *Server) Start() {
 }
 
 // ShutDown stop the server
-func (server *Server) ShutDown(timeout int) {
+func (server *Server) ShutDown(timeout int) error {
 	server.logger.Debug("Enter in server ShutDown()")
-	ctxWithTimiout, cancel := context.WithTimeout(context.Background(), time.Duration(timeout)*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeout)*time.Second)
 	defer cancel()
-	err := server.srv.Shutdown(ctxWithTimiout)
+	err := server.srv.Shutdown(ctx)
 	if err != nil {
-		server.logger.Warn(fmt.Sprintf("error on server shutdown: %v", err))
-		return
+		server.logger.Error(fmt.Sprintf("error on server shutdown: %v", err))
+		return err
 	}
+	return nil
+
 }

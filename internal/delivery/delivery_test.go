@@ -21,8 +21,10 @@ func TestIndex(t *testing.T) {
 	logger := zap.L()
 	itemUsecase := mocks.NewMockIItemUsecase(ctrl)
 	categoryUsecase := mocks.NewMockICategoryUsecase(ctrl)
+
+	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
-	delivery := NewDelivery(itemUsecase, categoryUsecase, logger, filestorage)
+	delivery := NewDelivery(itemUsecase, categoryUsecase, cartUsecase, logger, filestorage)
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -40,8 +42,10 @@ func TestGetFileList(t *testing.T) {
 	logger := zap.L()
 	itemUsecase := mocks.NewMockIItemUsecase(ctrl)
 	categoryUsecase := mocks.NewMockICategoryUsecase(ctrl)
+
+	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
-	delivery := NewDelivery(itemUsecase, categoryUsecase, logger, filestorage)
+	delivery := NewDelivery(itemUsecase, categoryUsecase, cartUsecase, logger, filestorage)
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)

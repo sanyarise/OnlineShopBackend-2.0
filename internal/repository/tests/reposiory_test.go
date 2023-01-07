@@ -139,7 +139,7 @@ func TestItemCreate(t *testing.T) {
 
 	item := repository.NewItemRepo(store, logger)
 	id, err := item.CreateItem(context.Background(), &models.Item{
-		Title:       "testItem",
+		Name:        "testItem",
 		Description: "desc",
 		Price:       300,
 		Category:    cat,
@@ -163,14 +163,14 @@ func TestItemUpdate(t *testing.T) {
 	assert.NoError(t, err)
 
 	item := models.Item{
-		Title:       "testItem",
+		Name:        "testItem",
 		Description: "desc",
 		Price:       300,
 		Category:    cat,
 	}
 	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO items(name, category, description, price, vendor)
 	values ($1, $2, $3, $4, $5) RETURNING id`,
-		item.Title,
+		item.Name,
 		item.Category.Id,
 		item.Description,
 		item.Price,
@@ -181,7 +181,7 @@ func TestItemUpdate(t *testing.T) {
 
 	newItem := models.Item{
 		Id:          item.Id,
-		Title:       "NewName",
+		Name:        "NewName",
 		Description: "desc",
 		Price:       500,
 		Category:    cat,
@@ -192,8 +192,8 @@ func TestItemUpdate(t *testing.T) {
 	assert.NoError(t, err)
 
 	row = store.GetPool().QueryRow(context.Background(), `SELECT name, price FROM items`)
-	row.Scan(&item.Title, &item.Price)
-	require.Equal(t, newItem.Title, item.Title)
+	row.Scan(&item.Name, &item.Price)
+	require.Equal(t, newItem.Name, item.Name)
 	require.Equal(t, newItem.Price, item.Price)
 }
 
@@ -211,14 +211,14 @@ func TestItemGet(t *testing.T) {
 	assert.NoError(t, err)
 
 	item := models.Item{
-		Title:       "testItem",
+		Name:        "testItem",
 		Description: "desc",
 		Price:       300,
 		Category:    cat,
 	}
 	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO items(name, category, description, price, vendor)
 	values ($1, $2, $3, $4, $5) RETURNING id`,
-		item.Title,
+		item.Name,
 		item.Category.Id,
 		item.Description,
 		item.Price,
@@ -231,7 +231,7 @@ func TestItemGet(t *testing.T) {
 	res, err := itm.GetItem(context.TODO(), item.Id)
 	require.NoError(t, err)
 	require.Equal(t, item.Id, res.Id)
-	require.Equal(t, item.Title, res.Title)
+	require.Equal(t, item.Name, res.Name)
 }
 
 func TestItemSearchLine(t *testing.T) {
@@ -248,14 +248,14 @@ func TestItemSearchLine(t *testing.T) {
 	assert.NoError(t, err)
 
 	item1 := models.Item{
-		Title:       "testItem",
+		Name:        "testItem",
 		Description: "desc",
 		Price:       300,
 		Category:    cat,
 	}
 	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO items(name, category, description, price, vendor)
 	values ($1, $2, $3, $4, $5) RETURNING id`,
-		item1.Title,
+		item1.Name,
 		item1.Category.Id,
 		item1.Description,
 		item1.Price,
@@ -265,14 +265,14 @@ func TestItemSearchLine(t *testing.T) {
 	defer store.GetPool().Exec(context.Background(), `DELETE FROM items`)
 
 	item2 := models.Item{
-		Title:       "Item",
+		Name:        "Item",
 		Description: "desc",
 		Price:       400,
 		Category:    cat,
 	}
 	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO items(name, category, description, price, vendor)
 	values ($1, $2, $3, $4, $5) RETURNING id`,
-		item2.Title,
+		item2.Name,
 		item2.Category.Id,
 		item2.Description,
 		item2.Price,
@@ -284,7 +284,7 @@ func TestItemSearchLine(t *testing.T) {
 	ch, err := itm.SearchLine(context.Background(), "test")
 	assert.NoError(t, err)
 	for r := range ch {
-		require.Equal(t, item1.Title, r.Title)
+		require.Equal(t, item1.Name, r.Name)
 		require.Equal(t, item1.Id, r.Id)
 	}
 
@@ -304,14 +304,14 @@ func TestItemItemsList(t *testing.T) {
 	assert.NoError(t, err)
 
 	item1 := models.Item{
-		Title:       "testItem",
+		Name:        "testItem",
 		Description: "desc",
 		Price:       300,
 		Category:    cat,
 	}
 	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO items(name, category, description, price, vendor)
 	values ($1, $2, $3, $4, $5) RETURNING id`,
-		item1.Title,
+		item1.Name,
 		item1.Category.Id,
 		item1.Description,
 		item1.Price,
@@ -321,14 +321,14 @@ func TestItemItemsList(t *testing.T) {
 	defer store.GetPool().Exec(context.Background(), `DELETE FROM items`)
 
 	item2 := models.Item{
-		Title:       "Item",
+		Name:        "Item",
 		Description: "desc",
 		Price:       400,
 		Category:    cat,
 	}
 	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO items(name, category, description, price, vendor)
 	values ($1, $2, $3, $4, $5) RETURNING id`,
-		item2.Title,
+		item2.Name,
 		item2.Category.Id,
 		item2.Description,
 		item2.Price,
@@ -340,7 +340,7 @@ func TestItemItemsList(t *testing.T) {
 	ch, err := itm.ItemsList(context.Background())
 	assert.NoError(t, err)
 	for r := range ch {
-		assert.Contains(t, item1.Title, r.Title)
+		assert.Contains(t, item1.Name, r.Name)
 		assert.Equal(t, item1.Description, r.Description)
 	}
 
@@ -360,14 +360,14 @@ func TestCartCreate(t *testing.T) {
 	assert.NoError(t, err)
 
 	item1 := models.Item{
-		Title:       "testItem",
+		Name:        "testItem",
 		Description: "desc",
 		Price:       300,
 		Category:    cat,
 	}
 	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO items(name, category, description, price, vendor)
 	values ($1, $2, $3, $4, $5) RETURNING id`,
-		item1.Title,
+		item1.Name,
 		item1.Category.Id,
 		item1.Description,
 		item1.Price,
@@ -377,14 +377,14 @@ func TestCartCreate(t *testing.T) {
 	defer store.GetPool().Exec(context.Background(), `DELETE FROM items`)
 
 	item2 := models.Item{
-		Title:       "Item",
+		Name:        "Item",
 		Description: "desc",
 		Price:       400,
 		Category:    cat,
 	}
 	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO items(name, category, description, price, vendor)
 	values ($1, $2, $3, $4, $5) RETURNING id`,
-		item2.Title,
+		item2.Name,
 		item2.Category.Id,
 		item2.Description,
 		item2.Price,
@@ -450,14 +450,14 @@ func TestCartAddItem(t *testing.T) {
 	assert.NoError(t, err)
 
 	item1 := models.Item{
-		Title:       "testItem",
+		Name:        "testItem",
 		Description: "desc",
 		Price:       300,
 		Category:    cat,
 	}
 	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO items(name, category, description, price, vendor)
 	values ($1, $2, $3, $4, $5) RETURNING id`,
-		item1.Title,
+		item1.Name,
 		item1.Category.Id,
 		item1.Description,
 		item1.Price,
@@ -467,14 +467,14 @@ func TestCartAddItem(t *testing.T) {
 	defer store.GetPool().Exec(context.Background(), `DELETE FROM items`)
 
 	item2 := models.Item{
-		Title:       "Item",
+		Name:        "Item",
 		Description: "desc",
 		Price:       400,
 		Category:    cat,
 	}
 	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO items(name, category, description, price, vendor)
 	values ($1, $2, $3, $4, $5) RETURNING id`,
-		item2.Title,
+		item2.Name,
 		item2.Category.Id,
 		item2.Description,
 		item2.Price,
@@ -549,14 +549,14 @@ func TestCartDelete(t *testing.T) {
 	assert.NoError(t, err)
 
 	item1 := models.Item{
-		Title:       "testItem",
+		Name:        "testItem",
 		Description: "desc",
 		Price:       300,
 		Category:    cat,
 	}
 	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO items(name, category, description, price, vendor)
 	values ($1, $2, $3, $4, $5) RETURNING id`,
-		item1.Title,
+		item1.Name,
 		item1.Category.Id,
 		item1.Description,
 		item1.Price,
@@ -566,14 +566,14 @@ func TestCartDelete(t *testing.T) {
 	defer store.GetPool().Exec(context.Background(), `DELETE FROM items`)
 
 	item2 := models.Item{
-		Title:       "Item",
+		Name:        "Item",
 		Description: "desc",
 		Price:       400,
 		Category:    cat,
 	}
 	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO items(name, category, description, price, vendor)
 	values ($1, $2, $3, $4, $5) RETURNING id`,
-		item2.Title,
+		item2.Name,
 		item2.Category.Id,
 		item2.Description,
 		item2.Price,
@@ -649,14 +649,14 @@ func TestCartDeleteItem(t *testing.T) {
 	assert.NoError(t, err)
 
 	item1 := models.Item{
-		Title:       "testItem",
+		Name:        "testItem",
 		Description: "desc",
 		Price:       300,
 		Category:    cat,
 	}
 	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO items(name, category, description, price, vendor)
 	values ($1, $2, $3, $4, $5) RETURNING id`,
-		item1.Title,
+		item1.Name,
 		item1.Category.Id,
 		item1.Description,
 		item1.Price,
@@ -666,14 +666,14 @@ func TestCartDeleteItem(t *testing.T) {
 	defer store.GetPool().Exec(context.Background(), `DELETE FROM items`)
 
 	item2 := models.Item{
-		Title:       "Item",
+		Name:        "Item",
 		Description: "desc",
 		Price:       400,
 		Category:    cat,
 	}
 	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO items(name, category, description, price, vendor)
 	values ($1, $2, $3, $4, $5) RETURNING id`,
-		item2.Title,
+		item2.Name,
 		item2.Category.Id,
 		item2.Description,
 		item2.Price,
@@ -749,14 +749,14 @@ func TestOrderCreate(t *testing.T) {
 	assert.NoError(t, err)
 
 	item1 := models.Item{
-		Title:       "testItem",
+		Name:        "testItem",
 		Description: "desc",
 		Price:       300,
 		Category:    cat,
 	}
 	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO items(name, category, description, price, vendor)
 	values ($1, $2, $3, $4, $5) RETURNING id`,
-		item1.Title,
+		item1.Name,
 		item1.Category.Id,
 		item1.Description,
 		item1.Price,
@@ -766,14 +766,14 @@ func TestOrderCreate(t *testing.T) {
 	defer store.GetPool().Exec(context.Background(), `DELETE FROM items`)
 
 	item2 := models.Item{
-		Title:       "Item",
+		Name:        "Item",
 		Description: "desc",
 		Price:       400,
 		Category:    cat,
 	}
 	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO items(name, category, description, price, vendor)
 	values ($1, $2, $3, $4, $5) RETURNING id`,
-		item2.Title,
+		item2.Name,
 		item2.Category.Id,
 		item2.Description,
 		item2.Price,
@@ -841,14 +841,14 @@ func TestOrderDelete(t *testing.T) {
 	assert.NoError(t, err)
 
 	item1 := models.Item{
-		Title:       "testItem",
+		Name:        "testItem",
 		Description: "desc",
 		Price:       300,
 		Category:    cat,
 	}
 	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO items(name, category, description, price, vendor)
 	values ($1, $2, $3, $4, $5) RETURNING id`,
-		item1.Title,
+		item1.Name,
 		item1.Category.Id,
 		item1.Description,
 		item1.Price,
@@ -858,14 +858,14 @@ func TestOrderDelete(t *testing.T) {
 	defer store.GetPool().Exec(context.Background(), `DELETE FROM items`)
 
 	item2 := models.Item{
-		Title:       "Item",
+		Name:        "Item",
 		Description: "desc",
 		Price:       400,
 		Category:    cat,
 	}
 	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO items(name, category, description, price, vendor)
 	values ($1, $2, $3, $4, $5) RETURNING id`,
-		item2.Title,
+		item2.Name,
 		item2.Category.Id,
 		item2.Description,
 		item2.Price,
@@ -944,14 +944,14 @@ func TestOrderChangeAddres(t *testing.T) {
 	assert.NoError(t, err)
 
 	item1 := models.Item{
-		Title:       "testItem",
+		Name:        "testItem",
 		Description: "desc",
 		Price:       300,
 		Category:    cat,
 	}
 	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO items(name, category, description, price, vendor)
 	values ($1, $2, $3, $4, $5) RETURNING id`,
-		item1.Title,
+		item1.Name,
 		item1.Category.Id,
 		item1.Description,
 		item1.Price,
@@ -961,14 +961,14 @@ func TestOrderChangeAddres(t *testing.T) {
 	defer store.GetPool().Exec(context.Background(), `DELETE FROM items`)
 
 	item2 := models.Item{
-		Title:       "Item",
+		Name:        "Item",
 		Description: "desc",
 		Price:       400,
 		Category:    cat,
 	}
 	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO items(name, category, description, price, vendor)
 	values ($1, $2, $3, $4, $5) RETURNING id`,
-		item2.Title,
+		item2.Name,
 		item2.Category.Id,
 		item2.Description,
 		item2.Price,
@@ -1054,14 +1054,14 @@ func TestOrderChangeStatus(t *testing.T) {
 	assert.NoError(t, err)
 
 	item1 := models.Item{
-		Title:       "testItem",
+		Name:        "testItem",
 		Description: "desc",
 		Price:       300,
 		Category:    cat,
 	}
 	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO items(name, category, description, price, vendor)
 	values ($1, $2, $3, $4, $5) RETURNING id`,
-		item1.Title,
+		item1.Name,
 		item1.Category.Id,
 		item1.Description,
 		item1.Price,
@@ -1071,14 +1071,14 @@ func TestOrderChangeStatus(t *testing.T) {
 	defer store.GetPool().Exec(context.Background(), `DELETE FROM items`)
 
 	item2 := models.Item{
-		Title:       "Item",
+		Name:        "Item",
 		Description: "desc",
 		Price:       400,
 		Category:    cat,
 	}
 	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO items(name, category, description, price, vendor)
 	values ($1, $2, $3, $4, $5) RETURNING id`,
-		item2.Title,
+		item2.Name,
 		item2.Category.Id,
 		item2.Description,
 		item2.Price,
@@ -1159,14 +1159,14 @@ func TestOrdersGetOrderByID(t *testing.T) {
 	assert.NoError(t, err)
 
 	item1 := models.Item{
-		Title:       "testItem",
+		Name:        "testItem",
 		Description: "desc",
 		Price:       300,
 		Category:    cat,
 	}
 	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO items(name, category, description, price, vendor)
 	values ($1, $2, $3, $4, $5) RETURNING id`,
-		item1.Title,
+		item1.Name,
 		item1.Category.Id,
 		item1.Description,
 		item1.Price,
@@ -1176,14 +1176,14 @@ func TestOrdersGetOrderByID(t *testing.T) {
 	defer store.GetPool().Exec(context.Background(), `DELETE FROM items`)
 
 	item2 := models.Item{
-		Title:       "Item",
+		Name:        "Item",
 		Description: "desc",
 		Price:       400,
 		Category:    cat,
 	}
 	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO items(name, category, description, price, vendor)
 	values ($1, $2, $3, $4, $5) RETURNING id`,
-		item2.Title,
+		item2.Name,
 		item2.Category.Id,
 		item2.Description,
 		item2.Price,
@@ -1243,7 +1243,7 @@ func TestOrdersGetOrderByID(t *testing.T) {
 	defer store.GetPool().Exec(context.Background(), `DELETE FROM orders`)
 	defer store.GetPool().Exec(context.Background(), `DELETE FROM order_items`)
 	require.NoError(t, err)
-	require.Equal(t, order.Items[0].Title, res.Items[0].Title)
+	require.Equal(t, order.Items[0].Name, res.Items[0].Name)
 	require.Equal(t, order.ID, res.ID)
 	require.Equal(t, order.Address, res.Address)
 }
@@ -1262,14 +1262,14 @@ func TestOrdersGetOrders(t *testing.T) {
 	assert.NoError(t, err)
 
 	item1 := models.Item{
-		Title:       "testItem",
+		Name:        "testItem",
 		Description: "desc",
 		Price:       300,
 		Category:    cat,
 	}
 	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO items(name, category, description, price, vendor)
 	values ($1, $2, $3, $4, $5) RETURNING id`,
-		item1.Title,
+		item1.Name,
 		item1.Category.Id,
 		item1.Description,
 		item1.Price,
@@ -1279,14 +1279,14 @@ func TestOrdersGetOrders(t *testing.T) {
 	defer store.GetPool().Exec(context.Background(), `DELETE FROM items`)
 
 	item2 := models.Item{
-		Title:       "Item",
+		Name:        "Item",
 		Description: "desc",
 		Price:       400,
 		Category:    cat,
 	}
 	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO items(name, category, description, price, vendor)
 	values ($1, $2, $3, $4, $5) RETURNING id`,
-		item2.Title,
+		item2.Name,
 		item2.Category.Id,
 		item2.Description,
 		item2.Price,
@@ -1366,11 +1366,11 @@ func TestOrdersGetOrders(t *testing.T) {
 	for o := range ch {
 		res = append(res, o)
 	}
-	require.Equal(t, order.Items[0].Title, res[0].Items[0].Title)
+	require.Equal(t, order.Items[0].Name, res[0].Items[0].Name)
 	// require.Equal(t, order.ID, res[0].ID)
 	require.Equal(t, order.Address, res[0].Address)
 
-	require.Equal(t, order2.Items[0].Title, res[1].Items[0].Title)
+	require.Equal(t, order2.Items[0].Name, res[1].Items[0].Name)
 	// require.Equal(t, order2.ID, res[1].ID)
 	require.Equal(t, order2.Address, res[1].Address)
 }

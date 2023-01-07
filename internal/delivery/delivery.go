@@ -22,14 +22,25 @@ import (
 type Delivery struct {
 	itemUsecase     usecase.IItemUsecase
 	categoryUsecase usecase.ICategoryUsecase
+	cartUsecase     usecase.ICartUsecase
 	logger          *zap.Logger
 	filestorage     filestorage.FileStorager
 }
 
 // NewDelivery initialize delivery layer
-func NewDelivery(itemUsecase usecase.IItemUsecase, categoryUsecase usecase.ICategoryUsecase, logger *zap.Logger, fs filestorage.FileStorager) *Delivery {
+func NewDelivery(
+	itemUsecase usecase.IItemUsecase,
+	categoryUsecase usecase.ICategoryUsecase,
+	cartUsecase usecase.ICartUsecase,
+	logger *zap.Logger, fs filestorage.FileStorager,
+) *Delivery {
 	logger.Debug("Enter in NewDelivery()")
-	return &Delivery{itemUsecase: itemUsecase, categoryUsecase: categoryUsecase, logger: logger, filestorage: fs}
+	return &Delivery{
+		itemUsecase:     itemUsecase,
+		categoryUsecase: categoryUsecase,
+		cartUsecase:     cartUsecase,
+		logger:          logger, filestorage: fs,
+	}
 }
 
 // Index is the index handler.
