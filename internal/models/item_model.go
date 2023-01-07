@@ -20,3 +20,8 @@ type Item struct {
 	Vendor      string
 	Images      []string
 }
+
+type ItemWithQuantity struct {
+	Item
+	Quantity uint
+}
