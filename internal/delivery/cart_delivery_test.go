@@ -33,8 +33,8 @@ var (
 	testModelCart = models.Cart{
 		Id:     testCartId,
 		UserId: testUserId,
-		Items: []models.Item{
-			testModelItem,
+		Items: []models.ItemWithQuantity{
+			testModelItemWithQuantity,
 		},
 	}
 	testModelItem = models.Item{
@@ -43,6 +43,10 @@ var (
 		Price:  1,
 		Images: []string{"test"},
 	}
+	testModelItemWithQuantity = models.ItemWithQuantity{
+		Quantity: 1,
+	}
+
 	testCart = cart.Cart{
 		Id:     testCartId.String(),
 		UserId: testUserId.String(),

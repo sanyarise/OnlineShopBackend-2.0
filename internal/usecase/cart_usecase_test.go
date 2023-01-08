@@ -17,10 +17,13 @@ var (
 		Id:    testId,
 		Items: testItems,
 	}
-	testItem = models.Item{
+	testItem = models.ItemWithQuantity{
+		Quantity: 1,
+	}
+	testItem1 = models.Item{
 		Id: testId,
 	}
-	testItems = []models.Item{
+	testItems = []models.ItemWithQuantity{
 		testItem,
 	}
 )
