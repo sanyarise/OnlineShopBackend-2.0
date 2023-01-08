@@ -128,7 +128,7 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 		{
 			"GetItemsByCategory",
 			http.MethodGet,
-			"/items/", //?param=categoryName&offset=20&limit=10
+			"/items/", //?param=categoryName&offset=20&limit=10&sort_type=name&sort_order=asc (sort_type == name or price, sort_order == asc or desc)
 			delivery.GetItemsByCategory,
 		},
 		{
@@ -158,13 +158,13 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 		{
 			"ItemsList",
 			http.MethodGet,
-			"/items/list", //?offset=20&limit=10
+			"/items/list", //?offset=20&limit=10&sort_type=name&sort_order=asc (sort_type == name or price, sort_order == asc or desc)
 			delivery.ItemsList,
 		},
 		{
 			"SearchLine",
 			http.MethodGet,
-			"/items/search/", //?param=searchRequest&offset=20&limit=10
+			"/items/search/", //?param=searchRequest&offset=20&limit=10&sort_type=name&sort_order=asc (sort_type == name or price, sort_order == asc or desc)
 			delivery.SearchLine,
 		},
 		{

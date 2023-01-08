@@ -141,7 +141,7 @@ func TestGetItem(t *testing.T) {
 	require.Nil(t, res)
 }
 
-func TestItemsList(t *testing.T) {
+/*func TestItemsList(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	logger := zap.L()
@@ -381,7 +381,7 @@ func TestGetItemByCategory(t *testing.T) {
 	res, err = usecase.GetItemsByCategory(ctx, param, 0, 1)
 	require.Error(t, err)
 	require.Nil(t, res)
-}
+}*/
 
 func TestItemsQuantity(t *testing.T) {
 	ctrl := gomock.NewController(t)

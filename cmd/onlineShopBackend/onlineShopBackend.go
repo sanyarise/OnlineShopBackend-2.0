@@ -76,7 +76,6 @@ func main() {
 
 	<-ctx.Done()
 
-
 	err = pgstore.ShutDown(cfg.Timeout)
 	if err != nil {
 		l.Error(err.Error())
@@ -111,18 +110,27 @@ func createCashOnStartService(ctx context.Context, categoryUsecase usecase.ICate
 	}
 	l.Info("Category list cash create success")
 
-	_, err = itemUsecase.ItemsList(ctx, 0, 0)
-	if err != nil {
-		l.Sugar().Errorf("error on create items list cash: %w", err)
-		return err
+	limitOptions := map[string]int{"offset": 0, "limit": 0}
+	listOptions := []map[string]string{
+		{"sortType": "name", "sortOrder": "asc"},
+		{"sortType": "name", "sortOrder": "desc"},
+		{"sortType": "price", "sortOrder": "asc"},
+		{"sortType": "price", "sortOrder": "desc"},
 	}
-	l.Info("Items list cash create success")
-
-	for _, category := range categoryList {
-		_, err := itemUsecase.GetItemsByCategory(ctx, category.Name, 0, 0)
+	for _, sortOptions := range listOptions {
+		_, err = itemUsecase.ItemsList(ctx, limitOptions, sortOptions)
 		if err != nil {
-			l.Sugar().Errorf("error on create items list in category: %s cash: %w", category.Name, err)
+			l.Sugar().Errorf("error on create items list cash: %w", err)
 			return err
+		}
+		l.Info("Items list cash create success")
+
+		for _, category := range categoryList {
+			_, err := itemUsecase.GetItemsByCategory(ctx, category.Name, limitOptions, sortOptions)
+			if err != nil {
+				l.Sugar().Errorf("error on create items list in category: %s cash: %w", category.Name, err)
+				return err
+			}
 		}
 	}
 	l.Info("Items lists in categories cash create success")
