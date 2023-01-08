@@ -55,13 +55,27 @@ func (c *cart) AddItemToCart(ctx context.Context, cartId uuid.UUID, itemId uuid.
 		return fmt.Errorf("context closed")
 	default:
 		pool := c.storage.GetPool()
-		_, err := pool.Exec(ctx, `INSERT INTO cart_items (cart_id, item_id) VALUES ($1, $2)`, cartId, itemId)
+		row := pool.QueryRow(ctx, `SELECT item_id from cart_items where item_id=$1 and cart_id=$2`, itemId, cartId)
+		var checkId uuid.UUID
+		err := row.Scan(&checkId)
 		if err != nil {
-			c.logger.Errorf("can't add item to cart: %s", err)
-			return fmt.Errorf("can't add item to cart: %w", err)
+			c.logger.Errorf("error on row.Scan: %s", err)
 		}
-		return nil
+		if checkId == uuid.Nil {
+			_, err := pool.Exec(ctx, `INSERT INTO cart_items (cart_id, item_id, item_quantity) VALUES ($1, $2, $3)`, cartId, itemId, 1)
+			if err != nil {
+				c.logger.Errorf("can't add item to cart: %s", err)
+				return fmt.Errorf("can't add item to cart: %w", err)
+			}
+		} else {
+			_, err := pool.Exec(ctx, `UPDATE cart_items SET item_quantity = item_quantity + 1 WHERE cart_id=$1 and item_id=$2`, cartId, itemId)
+			if err != nil {
+				c.logger.Errorf("can't add item to cart: %s", err)
+				return fmt.Errorf("can't add item to cart: %w", err)
+			}
+		}
 	}
+	return nil
 }
 
 func (c *cart) DeleteCart(ctx context.Context, cartId uuid.UUID) error {
@@ -107,10 +121,25 @@ func (c *cart) DeleteItemFromCart(ctx context.Context, cartId uuid.UUID, itemId 
 		return fmt.Errorf("context closed")
 	default:
 		pool := c.storage.GetPool()
-		_, err := pool.Exec(ctx, `DELETE FROM cart_items WHERE item_id=$1 AND cart_id=$2`, itemId, cartId)
+		row := pool.QueryRow(ctx, `SELECT item_quantity from cart_items where item_id=$1 and cart_id=$2`, itemId, cartId)
+		var quantity int
+		err := row.Scan(&quantity)
 		if err != nil {
-			c.logger.Errorf("can't delete item from cart: %s", err)
-			return fmt.Errorf("can't delete item from cart: %w", err)
+			c.logger.Errorf("error on row.Scan: %s", err)
+			return err
+		}
+		if quantity > 1 {
+			_, err := pool.Exec(ctx, `UPDATE cart_items SET item_quantity = item_quantity - 1 WHERE cart_id=$1 and item_id=$2`, cartId, itemId)
+			if err != nil {
+				c.logger.Errorf("can't delete item from cart: %s", err)
+				return fmt.Errorf("can't delete item from cart: %w", err)
+			}
+		} else if quantity == 1 {
+			_, err := pool.Exec(ctx, `DELETE FROM cart_items WHERE item_id=$1 AND cart_id=$2`, itemId, cartId)
+			if err != nil {
+				c.logger.Errorf("can't delete item from cart: %s", err)
+				return fmt.Errorf("can't delete item from cart: %w", err)
+			}
 		}
 		c.logger.Info("Delete item from cart success")
 		return nil
@@ -132,9 +161,9 @@ func (c *cart) GetCart(ctx context.Context, cartId uuid.UUID) (*models.Cart, err
 			return nil, fmt.Errorf("can't read user id: %w", err)
 		}
 		c.logger.Debug("read user id success: %v", userId)
-		item := models.Item{}
+		item := models.ItemWithQuantity{}
 		rows, err := pool.Query(ctx, `
-		SELECT 	i.id, i.name, i.price, i.pictures
+		SELECT 	i.id, i.name, i.price, i.pictures, c.item_quantity
 		FROM cart_items c, items i
 		WHERE c.cart_id=$1 and i.id = c.item_id`, cartId)
 		if err != nil {
@@ -143,13 +172,14 @@ func (c *cart) GetCart(ctx context.Context, cartId uuid.UUID) (*models.Cart, err
 		}
 		defer rows.Close()
 		c.logger.Debug("read info from db in pool.Query success")
-		items := make([]models.Item, 0, 100)
+		items := make([]models.ItemWithQuantity, 0, 100)
 		for rows.Next() {
 			if err := rows.Scan(
 				&item.Id,
 				&item.Title,
 				&item.Price,
 				&item.Images,
+				&item.Quantity,
 			); err != nil {
 				c.logger.Error(err.Error())
 				return nil, err

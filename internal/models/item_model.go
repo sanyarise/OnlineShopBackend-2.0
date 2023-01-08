@@ -23,5 +23,5 @@ type Item struct {
 
 type ItemWithQuantity struct {
 	Item
-	Quantity uint
+	Quantity int
 }
