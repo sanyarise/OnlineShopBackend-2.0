@@ -23,14 +23,27 @@ type Delivery struct {
 	itemUsecase     usecase.IItemUsecase
 	categoryUsecase usecase.ICategoryUsecase
 	userUsecase usecase.IUserUsecase
+	cartUsecase     usecase.ICartUsecase
 	logger          *zap.Logger
 	filestorage     filestorage.FileStorager
 }
 
 // NewDelivery initialize delivery layer
-func NewDelivery(itemUsecase usecase.IItemUsecase, categoryUsecase usecase.ICategoryUsecase, userUsecase usecase.IUserUsecase, logger *zap.Logger, fs filestorage.FileStorager) *Delivery {
+func NewDelivery(
+	itemUsecase usecase.IItemUsecase,
+	userUsecase usecase.IUserUsecase,
+	categoryUsecase usecase.ICategoryUsecase,
+	cartUsecase usecase.ICartUsecase,
+	logger *zap.Logger, fs filestorage.FileStorager,
+) *Delivery {
 	logger.Debug("Enter in NewDelivery()")
-	return &Delivery{itemUsecase: itemUsecase, categoryUsecase: categoryUsecase, logger: logger, filestorage: fs, userUsecase: userUsecase}
+	return &Delivery{
+		itemUsecase:     itemUsecase,
+		categoryUsecase: categoryUsecase,
+		cartUsecase:     cartUsecase,
+		userUsecase: userUsecase,
+		logger:          logger, filestorage: fs,
+	}
 }
 
 // Index is the index handler.

@@ -65,7 +65,7 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 
 
 	gin.Use(ginzap.RecoveryWithZap(logger, true))
-	gin.Static("/files", "./storage/files")
+	gin.Static("/files", "./static/files")
 	docs.SwaggerInfo.BasePath = "/"
 	gin.Group("/docs").Any("/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	router := &Router{
@@ -191,8 +191,32 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 		{
 			"GetCart",
 			http.MethodGet,
-			"/cart/:userID",
+			"/cart/:cartID",
 			delivery.GetCart,
+		},
+		{
+			"CreateCart",
+			http.MethodPost,
+			"/cart/create/:userID",
+			delivery.CreateCart,
+		},
+		{
+			"AddItemToCart",
+			http.MethodPut,
+			"/cart/addItem",
+			delivery.AddItemToCart,
+		},
+		{
+			"DeleteItemFromCart",
+			http.MethodDelete,
+			"/cart/deleteItem",
+			delivery.DeleteItemFromCart,
+		},
+		{
+			"DeleteCart",
+			http.MethodDelete,
+			"/cart/delete/:cartID",
+			delivery.DeleteCart,
 		},
 		{
 			"CreateUser",

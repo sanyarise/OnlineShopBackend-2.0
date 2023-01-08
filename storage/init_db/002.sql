@@ -24,11 +24,12 @@ CREATE TABLE users (
     city VARCHAR(256),
     street VARCHAR(256),
     session UUID,
-    CONSTRAINT fk_rights 
+    CONSTRAINT fk_rights
         FOREIGN KEY(rights) REFERENCES rights(id),
     CONSTRAINT fk_session
         FOREIGN KEY(session) REFERENCES session(id)
 );
+
 
 CREATE TABLE categories (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -63,6 +64,7 @@ CREATE TABLE carts (
 CREATE TABLE cart_items (
     cart_id UUID,
     item_id UUID,
+    item_quantity INTEGER NOT NULL,
     PRIMARY KEY(cart_id, item_id),
     CONSTRAINT fk_cart_id
         FOREIGN KEY(cart_id) REFERENCES carts(id),
@@ -91,9 +93,7 @@ CREATE TABLE order_items (
         FOREIGN KEY(item_id) REFERENCES items(id)
 );
 
-
 INSERT INTO categories(id, name, description, picture) VALUES ('d0d3df2d-f6c8-4956-9d76-998ee1ec8a39', 'electronics', 'electronics for life', 'http://localhost:8000/files/categories/d0d3df2d-f6c8-4956-9d76-998ee1ec8a39/20221213125935.jpeg');
-
 
 INSERT INTO items(id, name, category, description, price, vendor, pictures) VALUES ('0b74b0ac-68aa-462b-8609-4bf5eac3f9f7', 'smartphone samsung', 'd0d3df2d-f6c8-4956-9d76-998ee1ec8a39', 'best smartphone', 10000, 'samsung', '{"http://localhost:8000/files/items/0b74b0ac-68aa-462b-8609-4bf5eac3f9f7/20221213132612.jpeg"}');
 INSERT INTO items(id, name, category, description, price, vendor, pictures) VALUES ('692a759d-a993-45ea-b3bd-6cd523db74b4', 'smartphone xiaomi', 'd0d3df2d-f6c8-4956-9d76-998ee1ec8a39', 'best smartphone', 8900, 'xiaomi', '{"http://localhost:8000/files/items/692a759d-a993-45ea-b3bd-6cd523db74b4/20221213132650.jpeg"}');
@@ -106,8 +106,8 @@ INSERT INTO items(id, name, category, description, price, vendor, pictures) VALU
 INSERT INTO items(id, name, category, description, price, vendor, pictures) VALUES ('3f05a859-1806-4851-a457-c9cb69b22846', 'smartphone techno', 'd0d3df2d-f6c8-4956-9d76-998ee1ec8a39', 'best smartphone', 9990, 'samsung', '{"http://localhost:8000/files/items/3f05a859-1806-4851-a457-c9cb69b22846/20221213132821.jpeg"}');
 INSERT INTO items(id, name, category, description, price, vendor, pictures) VALUES ('7eb10fc6-20e8-4b3b-95a3-0f55cf0145d6', 'smartphone techno', 'd0d3df2d-f6c8-4956-9d76-998ee1ec8a39', 'best smartphone', 8990, 'samsung', '{"http://localhost:8000/files/items/7eb10fc6-20e8-4b3b-95a3-0f55cf0145d6/20221213132833.jpeg"}');
 INSERT INTO rights(name, rules) VALUES ('Customer', '{common}');
-INSERT INTO rights(name, rules) VALUES ('Admin', '{admin}');
-INSERT INTO users(name, password, email, rights) VALUES ('admin', 'qwerty12345', 'admin@gmail.com', 'Admin');
+INSERT INTO rights(id, name, rules) VALUES ('fa9c4027-b2d4-4468-8cf5-beae213ab46d', 'Admin', '{admin}');
+INSERT INTO users(name, password, email, rights) VALUES ('admin', 'qwerty12345', 'admin@gmail.com', 'fa9c4027-b2d4-4468-8cf5-beae213ab46d');
 
 
 

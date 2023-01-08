@@ -145,3 +145,9 @@ swag:
 
 swag_fmt:
 	swag fmt -d ./internal/delivery -g delivery.go
+
+up-win:
+	git clone https://github.com/ZavNatalia/gb-store.git&&cd gb-store&&git checkout feature/new-api&&cd ..&&copy front.Dockerfile .\gb-store&&cd ./gb-store&&docker build -f ./front.Dockerfile -t front:latest .&&cd ..&&RD /s/q .\gb-store&&docker-compose up -d
+
+up-lin:
+	git clone https://github.com/ZavNatalia/gb-store.git&&cd gb-store&&git checkout feature/new-api&&cd ..&&cp ./front.Dockerfile ./gb-store&&cd ./gb-store&&docker build -f ./front.Dockerfile -t front:latest .&&cd ..&&rm -R -f ./gb-store&&docker-compose up -d

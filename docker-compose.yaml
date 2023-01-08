@@ -1,3 +1,60 @@
+version: '3.5'
+
+services:
+  shop:
+    build: .
+    image: shop
+    container_name: shop
+    hostname: shop
+    restart: always
+    depends_on:
+      - redis
+    ports:
+      - 8000:8000
+    environment:
+      PORT: ":8000"
+      DSN: "postgres://shopteam:123@postgres:5432/shop?sslmode=disable"
+      CASH_HOST: "redis"
+
+  postgres:
+    image: postgres:14.6-alpine
+    container_name: postgres
+    hostname: postgres
+    restart: always
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_DB: shop
+      POSTGRES_USER: shopteam
+      POSTGRES_PASSWORD: 123
+    volumes:
+      - ./storage/init_db:/docker-entrypoint-initdb.d
+
+  redis:
+    image: redis:6.2.8-alpine
+    container_name: redis
+    hostname: redis
+    restart: always
+    ports:
+      - 6379:6379
+    depends_on:
+      - postgres
+
+#  frontend:
+#    image: front:latest
+#    container_name: frontend
+#    hostname: frontend
+#    restart: always
+#    ports:
+#      - 3000:3000
+#    depends_on:
+#      - shop
+
+networks:
+  default:
+    name: shop
+    driver: bridge
+
 #  password := 123
 #    username := shopteam
 #    db_name := shop
@@ -13,49 +70,3 @@
 #    -p 5432:5432 \
 #    -v $(init_dir):/docker-entrypoint-initdb.d \
 #    bitnami/postgresql:latest
-
-version: '3.5'
-
-services:
- # shop:
- #   build: .
- #   image: shop
- #   depends_on:
- #     - postgres
- #   ports:
- #     - "8000:8000"
- #   shm_size: "2gb"
- #   environment:
- #     PORT: ":8000"
-#      SHOP_UID: ${UID:-1000}                   # user id, should match your host user id
-#      SHOP_GID: ${GID:-1000}                   # group id
-
-  postgres:
-    image: postgres:latest
-    container_name: postgres
-    hostname: postgres
-    restart: always
-    ports:
-      - "5432:5432" # database port (host:container)
-    environment:
-      POSTGRES_DB: shop
-      POSTGRES_USER: shopteam
-      POSTGRES_PASSWORD: 123
-    volumes:
-      - ./storage/init_db:/docker-entrypoint-initdb.d
-
-  redis:
-    image: redis:6.2.7
-    container_name: redis
-    hostname: redis
-    restart: always
-    ports:
-      - 6379:6379
-    depends_on:
-      - postgres
-
-networks:
-  default:
-    name: shop
-    driver: bridge
-
