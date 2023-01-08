@@ -22,11 +22,6 @@ COPY --from=builder /bin/static /bin/static
 
 WORKDIR /bin
 
-
-#RUN mkdir /bin/static/files
-#RUN mkdir /bin/static/files/items
-#RUN mkdir /bin/static/files/categories
-
 VOLUME /bin/static
 
 EXPOSE 8000

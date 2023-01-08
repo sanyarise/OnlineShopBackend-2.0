@@ -55,6 +55,7 @@ CREATE TABLE carts (
 CREATE TABLE cart_items (
     cart_id UUID,
     item_id UUID,
+    item_quantity INTEGER NOT NULL,
     PRIMARY KEY(cart_id, item_id),
     CONSTRAINT fk_cart_id
         FOREIGN KEY(cart_id) REFERENCES carts(id),
