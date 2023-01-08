@@ -82,9 +82,11 @@ func (orMock *orderRepoMock) DeleteOrder(ctx context.Context, order *models.Orde
 	return orMock.err
 }
 func (orMock *orderRepoMock) ChangeAddress(ctx context.Context, order *models.Order, address models.UserAddress) error {
+	order.Address = address
 	return orMock.err
 }
 func (orMock *orderRepoMock) ChangeStatus(ctx context.Context, order *models.Order, status models.Status) error {
+	order.Status = status
 	return orMock.err
 }
 
@@ -139,4 +141,52 @@ func TestPlaceOrderDBError(t *testing.T) {
 	res, err := uscs.PlaceOrder(context.Background(), &cart, &testUser)
 	require.Error(t, err)
 	assert.Nil(t, res)
+}
+
+func TestChangeStatus(t *testing.T) {
+	uscs := NewOrderUsecase(&orderRepoMock{}, lgr)
+	err := uscs.ChangeStatus(context.Background(), &testOrder, models.StatusProcessed)
+	defer func() {
+		testOrder.Status = models.StatusCreated
+	}()
+	require.NoError(t, err)
+	assert.Equal(t, models.StatusProcessed, testOrder.Status)
+
+}
+
+func TestChangeStatusError(t *testing.T) {
+	uscs := NewOrderUsecase(&orderRepoMock{err: fmt.Errorf("test error")}, lgr)
+	err := uscs.ChangeStatus(context.Background(), &testOrder, models.StatusProcessed)
+	defer func() {
+		testOrder.Status = models.StatusCreated
+	}()
+	require.Error(t, err)
+}
+
+func TestChangeAddress(t *testing.T) {
+	uscs := NewOrderUsecase(&orderRepoMock{}, lgr)
+	err := uscs.ChangeAddress(context.Background(), &testOrder, models.UserAddress{
+		Street:  "הלל 49",
+		City:    "חיפה",
+		Zipcode: "313455",
+		Country: "Israel",
+	})
+	defer func() {
+		testOrder.Status = models.StatusCreated
+	}()
+	require.NoError(t, err)
+}
+
+func TestChangeAddressError(t *testing.T) {
+	uscs := NewOrderUsecase(&orderRepoMock{err: fmt.Errorf("test error")}, lgr)
+	err := uscs.ChangeAddress(context.Background(), &testOrder, models.UserAddress{
+		Street:  "הלל 49",
+		City:    "חיפה",
+		Zipcode: "313455",
+		Country: "Israel",
+	})
+	defer func() {
+		testOrder.Status = models.StatusCreated
+	}()
+	require.Error(t, err)
 }
