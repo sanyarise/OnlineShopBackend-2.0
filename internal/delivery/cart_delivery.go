@@ -58,6 +58,7 @@ func (delivery *Delivery) GetCart(c *gin.Context) {
 		if len(item.Images) > 0 {
 			cartItems[idx].Image = item.Images[0]
 		}
+		cartItems[idx].Quantity = item.Quantity
 	}
 
 	cart := cart.Cart{
