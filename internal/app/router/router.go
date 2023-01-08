@@ -14,12 +14,10 @@ import (
 	"OnlineShopBackend/internal/delivery/swagger/docs"
 	"net/http"
 
-	"github.com/gin-contrib/cors"
 	ginzap "github.com/gin-contrib/zap"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-
 	"go.uber.org/zap"
 )
 
@@ -48,7 +46,24 @@ type Router struct {
 func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 	logger.Debug("Enter in NewRouter()")
 	gin := gin.Default()
-	gin.Use(cors.Default())
+	//gin.Use(cors.Default())
+	gin.Use(CORSMiddleware())
+	//config := cors.DefaultConfig()
+	//config.AllowOrigins = []string{"http://localhost:3000"}
+	//config.AllowMethods = []string{"GET", "POST", "PUT", "PATCH", "DELETE"}
+	//config.AllowHeaders = []string{"Authorization"}
+	//gin.Use(cors.New(config))
+
+
+	//gin.Use(cors.New(cors.Config{
+	//	AllowOrigins: []string{"https://accounts.google.com", "https://accounts.google.com/o/oauth2/auth?", "http://localhost:8000", "http://localhost:3000", "http://localhost:8000/user/login/google", "*"}, //,
+	//	AllowMethods:     []string{"PUT", "PATCH", "GET", "POST", "OPTIONS", "*"},
+	//	AllowHeaders:     []string{"Origin", "Authorization", "Credentials", "*"},
+	//	ExposeHeaders:    []string{"Content-Length", "*"},
+	//	AllowCredentials: true,
+	//}))
+
+
 	gin.Use(ginzap.RecoveryWithZap(logger, true))
 	gin.Static("/files", "./storage/files")
 	docs.SwaggerInfo.BasePath = "/"
@@ -226,6 +241,24 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 			"/user/callbackYandex",
 			delivery.CallbackYandex,
 		},
+		{
+			"userProfile",
+			http.MethodGet,
+			"/user/profile",
+			delivery.UserProfile,
+		},
+		{
+			"userProfileUpdate",
+			http.MethodPut,
+			"/user/profile/edit",
+			delivery.UserProfileUpdate,
+		},
+		{
+			"tokenUpdate",
+			http.MethodPost,
+			"/user/token/update",
+			delivery.TokenUpdate,
+		},
 	}
 
 	for _, route := range routes {
@@ -244,4 +277,21 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 	}
 	router.Engine = gin
 	return router
+}
+
+
+func CORSMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		//c.Writer.Header().Set("Access-Control-Allow-Credentials", "false")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With, X-Auth-Token")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+
+		c.Next()
+	}
 }

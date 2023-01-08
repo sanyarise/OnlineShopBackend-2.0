@@ -192,6 +192,55 @@ definitions:
     - price
     - title
     type: object
+  user.Address:
+    properties:
+      city:
+        type: string
+      country:
+        type: string
+      street:
+        type: string
+      zipcode:
+        type: string
+    type: object
+  user.Credentials:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  user.Profile:
+    properties:
+      address:
+        $ref: '#/definitions/user.Address'
+      email:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      rights:
+        $ref: '#/definitions/user.Rights'
+    type: object
+  user.Rights:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      rules:
+        items:
+          type: string
+        type: array
+    type: object
+  user.Token:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
+    type: object
 info:
   contact:
     url: https://github.com/GBteammates/OnlineShopBackend
@@ -872,4 +921,107 @@ paths:
       summary: Method provides to update store item
       tags:
       - items
+  /user/create:
+    post:
+      consumes:
+      - application/json
+      description: Method provides to create a user
+      parameters:
+      - description: User data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/user.Credentials'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user.Token'
+        "400":
+          description: Bad Request
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Create a new user
+      tags:
+      - user
+  /user/login:
+    post:
+      consumes:
+      - application/json
+      description: Method provides to login a user
+      parameters:
+      - description: User data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/user.Credentials'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user.Token'
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Login user
+      tags:
+      - user
+  /user/logout:
+    get:
+      consumes:
+      - application/json
+      description: Method provides to log out
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: Bad Request
+      summary: Logout
+      tags:
+      - user
+  /user/profile:
+    get:
+      consumes:
+      - application/json
+      description: Method provides to get profile info
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user.Profile'
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+        firebase: []
+      summary: User profile
+      tags:
+      - user
 swagger: "2.0"

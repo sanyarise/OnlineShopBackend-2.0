@@ -12,84 +12,97 @@ package delivery
 import (
 	"OnlineShopBackend/internal/delivery/user"
 	"OnlineShopBackend/internal/models"
-	"encoding/base64"
-	"errors"
-	"fmt"
-	"net/http"
-	"strings"
-	"time"
-	"unicode"
-
-	//"github.com/dghubble/gologin/v2"
-	//"github.com/dghubble/gologin/v2/google"
+	"OnlineShopBackend/internal/usecase"
 	"github.com/dghubble/sessions"
+	"net/http"
+	//"github.com/dghubble/sessions"
+
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt"
+
+	"github.com/google/uuid"
 
 	"golang.org/x/oauth2"
 	og2 "golang.org/x/oauth2/google"
+	yandex "golang.org/x/oauth2/yandex"
+	//"golang.org/x/oauth2/yandex"
 )
-
-const (
-	sessionName    = "example-google-app"
-	sessionSecret  = "example cookie signing secret"
-	sessionUserKey = "key"
-	sessionUserID  = "user"
-)
-
-// var tl int64 // TODO исправить
-var sessionStore = sessions.NewCookieStore([]byte(sessionSecret), nil)
 
 // CreateUser create a new user
 //
-//	@Summary		Create a new user
-//	@Description	Method provides to get quantity of items
-//	@Tags			user
-//	@Accept			json
-//	@Produce		json
-//	@Success		200	string //TODO
-//	@Failure		404	"Bad Request"
-//	@Failure		404	{object}	ErrorResponse	"404 Not Found"
-//	@Failure		500	{object}	ErrorResponse
-//	@Router			/user/create [post]
+//		@Summary		Create a new user
+//		@Description	Method provides to create a user
+//		@Tags			user
+//		@Accept			json
+//		@Produce		json
+//	 	@Param			user	body	user.Credentials	true	"User data" //TODO
+//		@Success		200	{object} user.Token
+//		@Failure		400	"Bad Request"
+//		@Failure		404	{object}	ErrorResponse	"404 Not Found"
+//		@Failure		500	{object}	ErrorResponse
+//		@Router			/user/create [post]
 func (delivery *Delivery) CreateUser(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery CreateUser()")
 	ctx := c.Request.Context()
-	var deliveryUser *models.User
-	if err := c.ShouldBindJSON(&deliveryUser); err != nil {
+	var newUser *models.User
+	if err := c.ShouldBindJSON(&newUser); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	// Check if this a new user
-	if _, err := delivery.userUsecase.GetUserByEmail(ctx, deliveryUser.Email); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	// Check user in database
+	if existedUser, err := delivery.userUsecase.GetUserByEmail(ctx, newUser.Email, user.GeneratePasswordHash(newUser.Password)); err == nil && existedUser.ID != uuid.Nil {
+		c.JSON(http.StatusContinue, gin.H{"error": err.Error()})
 		return
 	}
 
-	if err := validationCheck(*deliveryUser); err != nil {
+	// Password validation check
+	if err := user.ValidationCheck(*newUser); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	hashPassword := user.GeneratePasswordHash(newUser.Password)
+	newUser.Password = hashPassword
 
-	id, err := delivery.userUsecase.CreateUser(ctx, deliveryUser)
+	// Create a user
+	createdUser, err := delivery.userUsecase.CreateUser(ctx, newUser)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
-	c.JSON(http.StatusOK, gin.H{"success": id.String()})
+	delivery.logger.Info("success: user was created")
+
+	token, err := delivery.userUsecase.CreateSessionJWT(c.Request.Context(), createdUser)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	}
+
+	//user.IssueSession(delivery.logger, createdUser.ID.String())
+
+	c.JSON(http.StatusOK, token)
 }
 
-// LoginUser -
+// LoginUser login user
+//
+//		@Summary		Login user
+//		@Description	Method provides to login a user
+//		@Tags			user
+//		@Accept			json
+//		@Produce		json
+//	 @Param			user	body	user.Credentials	true	"User data"
+//		@Success		200	{object} user.Token //TODO
+//		@Failure		404	"Bad Request"
+//		@Failure		404	{object}	ErrorResponse	"404 Not Found"
+//		@Failure		500	{object}	ErrorResponse
+//		@Router			/user/login [post]
 func (delivery *Delivery) LoginUser(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery LoginUser()")
-	var userCreds user.Credentials
-	if err := c.ShouldBindJSON(&userCreds); err != nil {
+	var userCredentials usecase.Credentials
+	if err := c.ShouldBindJSON(&userCredentials); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	userExist, err := delivery.userUsecase.GetUserByEmail(c.Request.Context(), userCreds.Email)
-	if  err != nil  {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error() })
+	userExist, err := delivery.userUsecase.GetUserByEmail(c.Request.Context(), userCredentials.Email, user.GeneratePasswordHash(userCredentials.Password))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -98,147 +111,193 @@ func (delivery *Delivery) LoginUser(c *gin.Context) {
 		return
 	}
 
-	payload := user.Payload{
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Hour * 72).Unix(),
-		},
-		Name: userExist.ID,
+	token, err := delivery.userUsecase.CreateSessionJWT(c.Request.Context(), &userExist)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
 	}
 
-	token, err := user.NewJWT(payload); if err != nil {
+	c.JSON(http.StatusOK, token)
+}
+
+// UserProfile user profile
+//
+//	@Summary		User profile
+//	@Description	Method provides to get profile info
+//	@Tags			user
+//	@Accept			json
+//	@Produce		json
+//	@Security	    ApiKeyAuth || firebase
+//	@Success		200	{object} user.Profile //TODO
+//	@Failure		404	"Bad Request"
+//	@Failure		404	{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500	{object}	ErrorResponse
+//	@Router			/user/profile [get]
+func (delivery *Delivery) UserProfile(c *gin.Context) {
+	delivery.logger.Debug("Enter in delivery UserProfile()")
+	header := c.GetHeader("Authorization")
+	userCr, err := delivery.userUsecase.UserIdentity(header)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+
+	userData, err := delivery.userUsecase.GetUserByEmail(c.Request.Context(), userCr.Email, userCr.Password)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	}
+	userProfile := usecase.Profile{
+		Email:     userData.Email,
+		FirstName: userData.Firstname,
+		LastName:  userData.Lastname,
+		Address: usecase.Address{
+			Zipcode: userData.Address.Zipcode,
+			Country: userData.Address.Country,
+			City:    userData.Address.City,
+			Street:  userData.Address.Street,
+		},
+		Rights: usecase.Rights{
+			ID:    userData.Rights.ID,
+			Name:  userData.Rights.Name,
+			Rules: userData.Rights.Rules,
+		},
+	}
+	 c.JSON(http.StatusCreated, userProfile)
+}
+
+func (delivery *Delivery) UserProfileUpdate(c *gin.Context) {
+	delivery.logger.Debug("Enter in delivery UserProfileUpdate()")
+	header := c.GetHeader("Authorization")
+	userCr, err := delivery.userUsecase.UserIdentity(header)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	}
+
+	var newInfoUser *models.User
+	if err = c.ShouldBindJSON(&newInfoUser); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"token": token})
-
-	session := sessions.NewSession(sessionStore, sessionName)
-	session.Values[sessionUserID] = userExist.ID
-	if err := session.Save(c.Writer); err != nil {
-		delivery.logger.Error("saving session error")
-		return
+	updatedUser := models.User{
+		ID:        userCr.UserId,
+		Firstname: newInfoUser.Firstname,
+		Lastname:  newInfoUser.Lastname,
+		Address:   models.UserAddress{
+			Zipcode: newInfoUser.Address.Zipcode,
+			Country: newInfoUser.Address.Country,
+			City:    newInfoUser.Address.City,
+			Street:  newInfoUser.Address.Street,
+		},
 	}
-	c.JSON(http.StatusOK, gin.H{"id": session.Values[sessionUserID]},
-		)
+
+	userUpdated, err := delivery.userUsecase.UpdateUserData(c.Request.Context(), &updatedUser)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	}
+	c.JSON(http.StatusCreated, userUpdated)
+}
+
+func (delivery *Delivery) TokenUpdate(c *gin.Context)  {
+
 }
 
 // LoginUserGoogle -
 func (delivery *Delivery) LoginUserGoogle(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery LogoutUser()")
+	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+	//c.Writer.Header().Set("Access-Control-Allow-Credentials", "false")
+	//c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
 	oauth2Config := &oauth2.Config{
-		ClientID:     "614400740650-ioroeqq2rvn45k5tv5rc8noa7058m1l9.apps.googleusercontent.com",
-		ClientSecret: "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",
+		ClientID:     "435235643575-7g5u2gfhfrhgm3e2mtv682ev5ch54k7q.apps.googleusercontent.com",
+		ClientSecret: "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",
 		RedirectURL:  "http://localhost:8000/user/callbackGoogle",
-		Endpoint:     og2.Endpoint,
-		Scopes:       []string{"profile", "email"},
+		//RedirectURL: "http://localhost:3000",
+		Endpoint: og2.Endpoint,
+		Scopes:   []string{"profile", "email"},
 	}
+
 	url := oauth2Config.AuthCodeURL("random")
-	http.Redirect(c.Writer, c.Request, url, http.StatusTemporaryRedirect)
+	//http.Redirect(c.Writer, c.Request, url, http.StatusTemporaryRedirect)
+	c.Redirect(http.StatusTemporaryRedirect, url)
 	//stateConfig := gologin.DefaultCookieConfig
 	//google.StateHandler(stateConfig, google.CallbackHandler(oauth2Config, issueSession(), nil)).ServeHTTP(c.Writer, c.Request)
 }
 
 // LoginUserYandex -
 func (delivery *Delivery) LoginUserYandex(c *gin.Context) {
-	delivery.logger.Debug("Enter in delivery LogoutUser()")
-	c.JSON(http.StatusOK, gin.H{})
+	delivery.logger.Debug("Enter in delivery LoginUserYandex()")
+	//c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+	//c.Writer.Header().Set("Access-Control-Allow-Credentials", "false")
+	//c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+	oauth2ConfigYandex := &oauth2.Config{
+		ClientID:     "c0ba17e8f61d47fdb0a978131d1c2d48",
+		ClientSecret: "2e41418551724d918919ac09d4f6a1eb",
+		Endpoint:     yandex.Endpoint,
+		RedirectURL:  "http://localhost:8000/user/callbackYandex",
+		Scopes:       []string{"email"},
+	}
+	c.Redirect(http.StatusTemporaryRedirect, oauth2ConfigYandex.AuthCodeURL("random")) //
+
+	delivery.logger.Debug(yandex.Endpoint.TokenURL)
+	c.JSON(http.StatusOK, yandex.Endpoint)
 }
 
 // CallbackGoogle -
 func (delivery *Delivery) CallbackGoogle(c *gin.Context) {
-	delivery.logger.Debug("Enter in delivery LogoutUser()")
-
+	delivery.logger.Debug("Enter in delivery CallbackGoogle()")
+	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+	//c.Writer.Header().Set("Access-Control-Allow-Credentials", "false")
+	//c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+	//oauth2Config := &oauth2.Config{
+	//	ClientID:     "614400740650-ioroeqq2rvn45k5tv5rc8noa7058m1l9.apps.googleusercontent.com",
+	//	ClientSecret: "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",
+	//	RedirectURL:  "http://localhost:8000/user/callbackGoogle",
+	//	Endpoint:     og2.Endpoint,
+	//	Scopes:       []string{"profile", "email"},
+	//}
+	//stateConfig := gologin.DefaultCookieConfig
+	//google.StateHandler(stateConfig, google.CallbackHandler(oauth2Config, issueSession(), nil))
 	c.Redirect(http.StatusTemporaryRedirect, "http://localhost:3000")
 }
 
 // CallbackYandex -
 func (delivery *Delivery) CallbackYandex(c *gin.Context) {
-	delivery.logger.Debug("Enter in delivery LogoutUser()")
-	c.JSON(http.StatusOK, gin.H{})
+	delivery.logger.Debug("Enter in delivery CallbackYandex()")
+	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+	//c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+	//c.Writer.Header().Set("Access-Control-Allow-Credentials", "false")
+	//c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+	//c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+	//stateConfig := gologin.DefaultCookieConfig
+	//gologinoauth2.StateHandler(stateConfig, )
+	//c.JSON(http.StatusOK, gin.H{})
+
 }
 
-// LogoutUser -
+const (
+	sessionName    = "example-google-app"
+	sessionSecret  = "example cookie signing secret"
+	sessionUserKey = "key"
+	sessionUserID  = "userId"
+)
+
+var sessionStore = sessions.NewCookieStore([]byte(sessionSecret), nil)
+
+// LogoutUser logout
+//
+//	@Summary		Logout
+//	@Description	Method provides to log out
+//	@Tags			user
+//	@Accept			json
+//	@Produce		json
+//	@Success		200
+//	@Failure		404	"Bad Request"
+//	@Router			/user/logout [get]
 func (delivery *Delivery) LogoutUser(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery LogoutUser()")
-	//session, _ := sessionStore.Get(c.Request, sessionName)
-	//session.Values[sessionUserID] = nil
-	//session.Save(c.Writer)
-
 	sessionStore.Destroy(c.Writer, sessionUserID)
+	c.SetCookie(sessionName + "-tmp", "", 3600, "/", "localhost", false, true)
 	c.JSON(http.StatusOK, gin.H{"you have been successfully logged out": nil})
-
-
-	c.Redirect(http.StatusTemporaryRedirect, "/")
 }
 
-func validationCheck(user models.User) error {
-	if user.Email == "" && user.Firstname == "" && user.Lastname == "" {
-		return fmt.Errorf("empty filed")
-	}
-	if len(user.Password) < 5 {
-		return fmt.Errorf("password is too short")
-	}
-	for _, char := range user.Password {
-		if !unicode.IsDigit(char) && !unicode.Is(unicode.Latin, char) {
-			return fmt.Errorf("password should contain lathin letter or numbers only")
-		}
-	}
-	return nil
-}
-
-func randSession(n int) {
-
-}
-
-//func issueSession() http.Handler {
-//	fn := func(w http.ResponseWriter, req *http.Request) {
-//		ctx := req.Context()
-//		googleUser, err := google.UserFromContext(ctx)
-//		if err != nil {
-//			http.Error(w, err.Error(), http.StatusInternalServerError)
-//			return
-//		}
-//		// 2. Implement a success handler to issue some form of session
-//		session := sessionStore.New(sessionName)
-//		session.Values[sessionUserKey] = googleUser.Id
-//		session.Values[sessionUsername] = googleUser.Name
-//		session.Save(w)
-//		http.Redirect(w, req, "/", http.StatusFound)
-//	}
-//	return http.HandlerFunc(fn)
-//}
-
-func customerIdentity(c *gin.Context)  {
-	id, err := parseAuthHeader(c)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	c.Set("Customer", id)
-}
-
-func parseAuthHeader(c *gin.Context) (user.Credentials, error) {
-	header := c.GetHeader("authorizationHeader")
-	if header == "" {
-		return user.Credentials{}, errors.New("empty header")
-	}
-	headerSplit := strings.Split(header, " ")
-	if len(headerSplit) != 2 || headerSplit[0] != "Bearer" {
-		return user.Credentials{}, errors.New("header issue")
-	}
-	if len(headerSplit[1]) == 0 {
-		return user.Credentials{}, errors.New("empty token")
-	}
-
-	auth, err := base64.StdEncoding.DecodeString(headerSplit[1])
-	if err != nil {
-		return user.Credentials{}, errors.New("decode problem")
-	}
-
-	credentials := strings.Split(string(auth), ":")
-	userCred := user.Credentials{
-		Email: credentials[0],
-		Password: credentials[1],
-	}
-	return userCred, nil
-}
