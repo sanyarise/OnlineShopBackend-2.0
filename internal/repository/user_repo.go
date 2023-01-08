@@ -4,6 +4,7 @@ import (
 	"OnlineShopBackend/internal/models"
 	"context"
 	"fmt"
+
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4"
 	"go.uber.org/zap"
@@ -67,7 +68,7 @@ func (u *user) GetUserByEmail(ctx context.Context, email string, password string
 func (u *user) UpdateUserData(ctx context.Context, user *models.User) (*models.User, error) {
 	u.logger.Debug("Enter in repository UpdateUserData()")
 	select {
-	case <- ctx.Done():
+	case <-ctx.Done():
 		return &models.User{}, fmt.Errorf("context is closed")
 	default:
 		pool := u.storage.GetPool()

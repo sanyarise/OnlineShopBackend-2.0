@@ -6,13 +6,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/golang-jwt/jwt"
-	"github.com/google/uuid"
-	"github.com/pkg/errors"
 	"math/rand"
 	"strings"
 	"time"
 
+	"github.com/golang-jwt/jwt"
+	"github.com/google/uuid"
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
 
@@ -27,15 +27,15 @@ func NewUserUsecase(userStore repository.UserStore, logger *zap.Logger) IUserUse
 	return &UserUsecase{userStore: userStore, logger: logger}
 }
 
-type JwtRealisation struct {
-	ttl int64
-}
+//type JwtRealisation struct {
+//	ttl int64
+//}
 
 type Payload struct {
 	jwt.StandardClaims
-	Email  string
-	Role   string
-	UserId uuid.UUID
+	Email    string
+	Role     string
+	UserId   uuid.UUID
 	Password string
 }
 
@@ -49,9 +49,9 @@ type Token struct {
 	RefreshToken string `json:"refresh_token,omitempty"`
 }
 
-type SessionLog struct {
-	logger zap.Logger
-}
+//type SessionLog struct {
+//	logger zap.Logger
+//}
 
 type Profile struct {
 	Email     string  `json:"email,omitempty"`
@@ -184,9 +184,9 @@ func (usecase *UserUsecase) ParseAuthHeader(header string) (*Payload, error) {
 		return &Payload{}, errors.New("unable to unmarshall")
 	}
 	userCred := &Payload{
-		Email:  cr.Email,
-		Role:   cr.Role,
-		UserId: cr.UserId,
+		Email:    cr.Email,
+		Role:     cr.Role,
+		UserId:   cr.UserId,
 		Password: cr.Password,
 	}
 	return userCred, nil
@@ -205,9 +205,9 @@ func (usecase *UserUsecase) CreateSessionJWT(ctx context.Context, user *models.U
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Hour * 72).Unix(),
 		},
-		Email:  user.Email,
-		Role:   user.Rights.Name,
-		UserId: user.ID,
+		Email:    user.Email,
+		Role:     user.Rights.Name,
+		UserId:   user.ID,
 		Password: user.Password,
 	}
 
@@ -222,7 +222,7 @@ func (usecase *UserUsecase) CreateSessionJWT(ctx context.Context, user *models.U
 	}
 
 	token := Token{
-		AccessToken: accessToken,
+		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 	}
 

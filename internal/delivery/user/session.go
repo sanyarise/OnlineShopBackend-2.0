@@ -1,10 +1,10 @@
 package user
 
 import (
-	"go.uber.org/zap"
 	"net/http"
 
 	"github.com/dghubble/sessions"
+	"go.uber.org/zap"
 )
 
 const (

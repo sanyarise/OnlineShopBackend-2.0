@@ -13,12 +13,11 @@ import (
 	"OnlineShopBackend/internal/delivery/user"
 	"OnlineShopBackend/internal/models"
 	"OnlineShopBackend/internal/usecase"
-	"github.com/dghubble/sessions"
 	"net/http"
+
+	"github.com/dghubble/sessions"
 	//"github.com/dghubble/sessions"
-
 	"github.com/gin-gonic/gin"
-
 	"github.com/google/uuid"
 
 	"golang.org/x/oauth2"
@@ -162,7 +161,7 @@ func (delivery *Delivery) UserProfile(c *gin.Context) {
 			Rules: userData.Rights.Rules,
 		},
 	}
-	 c.JSON(http.StatusCreated, userProfile)
+	c.JSON(http.StatusCreated, userProfile)
 }
 
 func (delivery *Delivery) UserProfileUpdate(c *gin.Context) {
@@ -183,7 +182,7 @@ func (delivery *Delivery) UserProfileUpdate(c *gin.Context) {
 		ID:        userCr.UserId,
 		Firstname: newInfoUser.Firstname,
 		Lastname:  newInfoUser.Lastname,
-		Address:   models.UserAddress{
+		Address: models.UserAddress{
 			Zipcode: newInfoUser.Address.Zipcode,
 			Country: newInfoUser.Address.Country,
 			City:    newInfoUser.Address.City,
@@ -195,10 +194,13 @@ func (delivery *Delivery) UserProfileUpdate(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
+
+	userUpdated.Email = userCr.Email
+
 	c.JSON(http.StatusCreated, userUpdated)
 }
 
-func (delivery *Delivery) TokenUpdate(c *gin.Context)  {
+func (delivery *Delivery) TokenUpdate(c *gin.Context) {
 
 }
 
@@ -297,7 +299,6 @@ var sessionStore = sessions.NewCookieStore([]byte(sessionSecret), nil)
 func (delivery *Delivery) LogoutUser(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery LogoutUser()")
 	sessionStore.Destroy(c.Writer, sessionUserID)
-	c.SetCookie(sessionName + "-tmp", "", 3600, "/", "localhost", false, true)
+	c.SetCookie(sessionName+"-tmp", "", 3600, "/", "localhost", false, true)
 	c.JSON(http.StatusOK, gin.H{"you have been successfully logged out": nil})
 }
-
