@@ -38,5 +38,5 @@ type IOrderUsecase interface {
 	GetOrdersForUser(ctx context.Context, user *models.User) ([]models.Order, error)
 	DeleteOrder(ctx context.Context, order *models.Order) error
 	ChangeAddress(ctx context.Context, order *models.Order, newAddress models.UserAddress) error
-	GetOrder(ctx context.Context, id uuid.UUID) (models.Order, error)
+	GetOrder(ctx context.Context, id uuid.UUID) (*models.Order, error)
 }
