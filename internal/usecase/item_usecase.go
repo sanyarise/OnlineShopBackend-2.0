@@ -42,12 +42,7 @@ func (usecase *ItemUsecase) CreateItem(ctx context.Context, item *models.Item) (
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("error on create item: %w", err)
 	}
-	err = usecase.UpdateCash(ctx, id, "create")
-	if err != nil {
-		usecase.logger.Error(fmt.Sprintf("error on update cash: %v", err))
-	} else {
-		usecase.logger.Info("Update cash success")
-	}
+	usecase.UpdateCash(ctx, id, "create")
 	return id, nil
 }
 
@@ -58,12 +53,7 @@ func (usecase *ItemUsecase) UpdateItem(ctx context.Context, item *models.Item) e
 	if err != nil {
 		return fmt.Errorf("error on update item: %w", err)
 	}
-	err = usecase.UpdateCash(ctx, item.Id, "update")
-	if err != nil {
-		usecase.logger.Error(fmt.Sprintf("error on update cash: %v", err))
-	} else {
-		usecase.logger.Info("Update cash success")
-	}
+	usecase.UpdateCash(ctx, item.Id, "update")
 	return nil
 }
 
@@ -80,8 +70,10 @@ func (usecase *ItemUsecase) GetItem(ctx context.Context, id uuid.UUID) (*models.
 // ItemsList call database method and returns slice with all models.Item or error
 func (usecase *ItemUsecase) ItemsList(ctx context.Context, limitOptions map[string]int, sortOptions map[string]string) ([]models.Item, error) {
 	usecase.logger.Sugar().Debugf("Enter in usecase ItemsList() with args: ctx, limitOptions: %v, sortOptions: %v", limitOptions, sortOptions)
+	
 	limit, offset := limitOptions["limit"], limitOptions["offset"]
 	sortType, sortOrder := sortOptions["sortType"], sortOptions["sortOrder"]
+	
 	if ok := usecase.itemCash.CheckCash(ctx, itemsListKey+sortType+sortOrder); !ok {
 		itemIncomingChan, err := usecase.itemStore.ItemsList(ctx)
 		if err != nil {
@@ -126,7 +118,7 @@ func (usecase *ItemUsecase) ItemsList(ctx context.Context, limitOptions map[stri
 func (usecase *ItemUsecase) ItemsQuantity(ctx context.Context) (int, error) {
 	usecase.logger.Debug("Enter in usecase ItemsQuantity() with args: ctx")
 	if ok := usecase.itemCash.CheckCash(ctx, itemsQuantityKey); !ok {
-		if ok := usecase.itemCash.CheckCash(ctx, itemsListKey); !ok {
+		if ok := usecase.itemCash.CheckCash(ctx, itemsListKeyNameAsc); !ok {
 			limitOptions := map[string]int{"offset": 0, "limit": 1}
 			sortOptions := map[string]string{"sortType": "name", "sortOrder": "asc"}
 			_, err := usecase.ItemsList(ctx, limitOptions, sortOptions)
@@ -134,7 +126,7 @@ func (usecase *ItemUsecase) ItemsQuantity(ctx context.Context) (int, error) {
 				return -1, fmt.Errorf("error on create items list: %w", err)
 			}
 		} else {
-			items, err := usecase.itemCash.GetItemsCash(ctx, itemsListKey)
+			items, err := usecase.itemCash.GetItemsCash(ctx, itemsListKeyNameAsc)
 			if err != nil {
 				return -1, fmt.Errorf("error on get items list cash: %w", err)
 			}
@@ -154,7 +146,7 @@ func (usecase *ItemUsecase) ItemsQuantity(ctx context.Context) (int, error) {
 func (usecase *ItemUsecase) ItemsQuantityInCategory(ctx context.Context, categoryName string) (int, error) {
 	usecase.logger.Sugar().Debugf("Enter in usecase ItemsQuantityInCategory() with args: ctx, categoryName: %s", categoryName)
 	if ok := usecase.itemCash.CheckCash(ctx, categoryName+"Quantity"); !ok {
-		if ok := usecase.itemCash.CheckCash(ctx, categoryName); !ok {
+		if ok := usecase.itemCash.CheckCash(ctx, categoryName+"nameasc"); !ok {
 			limitOptions := map[string]int{"offset": 0, "limit": 1}
 			sortOptions := map[string]string{"sortType": "name", "sortOrder": "asc"}
 			_, err := usecase.GetItemsByCategory(ctx, categoryName, limitOptions, sortOptions)
@@ -162,7 +154,7 @@ func (usecase *ItemUsecase) ItemsQuantityInCategory(ctx context.Context, categor
 				return -1, fmt.Errorf("error on create items list: %w", err)
 			}
 		} else {
-			items, err := usecase.itemCash.GetItemsCash(ctx, categoryName)
+			items, err := usecase.itemCash.GetItemsCash(ctx, categoryName+"nameasc")
 			if err != nil {
 				return -1, fmt.Errorf("error on get items list cash: %w", err)
 			}
