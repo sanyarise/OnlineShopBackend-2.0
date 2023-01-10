@@ -42,7 +42,7 @@ type ICartUsecase interface {
 
 type IUserUsecase interface {
 	CreateUser(ctx context.Context, user *models.User) (*models.User, error)
-	GetUserByEmail(ctx context.Context, email string, password string) (models.User, error)
+	GetUserByEmail(ctx context.Context, email string) (*models.User, error)
 	GetRightsId(ctx context.Context, name string) (*models.Rights, error)
 	UpdateUserData(ctx context.Context, user *models.User) (*models.User, error)
 	NewJWT(payload Payload) (string, error)

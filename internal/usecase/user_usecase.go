@@ -107,12 +107,12 @@ func (usecase *UserUsecase) CreateUser(ctx context.Context, user *models.User) (
 	return id, nil
 }
 
-func (usecase *UserUsecase) GetUserByEmail(ctx context.Context, email string, password string) (models.User, error) {
-	var user models.User
+func (usecase *UserUsecase) GetUserByEmail(ctx context.Context, email string) (*models.User, error) {
+	var user *models.User
 
-	user, err := usecase.userStore.GetUserByEmail(ctx, email, password)
+	user, err := usecase.userStore.GetUserByEmail(ctx, email)
 	if err != nil {
-		return models.User{}, err
+		return &models.User{}, err
 	}
 
 	return user, nil
@@ -232,3 +232,4 @@ func (usecase *UserUsecase) CreateSessionJWT(ctx context.Context, user *models.U
 
 	return token, nil
 }
+

@@ -28,7 +28,7 @@ type CategoryStore interface {
 
 type UserStore interface {
 	Create(ctx context.Context, user *models.User) (*models.User, error)
-	GetUserByEmail(ctx context.Context, email string, password string) (models.User, error)
+	GetUserByEmail(ctx context.Context, email string) (*models.User, error)
 	GetRightsId(ctx context.Context, name string) (models.Rights, error)
 	UpdateUserData(ctx context.Context, user *models.User) (*models.User, error)
 	SaveSession(ctx context.Context, token string, t int64) error
