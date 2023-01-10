@@ -11,18 +11,19 @@ package delivery
 
 import (
 	"OnlineShopBackend/internal/delivery/user"
+	"OnlineShopBackend/internal/delivery/user/userconfig"
 	"OnlineShopBackend/internal/models"
 	"OnlineShopBackend/internal/usecase"
+	"github.com/dghubble/gologin/v2"
+	gg "github.com/dghubble/gologin/v2/google"
+	"golang.org/x/oauth2/yandex"
 	"net/http"
 
-	"github.com/dghubble/sessions"
-	//"github.com/dghubble/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
 	"golang.org/x/oauth2"
 	og2 "golang.org/x/oauth2/google"
-	yandex "golang.org/x/oauth2/yandex"
 	//"golang.org/x/oauth2/yandex"
 )
 
@@ -49,7 +50,7 @@ func (delivery *Delivery) CreateUser(c *gin.Context) {
 	}
 
 	// Check user in database
-	if existedUser, err := delivery.userUsecase.GetUserByEmail(ctx, newUser.Email, user.GeneratePasswordHash(newUser.Password)); err == nil && existedUser.ID != uuid.Nil {
+	if existedUser, err := delivery.userUsecase.GetUserByEmail(ctx, newUser.Email); err == nil && existedUser.ID != uuid.Nil {
 		c.JSON(http.StatusContinue, gin.H{"error": err.Error()})
 		return
 	}
@@ -99,18 +100,18 @@ func (delivery *Delivery) LoginUser(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	userExist, err := delivery.userUsecase.GetUserByEmail(c.Request.Context(), userCredentials.Email, user.GeneratePasswordHash(userCredentials.Password))
-	if err != nil {
+	userExist, err := delivery.userUsecase.GetUserByEmail(c.Request.Context(), userCredentials.Email) //TODO check password
+	if err != nil || userExist.Password != user.GeneratePasswordHash(userCredentials.Password) {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
 
 	if userExist.Email == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error56": err.Error()})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
 
-	token, err := delivery.userUsecase.CreateSessionJWT(c.Request.Context(), &userExist)
+	token, err := delivery.userUsecase.CreateSessionJWT(c.Request.Context(), userExist)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
@@ -141,9 +142,9 @@ func (delivery *Delivery) UserProfile(c *gin.Context) {
 		return
 	}
 
-	userData, err := delivery.userUsecase.GetUserByEmail(c.Request.Context(), userCr.Email, userCr.Password)
+	userData, err := delivery.userUsecase.GetUserByEmail(c.Request.Context(), userCr.Email)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 	}
 	userProfile := usecase.Profile{
 		Email:     userData.Email,
@@ -204,34 +205,139 @@ func (delivery *Delivery) TokenUpdate(c *gin.Context) {
 
 }
 
-// LoginUserGoogle -
+// LoginUserGoogle Login Google
+//
+//	@Summary		Login with Google oauth2
+//	@Description	Method provides to log in with Google
+//	@Tags			user
+//	@Accept			json
+//	@Produce		json
+//	@Success		200
+//	@Failure		500
+//	@Router			/user/login/google [get]
 func (delivery *Delivery) LoginUserGoogle(c *gin.Context) {
-	delivery.logger.Debug("Enter in delivery LogoutUser()")
-	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-	//c.Writer.Header().Set("Access-Control-Allow-Credentials", "false")
-	//c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
-	oauth2Config := &oauth2.Config{
-		ClientID:     "435235643575-7g5u2gfhfrhgm3e2mtv682ev5ch54k7q.apps.googleusercontent.com",
-		ClientSecret: "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",
-		RedirectURL:  "http://localhost:8000/user/callbackGoogle",
-		//RedirectURL: "http://localhost:3000",
-		Endpoint: og2.Endpoint,
-		Scopes:   []string{"profile", "email"},
+	delivery.logger.Debug("Enter in delivery LoginUserGoogle()")
+	cfg, err := userconfig.NewUserConfig()
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 	}
 
-	url := oauth2Config.AuthCodeURL("random")
-	//http.Redirect(c.Writer, c.Request, url, http.StatusTemporaryRedirect)
-	c.Redirect(http.StatusTemporaryRedirect, url)
-	//stateConfig := gologin.DefaultCookieConfig
-	//google.StateHandler(stateConfig, google.CallbackHandler(oauth2Config, issueSession(), nil)).ServeHTTP(c.Writer, c.Request)
+	oauth2Config := &oauth2.Config{
+		ClientID:     cfg.ClientID,
+		ClientSecret: cfg.ClientSecret,
+		RedirectURL:  cfg.RedirectURL,
+		Endpoint:     og2.Endpoint,
+		Scopes:       []string{"profile", "email"},
+	}
+
+	stateConfig := gologin.DefaultCookieConfig
+	gg.StateHandler(stateConfig, gg.LoginHandler(oauth2Config, nil)).ServeHTTP(c.Writer, c.Request)
+
+}
+
+// CallbackGoogle internal method
+//
+//	@Summary		Callback Google provides logic for oauth google login
+//	@Description	Method provides to log in with Google
+//	@Tags			user
+//	@Accept			json
+//	@Produce		json
+//	@Success		200
+//	@Failure		500
+//	@Router			/user/callbackGoogle [get]
+func (delivery *Delivery) CallbackGoogle(c *gin.Context) {
+	delivery.logger.Debug("Enter in delivery CallbackGoogle()")
+	cfg, err := userconfig.NewUserConfig()
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+	}
+
+	oauth2Config := &oauth2.Config{
+		ClientID:     cfg.ClientID,
+		ClientSecret: cfg.ClientSecret,
+		RedirectURL:  cfg.RedirectURL,
+		Endpoint:     og2.Endpoint,
+		Scopes:       []string{"profile", "email"},
+	}
+
+	stateConfig := gologin.DefaultCookieConfig
+	gg.StateHandler(stateConfig, gg.CallbackHandler(oauth2Config, delivery.success(c), failure(c))).ServeHTTP(c.Writer, c.Request)
+}
+
+func (delivery *Delivery) success(c *gin.Context) http.HandlerFunc {
+	fn := func(w http.ResponseWriter, req *http.Request) {
+		delivery.logger.Debug("Enter in delivery success()")
+		ctx := req.Context()
+		googleUser, err := gg.UserFromContext(ctx)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		if googleUser.Email == "" {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		u, err := delivery.userUsecase.GetUserByEmail(req.Context(), googleUser.Email)
+		if err != nil {
+			var NewUserCred = models.User{
+				Firstname: googleUser.GivenName,
+				Lastname:  googleUser.FamilyName,
+				Email:     googleUser.Email,
+			}
+			u, err = delivery.userUsecase.CreateUser(req.Context(), &NewUserCred)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+		}
+		token, err := delivery.userUsecase.CreateSessionJWT(c.Request.Context(), u)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			return
+		}
+		//url := "http://localhost:3000" // TODO
+		//
+		//redirectURL := fmt.Sprintf(
+		//	"%s?token=%s&refresh=%s",
+		//	url,
+		//	token.AccessToken,
+		//	token.RefreshToken,
+		//)
+		//
+		//http.Redirect(w, req, redirectURL , http.StatusFound)
+
+		c.JSON(http.StatusOK, token)
+
+	}
+	return fn
+}
+
+func failure(c *gin.Context) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		c.JSON(http.StatusNotFound, gin.H{"error": "google callback failure"})
+	}
+}
+
+// LogoutUser logout
+//
+//	@Summary		Logout
+//	@Description	Method provides to log out
+//	@Tags			user
+//	@Accept			json
+//	@Produce		json
+//	@Success		200
+//	@Failure		404	"Bad Request"
+//	@Router			/user/logout [get]
+func (delivery *Delivery) LogoutUser(c *gin.Context) {
+	delivery.logger.Debug("Enter in delivery LogoutUser()")
+	c.SetCookie("token", "", -1, "/", "http://localhost:3000", false, true) //TODO change to webapp url
+	c.JSON(http.StatusOK, gin.H{"you have been successfully logged out": nil})
+
 }
 
 // LoginUserYandex -
 func (delivery *Delivery) LoginUserYandex(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery LoginUserYandex()")
-	//c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-	//c.Writer.Header().Set("Access-Control-Allow-Credentials", "false")
-	//c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
 	oauth2ConfigYandex := &oauth2.Config{
 		ClientID:     "c0ba17e8f61d47fdb0a978131d1c2d48",
 		ClientSecret: "2e41418551724d918919ac09d4f6a1eb",
@@ -243,24 +349,6 @@ func (delivery *Delivery) LoginUserYandex(c *gin.Context) {
 
 	delivery.logger.Debug(yandex.Endpoint.TokenURL)
 	c.JSON(http.StatusOK, yandex.Endpoint)
-}
-
-// CallbackGoogle -
-func (delivery *Delivery) CallbackGoogle(c *gin.Context) {
-	delivery.logger.Debug("Enter in delivery CallbackGoogle()")
-	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-	//c.Writer.Header().Set("Access-Control-Allow-Credentials", "false")
-	//c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
-	//oauth2Config := &oauth2.Config{
-	//	ClientID:     "614400740650-ioroeqq2rvn45k5tv5rc8noa7058m1l9.apps.googleusercontent.com",
-	//	ClientSecret: "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",
-	//	RedirectURL:  "http://localhost:8000/user/callbackGoogle",
-	//	Endpoint:     og2.Endpoint,
-	//	Scopes:       []string{"profile", "email"},
-	//}
-	//stateConfig := gologin.DefaultCookieConfig
-	//google.StateHandler(stateConfig, google.CallbackHandler(oauth2Config, issueSession(), nil))
-	c.Redirect(http.StatusTemporaryRedirect, "http://localhost:3000")
 }
 
 // CallbackYandex -
@@ -277,28 +365,3 @@ func (delivery *Delivery) CallbackYandex(c *gin.Context) {
 
 }
 
-const (
-	sessionName    = "example-google-app"
-	sessionSecret  = "example cookie signing secret"
-	sessionUserKey = "key"
-	sessionUserID  = "userId"
-)
-
-var sessionStore = sessions.NewCookieStore([]byte(sessionSecret), nil)
-
-// LogoutUser logout
-//
-//	@Summary		Logout
-//	@Description	Method provides to log out
-//	@Tags			user
-//	@Accept			json
-//	@Produce		json
-//	@Success		200
-//	@Failure		404	"Bad Request"
-//	@Router			/user/logout [get]
-func (delivery *Delivery) LogoutUser(c *gin.Context) {
-	delivery.logger.Debug("Enter in delivery LogoutUser()")
-	sessionStore.Destroy(c.Writer, sessionUserID)
-	c.SetCookie(sessionName+"-tmp", "", 3600, "/", "localhost", false, true)
-	c.JSON(http.StatusOK, gin.H{"you have been successfully logged out": nil})
-}
