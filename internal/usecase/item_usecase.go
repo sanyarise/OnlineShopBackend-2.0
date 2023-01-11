@@ -287,7 +287,6 @@ func (usecase *ItemUsecase) UpdateCash(ctx context.Context, id uuid.UUID, op str
 				usecase.logger.Sugar().Errorf("error on get item: %v", err)
 				return err
 			}
-			fmt.Printf("newItem is: %v\n", newItem)
 
 			if op == "update" {
 				for i, item := range items {
