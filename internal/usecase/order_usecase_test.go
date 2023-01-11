@@ -91,12 +91,11 @@ func (orMock *orderRepoMock) ChangeStatus(ctx context.Context, order *models.Ord
 }
 
 func (orMock *orderRepoMock) GetOrderByID(ctx context.Context, id uuid.UUID) (models.Order, error) {
-	orderID, _ := uuid.NewRandom()
 	userID, _ := uuid.NewRandom()
 	itemID1, _ := uuid.NewRandom()
 	itemID2, _ := uuid.NewRandom()
 	order := testOrder
-	order.ID = orderID
+	order.ID = id
 	order.User.ID = userID
 	order.Items[0].Id = itemID1
 	order.Items[1].Id = itemID2
@@ -120,7 +119,7 @@ func TestPlaceOrder(t *testing.T) {
 		},
 		ExpireAt: time.Now().Add(2 * time.Hour),
 	}
-	res, err := uscs.PlaceOrder(context.Background(), &cart, &testUser)
+	res, err := uscs.PlaceOrder(context.Background(), &cart, testUser, testOrder.Address)
 	require.NoError(t, err)
 	assert.Equal(t, testUser.Address, res.Address)
 	assert.Equal(t, cart.Items, res.Items)
@@ -138,7 +137,7 @@ func TestPlaceOrderDBError(t *testing.T) {
 		},
 		ExpireAt: time.Now().Add(2 * time.Hour),
 	}
-	res, err := uscs.PlaceOrder(context.Background(), &cart, &testUser)
+	res, err := uscs.PlaceOrder(context.Background(), &cart, testUser, testOrder.Address)
 	require.Error(t, err)
 	assert.Nil(t, res)
 }
@@ -189,4 +188,19 @@ func TestChangeAddressError(t *testing.T) {
 		testOrder.Status = models.StatusCreated
 	}()
 	require.Error(t, err)
+}
+
+func TestDeleteOrder(t *testing.T) {
+	uscs := NewOrderUsecase(&orderRepoMock{}, lgr)
+	err := uscs.DeleteOrder(context.Background(), &testOrder)
+	require.NoError(t, err)
+}
+
+func TestGetOrder(t *testing.T) {
+	id, _ := uuid.NewRandom()
+	uscs := NewOrderUsecase(&orderRepoMock{}, lgr)
+	order, err := uscs.GetOrder(context.Background(), id)
+	require.NoError(t, err)
+	assert.Equal(t, testOrder.User.Firstname, order.User.Firstname)
+	assert.Equal(t, testOrder.ShipmentTime, order.ShipmentTime)
 }

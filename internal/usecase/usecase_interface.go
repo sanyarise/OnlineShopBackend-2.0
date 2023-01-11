@@ -33,7 +33,7 @@ type ICategoryUsecase interface {
 }
 
 type IOrderUsecase interface {
-	PlaceOrder(ctx context.Context, cart *models. Cart, user *models.User) (*models.Order, error)
+	PlaceOrder(ctx context.Context, cart *models. Cart, user models.User, address models.UserAddress) (*models.Order, error)
 	ChangeStatus(ctx context.Context, order *models.Order, newStatus models.Status) error
 	GetOrdersForUser(ctx context.Context, user *models.User) ([]models.Order, error)
 	DeleteOrder(ctx context.Context, order *models.Order) error

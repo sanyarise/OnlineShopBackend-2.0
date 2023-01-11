@@ -25,15 +25,15 @@ func NewOrderUsecase(orderStore repository.OrderStore, logger *zap.SugaredLogger
 	}
 }
 
-func (o *order) PlaceOrder(ctx context.Context, cart *models.Cart, user *models.User) (*models.Order, error) {
+func (o *order) PlaceOrder(ctx context.Context, cart *models.Cart, user models.User, address models.UserAddress) (*models.Order, error) {
 	select {
 	case <-ctx.Done():
 		o.logger.Error("context closed")
 		return nil, fmt.Errorf("context closed")
 	default:
 		ordr := models.Order{
-			User:         *user,
-			Address:      user.Address,
+			User:         user,
+			Address:      address,
 			Status:       models.StatusCreated,
 			ShipmentTime: time.Now().Add(models.ProlongedShipmentPeriod),
 			Items:        append([]models.Item{}[:0:0], cart.Items...),
