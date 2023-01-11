@@ -42,7 +42,10 @@ func (usecase *ItemUsecase) CreateItem(ctx context.Context, item *models.Item) (
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("error on create item: %w", err)
 	}
-	usecase.UpdateCash(ctx, id, "create")
+	err = usecase.UpdateCash(ctx, id, "create")
+	if err != nil {
+		usecase.logger.Debug(err.Error())
+	}
 	return id, nil
 }
 
@@ -53,7 +56,10 @@ func (usecase *ItemUsecase) UpdateItem(ctx context.Context, item *models.Item) e
 	if err != nil {
 		return fmt.Errorf("error on update item: %w", err)
 	}
-	usecase.UpdateCash(ctx, item.Id, "update")
+	err = usecase.UpdateCash(ctx, item.Id, "update")
+	if err != nil {
+		usecase.logger.Debug(err.Error())
+	}
 	return nil
 }
 
