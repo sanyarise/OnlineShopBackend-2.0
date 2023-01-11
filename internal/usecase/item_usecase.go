@@ -20,7 +20,7 @@ const (
 	itemsListKeyNameAsc   = "ItemsListnameasc"
 	itemsListKeyNameDesc  = "ItemsListnamedesc"
 	itemsListKeyPriceAsc  = "ItemsListpriceasc"
-	itemsListKeyPriceDesc = "itemsListpricedesc"
+	itemsListKeyPriceDesc = "ItemsListpricedesc"
 	itemsQuantityKey      = "ItemsQuantity"
 )
 
@@ -70,10 +70,10 @@ func (usecase *ItemUsecase) GetItem(ctx context.Context, id uuid.UUID) (*models.
 // ItemsList call database method and returns slice with all models.Item or error
 func (usecase *ItemUsecase) ItemsList(ctx context.Context, limitOptions map[string]int, sortOptions map[string]string) ([]models.Item, error) {
 	usecase.logger.Sugar().Debugf("Enter in usecase ItemsList() with args: ctx, limitOptions: %v, sortOptions: %v", limitOptions, sortOptions)
-	
+
 	limit, offset := limitOptions["limit"], limitOptions["offset"]
 	sortType, sortOrder := sortOptions["sortType"], sortOptions["sortOrder"]
-	
+
 	if ok := usecase.itemCash.CheckCash(ctx, itemsListKey+sortType+sortOrder); !ok {
 		itemIncomingChan, err := usecase.itemStore.ItemsList(ctx)
 		if err != nil {
@@ -370,6 +370,11 @@ func (usecase *ItemUsecase) UpdateItemsInCategoryCash(ctx context.Context, newIt
 					break
 				}
 			}
+			err = usecase.itemCash.CreateItemsCash(ctx, items, key)
+			if err != nil {
+				return err
+			}
+			continue
 		}
 		if op == "create" {
 			items = append(items, *newItem)
@@ -389,6 +394,16 @@ func (usecase *ItemUsecase) UpdateItemsInCategoryCash(ctx context.Context, newIt
 					break
 				}
 			}
+		}
+		switch {
+		case key == categoryItemsKeyNameAsc:
+			usecase.SortItems(items, "name", "asc")
+		case key == categoryItemsKeyNameDesc:
+			usecase.SortItems(items, "name", "desc")
+		case key == categoryItemsKeyPriceAsc:
+			usecase.SortItems(items, "price", "asc")
+		case key == categoryItemsKeyPriceDesc:
+			usecase.SortItems(items, "price", "desc")
 		}
 		err = usecase.itemCash.CreateItemsCash(ctx, items, key)
 		if err != nil {
