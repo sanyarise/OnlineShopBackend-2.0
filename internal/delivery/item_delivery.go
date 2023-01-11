@@ -212,7 +212,16 @@ func (delivery *Delivery) UpdateItem(c *gin.Context) {
 		delivery.SetError(c, http.StatusBadRequest, err)
 		return
 	}
-
+	if len(deliveryItem.Images) == 0 {
+		deliveryItem.Images = append(deliveryItem.Images, "")
+	}
+	if len(deliveryItem.Images) > 1 {
+		for i, v := range deliveryItem.Images {
+			if v == "" {
+				deliveryItem.Images = append(deliveryItem.Images[:i], deliveryItem.Images[i+1:]...)
+			}
+		}
+	}
 	itemBeforUpdate, err := delivery.itemUsecase.GetItem(ctx, uid)
 	if err != nil {
 		delivery.logger.Error(err.Error())
@@ -603,6 +612,11 @@ func (delivery *Delivery) UploadItemImage(c *gin.Context) {
 		return
 	}
 	item.Images = append(item.Images, path)
+	for i, v := range item.Images {
+		if v == "" {
+			item.Images = append(item.Images[:i], item.Images[i+1:]...)
+		}
+	}
 
 	err = delivery.itemUsecase.UpdateItem(ctx, item)
 	if err != nil {
@@ -670,6 +684,9 @@ func (delivery *Delivery) DeleteItemImage(c *gin.Context) {
 			item.Images = append(item.Images[:idx], item.Images[idx+1:]...)
 			break
 		}
+	}
+	if len(item.Images) == 0 {
+		item.Images = append(item.Images, "")
 	}
 	err = delivery.itemUsecase.UpdateItem(ctx, item)
 	if err != nil {

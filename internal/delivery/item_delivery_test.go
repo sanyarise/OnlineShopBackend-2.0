@@ -168,6 +168,18 @@ var (
 		Vendor: "testVendor",
 	}
 
+	testShortModelsItemWithIdWithEmptyImage = &models.Item{
+		Id:          testId,
+		Title:       "testTitle",
+		Description: "testDescription",
+		Category: models.Category{
+			Id: testId,
+		},
+		Price:  10,
+		Vendor: "testVendor",
+		Images: []string{""},
+	}
+
 	testModelsCategoryWithOtherId = &models.Category{
 		Id:          testId2,
 		Name:        "testName",
@@ -175,13 +187,14 @@ var (
 		Image:       "testImg",
 	}
 
-	testShortModelsItemWithIdAndOtherCat = &models.Item{
+	testShortModelsItemWithIdAndOtherCatWithEmptyImage = &models.Item{
 		Id:          testId,
 		Title:       "testTitle",
 		Description: "testDescription",
 		Category:    *testModelsCategoryWithOtherId,
 		Price:       10,
 		Vendor:      "testVendor",
+		Images: []string{""},
 	}
 	testModelsItemWithImage = models.Item{
 		Id:          testId,
@@ -450,7 +463,7 @@ func TestUpdateItem(t *testing.T) {
 	}
 	MockJson(c, testInItem, put)
 	itemUsecase.EXPECT().GetItem(ctx, testId).Return(testModelsItemWithId, nil)
-	itemUsecase.EXPECT().UpdateItem(ctx, testShortModelsItemWithId).Return(fmt.Errorf("error"))
+	itemUsecase.EXPECT().UpdateItem(ctx, testShortModelsItemWithIdWithEmptyImage).Return(fmt.Errorf("error"))
 	delivery.UpdateItem(c)
 	require.Equal(t, 500, w.Code)
 
@@ -462,7 +475,7 @@ func TestUpdateItem(t *testing.T) {
 	}
 	MockJson(c, testInItem, put)
 	itemUsecase.EXPECT().GetItem(ctx, testId).Return(testModelsItemWithId, nil)
-	itemUsecase.EXPECT().UpdateItem(ctx, testShortModelsItemWithId).Return(nil)
+	itemUsecase.EXPECT().UpdateItem(ctx, testShortModelsItemWithIdWithEmptyImage).Return(nil)
 	delivery.UpdateItem(c)
 	require.Equal(t, 200, w.Code)
 }
@@ -487,7 +500,7 @@ func TestUpdateItem2(t *testing.T) {
 	}
 	MockJson(c, testInItem, put)
 	itemUsecase.EXPECT().GetItem(ctx, testId).Return(testModelsItemWithIdAndOtherCatId, nil)
-	itemUsecase.EXPECT().UpdateItem(ctx, testShortModelsItemWithId).Return(nil)
+	itemUsecase.EXPECT().UpdateItem(ctx, testShortModelsItemWithIdWithEmptyImage).Return(nil)
 	categoryUsecase.EXPECT().GetCategory(ctx, testShortModelsItemWithId.Category.Id).Return(nil, fmt.Errorf("error"))
 	delivery.UpdateItem(c)
 	require.Equal(t, 500, w.Code)
@@ -500,9 +513,9 @@ func TestUpdateItem2(t *testing.T) {
 	}
 	MockJson(c, testInItem, put)
 	itemUsecase.EXPECT().GetItem(ctx, testId).Return(testModelsItemWithIdAndOtherCatId, nil)
-	itemUsecase.EXPECT().UpdateItem(ctx, testShortModelsItemWithId).Return(nil)
+	itemUsecase.EXPECT().UpdateItem(ctx, testShortModelsItemWithIdWithEmptyImage).Return(nil)
 	categoryUsecase.EXPECT().GetCategory(ctx, testShortModelsItemWithId.Category.Id).Return(testModelsCategoryWithOtherId, nil)
-	itemUsecase.EXPECT().UpdateItemsInCategoryCash(ctx, testShortModelsItemWithIdAndOtherCat, "create").Return(fmt.Errorf("err"))
+	itemUsecase.EXPECT().UpdateItemsInCategoryCash(ctx, testShortModelsItemWithIdAndOtherCatWithEmptyImage, "create").Return(fmt.Errorf("err"))
 	delivery.UpdateItem(c)
 	require.Equal(t, 500, w.Code)
 
@@ -514,9 +527,9 @@ func TestUpdateItem2(t *testing.T) {
 	}
 	MockJson(c, testInItem, put)
 	itemUsecase.EXPECT().GetItem(ctx, testId).Return(testModelsItemWithIdAndOtherCatId, nil)
-	itemUsecase.EXPECT().UpdateItem(ctx, testShortModelsItemWithId).Return(nil)
+	itemUsecase.EXPECT().UpdateItem(ctx, testShortModelsItemWithIdWithEmptyImage).Return(nil)
 	categoryUsecase.EXPECT().GetCategory(ctx, testShortModelsItemWithId.Category.Id).Return(testModelsCategoryWithOtherId, nil)
-	itemUsecase.EXPECT().UpdateItemsInCategoryCash(ctx, testShortModelsItemWithIdAndOtherCat, "create").Return(nil)
+	itemUsecase.EXPECT().UpdateItemsInCategoryCash(ctx, testShortModelsItemWithIdAndOtherCatWithEmptyImage, "create").Return(nil)
 	itemUsecase.EXPECT().UpdateItemsInCategoryCash(ctx, testModelsItemWithIdAndOtherCatId, "delete").Return(fmt.Errorf("err"))
 	delivery.UpdateItem(c)
 	require.Equal(t, 500, w.Code)
@@ -529,9 +542,9 @@ func TestUpdateItem2(t *testing.T) {
 	}
 	MockJson(c, testInItem, put)
 	itemUsecase.EXPECT().GetItem(ctx, testId).Return(testModelsItemWithIdAndOtherCatId, nil)
-	itemUsecase.EXPECT().UpdateItem(ctx, testShortModelsItemWithId).Return(nil)
+	itemUsecase.EXPECT().UpdateItem(ctx, testShortModelsItemWithIdWithEmptyImage).Return(nil)
 	categoryUsecase.EXPECT().GetCategory(ctx, testShortModelsItemWithId.Category.Id).Return(testModelsCategoryWithOtherId, nil)
-	itemUsecase.EXPECT().UpdateItemsInCategoryCash(ctx, testShortModelsItemWithIdAndOtherCat, "create").Return(nil)
+	itemUsecase.EXPECT().UpdateItemsInCategoryCash(ctx, testShortModelsItemWithIdAndOtherCatWithEmptyImage, "create").Return(nil)
 	itemUsecase.EXPECT().UpdateItemsInCategoryCash(ctx, testModelsItemWithIdAndOtherCatId, "delete").Return(nil)
 	delivery.UpdateItem(c)
 	require.Equal(t, 200, w.Code)

@@ -265,10 +265,7 @@ func (usecase *ItemUsecase) GetItemsByCategory(ctx context.Context, categoryName
 func (usecase *ItemUsecase) UpdateCash(ctx context.Context, id uuid.UUID, op string) error {
 	usecase.logger.Sugar().Debugf("Enter in itemUsecase UpdateCash() with args: ctx, id: %v, op: %s", id, op)
 
-	if !usecase.itemCash.CheckCash(ctx, itemsListKeyNameAsc) &&
-		!usecase.itemCash.CheckCash(ctx, itemsListKeyNameDesc) &&
-		!usecase.itemCash.CheckCash(ctx, itemsListKeyPriceAsc) &&
-		!usecase.itemCash.CheckCash(ctx, itemsListKeyPriceDesc) {
+	if !usecase.itemCash.CheckCash(ctx, itemsListKeyNameAsc) && !usecase.itemCash.CheckCash(ctx, itemsListKeyNameDesc) && !usecase.itemCash.CheckCash(ctx, itemsListKeyPriceAsc) && !usecase.itemCash.CheckCash(ctx, itemsListKeyPriceDesc) {
 		return fmt.Errorf("cash is not exists")
 	}
 	newItem := &models.Item{}
@@ -287,55 +284,55 @@ func (usecase *ItemUsecase) UpdateCash(ctx context.Context, id uuid.UUID, op str
 				usecase.logger.Sugar().Errorf("error on get item: %v", err)
 				return err
 			}
+		}
 
-			if op == "update" {
-				for i, item := range items {
-					if item.Id == newItem.Id {
-						items[i] = *newItem
-						break
-					}
+		if op == "update" {
+			for i, item := range items {
+				if item.Id == newItem.Id {
+					items[i] = *newItem
+					break
 				}
 			}
-			if op == "create" {
-				items = append(items, *newItem)
-				err := usecase.itemCash.CreateItemsQuantityCash(ctx, len(items), itemsQuantityKey)
-				if err != nil {
-					return fmt.Errorf("error on create items quantity cash: %w", err)
-				}
-			}
-			if op == "delete" {
-				for i, item := range items {
-					if item.Id == newItem.Id {
-						items = append(items[:i], items[i+1:]...)
-						err := usecase.itemCash.CreateItemsQuantityCash(ctx, len(items), itemsQuantityKey)
-						if err != nil {
-							return fmt.Errorf("error on create items quantity cash: %w", err)
-						}
-						break
-					}
-				}
-			}
-
-			switch {
-			case key == itemsListKeyNameAsc:
-				usecase.SortItems(items, "name", "asc")
-			case key == itemsListKeyNameDesc:
-				usecase.SortItems(items, "name", "desc")
-			case key == itemsListKeyPriceAsc:
-				usecase.SortItems(items, "price", "asc")
-			case key == itemsListKeyPriceDesc:
-				usecase.SortItems(items, "price", "desc")
-			}
-			err = usecase.itemCash.CreateItemsCash(ctx, items, key)
+		}
+		if op == "create" {
+			items = append(items, *newItem)
+			err := usecase.itemCash.CreateItemsQuantityCash(ctx, len(items), itemsQuantityKey)
 			if err != nil {
-				return err
+				return fmt.Errorf("error on create items quantity cash: %w", err)
 			}
-			usecase.logger.Sugar().Infof("Cash of items list with key: %s update success", key)
 		}
-		err = usecase.UpdateItemsInCategoryCash(ctx, newItem, op)
+		if op == "delete" {
+			for i, item := range items {
+				if item.Id == newItem.Id {
+					items = append(items[:i], items[i+1:]...)
+					err := usecase.itemCash.CreateItemsQuantityCash(ctx, len(items), itemsQuantityKey)
+					if err != nil {
+						return fmt.Errorf("error on create items quantity cash: %w", err)
+					}
+					break
+				}
+			}
+		}
+
+		switch {
+		case key == itemsListKeyNameAsc:
+			usecase.SortItems(items, "name", "asc")
+		case key == itemsListKeyNameDesc:
+			usecase.SortItems(items, "name", "desc")
+		case key == itemsListKeyPriceAsc:
+			usecase.SortItems(items, "price", "asc")
+		case key == itemsListKeyPriceDesc:
+			usecase.SortItems(items, "price", "desc")
+		}
+		err = usecase.itemCash.CreateItemsCash(ctx, items, key)
 		if err != nil {
-			usecase.logger.Error(err.Error())
+			return err
 		}
+		usecase.logger.Sugar().Infof("Cash of items list with key: %s update success", key)
+	}
+	err := usecase.UpdateItemsInCategoryCash(ctx, newItem, op)
+	if err != nil {
+		usecase.logger.Error(err.Error())
 	}
 	return nil
 }
@@ -369,11 +366,6 @@ func (usecase *ItemUsecase) UpdateItemsInCategoryCash(ctx context.Context, newIt
 					break
 				}
 			}
-			err = usecase.itemCash.CreateItemsCash(ctx, items, key)
-			if err != nil {
-				return err
-			}
-			continue
 		}
 		if op == "create" {
 			items = append(items, *newItem)
@@ -429,7 +421,7 @@ func (usecase *ItemUsecase) DeleteItem(ctx context.Context, id uuid.UUID) error 
 
 // SortItems sorts items
 func (usecase *ItemUsecase) SortItems(items []models.Item, sortType string, sortOrder string) {
-	usecase.logger.Sugar().Debugf("Enter in delivery SortItems() with args: items []item.OutItem, sortType: %s, sortOrder: %s", sortType, sortOrder)
+	usecase.logger.Sugar().Debugf("Enter in usecase SortItems() with args: items []models.Item, sortType: %s, sortOrder: %s", sortType, sortOrder)
 	sortType = strings.ToLower(sortType)
 	sortOrder = strings.ToLower(sortOrder)
 	switch {
