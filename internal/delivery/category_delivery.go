@@ -46,6 +46,12 @@ func (delivery *Delivery) CreateCategory(c *gin.Context) {
 		delivery.SetError(c, http.StatusBadRequest, err)
 		return
 	}
+	if deliveryCategory.Name == "NoCategory" {
+		err := fmt.Errorf("can't create category with this name, name reserved by system")
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
+		return
+	}
 	delivery.logger.Sugar().Debugf("Binded struct: %v", deliveryCategory)
 	if deliveryCategory.Name == "" && deliveryCategory.Description == "" {
 		err := fmt.Errorf("empty category in request")
@@ -102,7 +108,12 @@ func (delivery *Delivery) UpdateCategory(c *gin.Context) {
 		delivery.SetError(c, http.StatusBadRequest, err)
 		return
 	}
-
+	if deliveryCategory.Name == "NoCategory" {
+		err := fmt.Errorf("this category is protected by changes")
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
+		return
+	}
 	modelsCategory := models.Category{
 		Id:          uid,
 		Name:        deliveryCategory.Name,
@@ -330,15 +341,26 @@ func (delivery *Delivery) GetCategoryList(c *gin.Context) {
 		delivery.SetError(c, http.StatusInternalServerError, err)
 		return
 	}
-	//var categoriesList category.CategoriesList
-	categories := make([]category.Category, len(list))
-	for i, cat := range list {
-		categories[i] = category.Category{
+	ctx := c.Request.Context()
+	categories := make([]category.Category, 0, len(list))
+	for _, cat := range list {
+		if cat.Name == "NoCategory" {
+			quantity, err := delivery.itemUsecase.ItemsQuantityInCategory(ctx, cat.Name)
+			if err != nil {
+				delivery.logger.Error(err.Error())
+				continue
+			}
+			if quantity == 0 {
+				delivery.logger.Info("NoCategory is empty")
+				continue
+			}
+		}
+		categories = append(categories, category.Category{
 			Id:          cat.Id.String(),
 			Name:        cat.Name,
 			Description: cat.Description,
 			Image:       cat.Image,
-		}
+		})
 	}
 	c.JSON(http.StatusOK, categories)
 }
@@ -396,7 +418,9 @@ func (delivery *Delivery) DeleteCategory(c *gin.Context) {
 	}
 	var items []models.Item
 	if quantity > 0 {
-		items, err = delivery.itemUsecase.GetItemsByCategory(ctx, deletedCategory.Name, 0, quantity)
+		limitOptions := map[string]int{"offset": 0, "limit": quantity}
+		sortOptions := map[string]string{"sortType": "name", "sortOrder": "asc"}
+		items, err = delivery.itemUsecase.GetItemsByCategory(ctx, deletedCategory.Name, limitOptions, sortOptions)
 		if err != nil {
 			delivery.logger.Error(err.Error())
 			delivery.SetError(c, http.StatusInternalServerError, err)

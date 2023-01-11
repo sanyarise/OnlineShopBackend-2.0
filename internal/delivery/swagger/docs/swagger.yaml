@@ -1,5 +1,67 @@
 basePath: /
 definitions:
+  cart.Cart:
+    properties:
+      id:
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/cart.CartItem'
+        minItems: 0
+        type: array
+      user_id:
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        type: string
+    required:
+    - id
+    type: object
+  cart.CartId:
+    properties:
+      id:
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        type: string
+    required:
+    - id
+    type: object
+  cart.CartItem:
+    properties:
+      image:
+        type: string
+      item_id:
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        type: string
+      price:
+        default: 10
+        example: 1990
+        minimum: 0
+        type: integer
+      title:
+        example: Пылесос
+        type: string
+    required:
+    - item_id
+    - price
+    - title
+    type: object
+  cart.ShortCart:
+    properties:
+      cart_id:
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        type: string
+      item_id:
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        type: string
+    required:
+    - cart_id
+    - item_id
+    type: object
   category.Category:
     properties:
       description:
@@ -201,6 +263,177 @@ info:
   title: Online Shop Backend Service
   version: "1.0"
 paths:
+  /cart/{cartID}:
+    get:
+      consumes:
+      - application/json
+      description: The method allows you to get the cart by id.
+      parameters:
+      - description: Id of cart
+        in: path
+        name: cartID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Cart structure
+          schema:
+            $ref: '#/definitions/cart.Cart'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Get cart by id
+      tags:
+      - carts
+  /cart/addItem:
+    put:
+      consumes:
+      - application/json
+      description: Method provides to add item to cart.
+      parameters:
+      - description: Data for add item to cart
+        in: body
+        name: cart
+        required: true
+        schema:
+          $ref: '#/definitions/cart.ShortCart'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Method provides to add item to cart
+      tags:
+      - carts
+  /cart/create/{userID}:
+    post:
+      consumes:
+      - application/json
+      description: Method provides to create cart with items.
+      parameters:
+      - description: Id of user (if user autorized)
+        in: path
+        name: userID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/cart.CartId'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Method provides to create cart with items
+      tags:
+      - carts
+  /cart/delete/{cartID}:
+    delete:
+      consumes:
+      - application/json
+      description: Method provides to delete cart.
+      parameters:
+      - description: id of cart
+        in: path
+        name: cartID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Method provides to delete cart
+      tags:
+      - carts
+  /cart/deleteItem:
+    delete:
+      consumes:
+      - application/json
+      description: Method provides to delete item from cart.
+      parameters:
+      - description: Data for delete item from cart
+        in: body
+        name: cart
+        required: true
+        schema:
+          $ref: '#/definitions/cart.ShortCart'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Method provides to delete item from cart
+      tags:
+      - carts
   /categories/{categoryID}:
     get:
       consumes:

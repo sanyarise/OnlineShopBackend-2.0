@@ -139,8 +139,10 @@ func TestCreateCategory(t *testing.T) {
 	logger := zap.L()
 	itemUsecase := mocks.NewMockIItemUsecase(ctrl)
 	categoryUsecase := mocks.NewMockICategoryUsecase(ctrl)
+
+	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
-	delivery := NewDelivery(itemUsecase, categoryUsecase, logger, filestorage)
+	delivery := NewDelivery(itemUsecase, categoryUsecase, cartUsecase, logger, filestorage)
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -202,8 +204,10 @@ func TestUpdateCategory(t *testing.T) {
 	logger := zap.L()
 	itemUsecase := mocks.NewMockIItemUsecase(ctrl)
 	categoryUsecase := mocks.NewMockICategoryUsecase(ctrl)
+
+	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
-	delivery := NewDelivery(itemUsecase, categoryUsecase, logger, filestorage)
+	delivery := NewDelivery(itemUsecase, categoryUsecase, cartUsecase, logger, filestorage)
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -288,8 +292,10 @@ func TestGetCategoryList(t *testing.T) {
 	logger := zap.L()
 	itemUsecase := mocks.NewMockIItemUsecase(ctrl)
 	categoryUsecase := mocks.NewMockICategoryUsecase(ctrl)
+
+	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
-	delivery := NewDelivery(itemUsecase, categoryUsecase, logger, filestorage)
+	delivery := NewDelivery(itemUsecase, categoryUsecase, cartUsecase, logger, filestorage)
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -322,8 +328,10 @@ func TestGetCategory(t *testing.T) {
 	logger := zap.L()
 	itemUsecase := mocks.NewMockIItemUsecase(ctrl)
 	categoryUsecase := mocks.NewMockICategoryUsecase(ctrl)
+
+	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
-	delivery := NewDelivery(itemUsecase, categoryUsecase, logger, filestorage)
+	delivery := NewDelivery(itemUsecase, categoryUsecase, cartUsecase, logger, filestorage)
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -391,8 +399,10 @@ func TestUploadCategoryImage(t *testing.T) {
 	logger := zap.L()
 	itemUsecase := mocks.NewMockIItemUsecase(ctrl)
 	categoryUsecase := mocks.NewMockICategoryUsecase(ctrl)
+
+	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
-	delivery := NewDelivery(itemUsecase, categoryUsecase, logger, filestorage)
+	delivery := NewDelivery(itemUsecase, categoryUsecase, cartUsecase, logger, filestorage)
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -516,8 +526,10 @@ func TestDeleteCategoryImage(t *testing.T) {
 	logger := zap.L()
 	itemUsecase := mocks.NewMockIItemUsecase(ctrl)
 	categoryUsecase := mocks.NewMockICategoryUsecase(ctrl)
+
+	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
-	delivery := NewDelivery(itemUsecase, categoryUsecase, logger, filestorage)
+	delivery := NewDelivery(itemUsecase, categoryUsecase, cartUsecase, logger, filestorage)
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -617,8 +629,10 @@ func TestDeleteCategory(t *testing.T) {
 	logger := zap.L()
 	itemUsecase := mocks.NewMockIItemUsecase(ctrl)
 	categoryUsecase := mocks.NewMockICategoryUsecase(ctrl)
+
+	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
-	delivery := NewDelivery(itemUsecase, categoryUsecase, logger, filestorage)
+	delivery := NewDelivery(itemUsecase, categoryUsecase, cartUsecase, logger, filestorage)
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -637,8 +651,9 @@ func TestDeleteCategory(t *testing.T) {
 	}
 	c.Params = []gin.Param{
 		{
-			Key:   "categoryID",
-			Value: testId.String()+"l",
+			Key: "categoryID",
+
+			Value: testId.String() + "l",
 		},
 	}
 	delivery.DeleteCategory(c)
@@ -747,9 +762,12 @@ func TestDeleteCategory(t *testing.T) {
 			Value: testId.String(),
 		},
 	}
+	limitOptions := map[string]int{"offset": 0, "limit": 1}
+	sortOptions := map[string]string{"sortType": "name", "sortOrder": "asc"}
+
 	categoryUsecase.EXPECT().GetCategory(ctx, testId).Return(testCategoryWithImage2, nil)
 	itemUsecase.EXPECT().ItemsQuantityInCategory(ctx, testCategoryWithImage2.Name).Return(1, nil)
-	itemUsecase.EXPECT().GetItemsByCategory(ctx, testCategoryWithImage2.Name, 0, 1).Return([]models.Item{*testModelsItemWithId}, nil)
+	itemUsecase.EXPECT().GetItemsByCategory(ctx, testCategoryWithImage2.Name, limitOptions, sortOptions).Return([]models.Item{*testModelsItemWithId}, nil)
 	categoryUsecase.EXPECT().DeleteCategory(ctx, testId).Return(nil)
 	categoryUsecase.EXPECT().DeleteCategoryCash(ctx, testCategoryWithImage2.Name).Return(nil)
 	filestorage.EXPECT().DeleteCategoryImageById(testId.String()).Return(nil)
@@ -773,7 +791,7 @@ func TestDeleteCategory(t *testing.T) {
 	}
 	categoryUsecase.EXPECT().GetCategory(ctx, testId).Return(testCategoryWithImage2, nil)
 	itemUsecase.EXPECT().ItemsQuantityInCategory(ctx, testCategoryWithImage2.Name).Return(1, nil)
-	itemUsecase.EXPECT().GetItemsByCategory(ctx, testCategoryWithImage2.Name, 0, 1).Return(nil, fmt.Errorf("error"))
+	itemUsecase.EXPECT().GetItemsByCategory(ctx, testCategoryWithImage2.Name, limitOptions, sortOptions).Return(nil, fmt.Errorf("error"))
 	delivery.DeleteCategory(c)
 	require.Equal(t, 500, w.Code)
 
@@ -791,7 +809,7 @@ func TestDeleteCategory(t *testing.T) {
 	}
 	categoryUsecase.EXPECT().GetCategory(ctx, testId).Return(testCategoryWithImage2, nil)
 	itemUsecase.EXPECT().ItemsQuantityInCategory(ctx, testCategoryWithImage2.Name).Return(1, nil)
-	itemUsecase.EXPECT().GetItemsByCategory(ctx, testCategoryWithImage2.Name, 0, 1).Return([]models.Item{*testModelsItemWithId}, nil)
+	itemUsecase.EXPECT().GetItemsByCategory(ctx, testCategoryWithImage2.Name, limitOptions, sortOptions).Return([]models.Item{*testModelsItemWithId}, nil)
 	categoryUsecase.EXPECT().DeleteCategory(ctx, testId).Return(nil)
 	categoryUsecase.EXPECT().DeleteCategoryCash(ctx, testCategoryWithImage2.Name).Return(fmt.Errorf("error"))
 	filestorage.EXPECT().DeleteCategoryImageById(testId.String()).Return(nil)
@@ -814,7 +832,7 @@ func TestDeleteCategory(t *testing.T) {
 	}
 	categoryUsecase.EXPECT().GetCategory(ctx, testId).Return(testCategoryWithImage2, nil)
 	itemUsecase.EXPECT().ItemsQuantityInCategory(ctx, testCategoryWithImage2.Name).Return(1, nil)
-	itemUsecase.EXPECT().GetItemsByCategory(ctx, testCategoryWithImage2.Name, 0, 1).Return([]models.Item{*testModelsItemWithId}, nil)
+	itemUsecase.EXPECT().GetItemsByCategory(ctx, testCategoryWithImage2.Name, limitOptions, sortOptions).Return([]models.Item{*testModelsItemWithId}, nil)
 	categoryUsecase.EXPECT().DeleteCategory(ctx, testId).Return(nil)
 	categoryUsecase.EXPECT().DeleteCategoryCash(ctx, testCategoryWithImage2.Name).Return(fmt.Errorf("error"))
 	filestorage.EXPECT().DeleteCategoryImageById(testId.String()).Return(nil)
@@ -833,9 +851,11 @@ func TestDeleteCategory2(t *testing.T) {
 	logger := zap.L()
 	itemUsecase := mocks.NewMockIItemUsecase(ctrl)
 	categoryUsecase := mocks.NewMockICategoryUsecase(ctrl)
+
+	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
-	delivery := NewDelivery(itemUsecase, categoryUsecase, logger, filestorage)
-	
+	delivery := NewDelivery(itemUsecase, categoryUsecase, cartUsecase, logger, filestorage)
+
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
 

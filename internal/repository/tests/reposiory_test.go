@@ -139,7 +139,7 @@ func TestItemCreate(t *testing.T) {
 
 	item := repository.NewItemRepo(store, logger)
 	id, err := item.CreateItem(context.Background(), &models.Item{
-		Title:       "testItem",
+		Title:        "testItem",
 		Description: "desc",
 		Price:       300,
 		Category:    cat,
@@ -163,7 +163,7 @@ func TestItemUpdate(t *testing.T) {
 	assert.NoError(t, err)
 
 	item := models.Item{
-		Title:       "testItem",
+		Title:        "testItem",
 		Description: "desc",
 		Price:       300,
 		Category:    cat,
@@ -181,7 +181,7 @@ func TestItemUpdate(t *testing.T) {
 
 	newItem := models.Item{
 		Id:          item.Id,
-		Title:       "NewName",
+		Title:        "NewName",
 		Description: "desc",
 		Price:       500,
 		Category:    cat,
@@ -212,7 +212,7 @@ func TestItemGet(t *testing.T) {
 	assert.NoError(t, err)
 
 	item := models.Item{
-		Title:       "testItem",
+		Title:        "testItem",
 		Description: "desc",
 		Price:       300,
 		Category:    cat,
@@ -252,7 +252,7 @@ func TestItemSearchLine(t *testing.T) {
 	assert.NoError(t, err)
 
 	item1 := models.Item{
-		Title:       "testItem",
+		Title:        "testItem",
 		Description: "desc",
 		Price:       300,
 		Category:    cat,
@@ -269,7 +269,7 @@ func TestItemSearchLine(t *testing.T) {
 	defer store.GetPool().Exec(context.Background(), `DELETE FROM items`)
 
 	item2 := models.Item{
-		Title:       "Item",
+		Title:        "Item",
 		Description: "desc",
 		Price:       400,
 		Category:    cat,
@@ -308,7 +308,7 @@ func TestItemItemsList(t *testing.T) {
 	assert.NoError(t, err)
 
 	item1 := models.Item{
-		Title:       "testItem",
+		Title:        "testItem",
 		Description: "desc",
 		Price:       300,
 		Category:    cat,
@@ -325,7 +325,7 @@ func TestItemItemsList(t *testing.T) {
 	defer store.GetPool().Exec(context.Background(), `DELETE FROM items`)
 
 	item2 := models.Item{
-		Title:       "Item",
+		Title:        "Item",
 		Description: "desc",
 		Price:       400,
 		Category:    cat,
@@ -364,7 +364,7 @@ func TestCartCreate(t *testing.T) {
 	assert.NoError(t, err)
 
 	item1 := models.Item{
-		Title:       "testItem",
+		Title:        "testItem",
 		Description: "desc",
 		Price:       300,
 		Category:    cat,
@@ -381,7 +381,7 @@ func TestCartCreate(t *testing.T) {
 	defer store.GetPool().Exec(context.Background(), `DELETE FROM items`)
 
 	item2 := models.Item{
-		Title:       "Item",
+		Title:        "Item",
 		Description: "desc",
 		Price:       400,
 		Category:    cat,
@@ -428,7 +428,7 @@ func TestCartCreate(t *testing.T) {
 	assert.NoError(t, err)
 
 	cartMdl := models.Cart{
-		UserID:   user.ID,
+		UserId:   user.ID,
 		Items:    []models.Item{item1, item2},
 		ExpireAt: time.Now().Add(time.Hour * 2),
 	}
@@ -454,7 +454,7 @@ func TestCartAddItem(t *testing.T) {
 	assert.NoError(t, err)
 
 	item1 := models.Item{
-		Title:       "testItem",
+		Name:        "testItem",
 		Description: "desc",
 		Price:       300,
 		Category:    cat,
@@ -471,7 +471,7 @@ func TestCartAddItem(t *testing.T) {
 	defer store.GetPool().Exec(context.Background(), `DELETE FROM items`)
 
 	item2 := models.Item{
-		Title:       "Item",
+		Name:        "Item",
 		Description: "desc",
 		Price:       400,
 		Category:    cat,
@@ -553,7 +553,7 @@ func TestCartDelete(t *testing.T) {
 	assert.NoError(t, err)
 
 	item1 := models.Item{
-		Title:       "testItem",
+		Name:        "testItem",
 		Description: "desc",
 		Price:       300,
 		Category:    cat,
@@ -570,7 +570,7 @@ func TestCartDelete(t *testing.T) {
 	defer store.GetPool().Exec(context.Background(), `DELETE FROM items`)
 
 	item2 := models.Item{
-		Title:       "Item",
+		Name:        "Item",
 		Description: "desc",
 		Price:       400,
 		Category:    cat,
@@ -653,7 +653,7 @@ func TestCartDeleteItem(t *testing.T) {
 	assert.NoError(t, err)
 
 	item1 := models.Item{
-		Title:       "testItem",
+		Name:        "testItem",
 		Description: "desc",
 		Price:       300,
 		Category:    cat,
@@ -670,7 +670,7 @@ func TestCartDeleteItem(t *testing.T) {
 	defer store.GetPool().Exec(context.Background(), `DELETE FROM items`)
 
 	item2 := models.Item{
-		Title:       "Item",
+		Name:        "Item",
 		Description: "desc",
 		Price:       400,
 		Category:    cat,
@@ -753,7 +753,7 @@ func TestOrderCreate(t *testing.T) {
 	assert.NoError(t, err)
 
 	item1 := models.Item{
-		Title:       "testItem",
+		Name:        "testItem",
 		Description: "desc",
 		Price:       300,
 		Category:    cat,
@@ -770,7 +770,7 @@ func TestOrderCreate(t *testing.T) {
 	defer store.GetPool().Exec(context.Background(), `DELETE FROM items`)
 
 	item2 := models.Item{
-		Title:       "Item",
+		Name:        "Item",
 		Description: "desc",
 		Price:       400,
 		Category:    cat,
@@ -845,7 +845,7 @@ func TestOrderDelete(t *testing.T) {
 	assert.NoError(t, err)
 
 	item1 := models.Item{
-		Title:       "testItem",
+		Name:        "testItem",
 		Description: "desc",
 		Price:       300,
 		Category:    cat,
@@ -862,7 +862,7 @@ func TestOrderDelete(t *testing.T) {
 	defer store.GetPool().Exec(context.Background(), `DELETE FROM items`)
 
 	item2 := models.Item{
-		Title:       "Item",
+		Name:        "Item",
 		Description: "desc",
 		Price:       400,
 		Category:    cat,
@@ -948,7 +948,7 @@ func TestOrderChangeAddres(t *testing.T) {
 	assert.NoError(t, err)
 
 	item1 := models.Item{
-		Title:       "testItem",
+		Name:        "testItem",
 		Description: "desc",
 		Price:       300,
 		Category:    cat,
@@ -965,7 +965,7 @@ func TestOrderChangeAddres(t *testing.T) {
 	defer store.GetPool().Exec(context.Background(), `DELETE FROM items`)
 
 	item2 := models.Item{
-		Title:       "Item",
+		Name:        "Item",
 		Description: "desc",
 		Price:       400,
 		Category:    cat,
@@ -1058,7 +1058,7 @@ func TestOrderChangeStatus(t *testing.T) {
 	assert.NoError(t, err)
 
 	item1 := models.Item{
-		Title:       "testItem",
+		Name:        "testItem",
 		Description: "desc",
 		Price:       300,
 		Category:    cat,
@@ -1075,7 +1075,7 @@ func TestOrderChangeStatus(t *testing.T) {
 	defer store.GetPool().Exec(context.Background(), `DELETE FROM items`)
 
 	item2 := models.Item{
-		Title:       "Item",
+		Name:        "Item",
 		Description: "desc",
 		Price:       400,
 		Category:    cat,
@@ -1163,7 +1163,7 @@ func TestOrdersGetOrderByID(t *testing.T) {
 	assert.NoError(t, err)
 
 	item1 := models.Item{
-		Title:       "testItem",
+		Name:        "testItem",
 		Description: "desc",
 		Price:       300,
 		Category:    cat,
@@ -1180,7 +1180,7 @@ func TestOrdersGetOrderByID(t *testing.T) {
 	defer store.GetPool().Exec(context.Background(), `DELETE FROM items`)
 
 	item2 := models.Item{
-		Title:       "Item",
+		Name:        "Item",
 		Description: "desc",
 		Price:       400,
 		Category:    cat,
@@ -1247,7 +1247,7 @@ func TestOrdersGetOrderByID(t *testing.T) {
 	defer store.GetPool().Exec(context.Background(), `DELETE FROM orders`)
 	defer store.GetPool().Exec(context.Background(), `DELETE FROM order_items`)
 	require.NoError(t, err)
-	require.Equal(t, order.Items[0].Title, res.Items[0].Title)
+	require.Equal(t, order.Items[0].Name, res.Items[0].Name)
 	require.Equal(t, order.ID, res.ID)
 	require.Equal(t, order.Address, res.Address)
 }
@@ -1266,7 +1266,7 @@ func TestOrdersGetOrders(t *testing.T) {
 	assert.NoError(t, err)
 
 	item1 := models.Item{
-		Title:       "testItem",
+		Name:        "testItem",
 		Description: "desc",
 		Price:       300,
 		Category:    cat,
@@ -1283,7 +1283,7 @@ func TestOrdersGetOrders(t *testing.T) {
 	defer store.GetPool().Exec(context.Background(), `DELETE FROM items`)
 
 	item2 := models.Item{
-		Title:       "Item",
+		Name:        "Item",
 		Description: "desc",
 		Price:       400,
 		Category:    cat,
@@ -1370,11 +1370,11 @@ func TestOrdersGetOrders(t *testing.T) {
 	for o := range ch {
 		res = append(res, o)
 	}
-	require.Equal(t, order.Items[0].Title, res[0].Items[0].Title)
+	require.Equal(t, order.Items[0].Name, res[0].Items[0].Name)
 	// require.Equal(t, order.ID, res[0].ID)
 	require.Equal(t, order.Address, res[0].Address)
 
-	require.Equal(t, order2.Items[0].Title, res[1].Items[0].Title)
+	require.Equal(t, order2.Items[0].Name, res[1].Items[0].Name)
 	// require.Equal(t, order2.ID, res[1].ID)
 	require.Equal(t, order2.Address, res[1].Address)
 }

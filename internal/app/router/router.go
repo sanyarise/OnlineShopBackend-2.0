@@ -50,7 +50,7 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 	gin := gin.Default()
 	gin.Use(cors.Default())
 	gin.Use(ginzap.RecoveryWithZap(logger, true))
-	gin.Static("/files", "./storage/files")
+	gin.Static("/files", "./static/files")
 	docs.SwaggerInfo.BasePath = "/"
 	gin.Group("/docs").Any("/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	router := &Router{
@@ -128,7 +128,7 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 		{
 			"GetItemsByCategory",
 			http.MethodGet,
-			"/items/", //?param=categoryName&offset=20&limit=10
+			"/items/", //?param=categoryName&offset=20&limit=10&sort_type=name&sort_order=asc (sort_type == name or price, sort_order == asc or desc)
 			delivery.GetItemsByCategory,
 		},
 		{
@@ -158,13 +158,13 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 		{
 			"ItemsList",
 			http.MethodGet,
-			"/items/list", //?offset=20&limit=10
+			"/items/list", //?offset=20&limit=10&sort_type=name&sort_order=asc (sort_type == name or price, sort_order == asc or desc)
 			delivery.ItemsList,
 		},
 		{
 			"SearchLine",
 			http.MethodGet,
-			"/items/search/", //?param=searchRequest&offset=20&limit=10
+			"/items/search/", //?param=searchRequest&offset=20&limit=10&sort_type=name&sort_order=asc (sort_type == name or price, sort_order == asc or desc)
 			delivery.SearchLine,
 		},
 		{
@@ -176,8 +176,32 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 		{
 			"GetCart",
 			http.MethodGet,
-			"/cart/:userID",
+			"/cart/:cartID",
 			delivery.GetCart,
+		},
+		{
+			"CreateCart",
+			http.MethodPost,
+			"/cart/create/:userID",
+			delivery.CreateCart,
+		},
+		{
+			"AddItemToCart",
+			http.MethodPut,
+			"/cart/addItem",
+			delivery.AddItemToCart,
+		},
+		{
+			"DeleteItemFromCart",
+			http.MethodDelete,
+			"/cart/deleteItem",
+			delivery.DeleteItemFromCart,
+		},
+		{
+			"DeleteCart",
+			http.MethodDelete,
+			"/cart/delete/:cartID",
+			delivery.DeleteCart,
 		},
 		{
 			"CreateUser",

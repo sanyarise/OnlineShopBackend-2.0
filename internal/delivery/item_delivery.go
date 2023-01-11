@@ -30,14 +30,18 @@ type QuantityOptions struct {
 }
 
 type Options struct {
-	Offset int `form:"offset"`
-	Limit  int `form:"limit"`
+	Offset    int    `form:"offset"`
+	Limit     int    `form:"limit"`
+	SortType  string `form:"sort_type"`
+	SortOrder string `form:"sort_order"`
 }
 
 type SearchOptions struct {
-	Param  string `form:"param"`
-	Offset int    `form:"offset"`
-	Limit  int    `form:"limit"`
+	Param     string `form:"param"`
+	Offset    int    `form:"offset"`
+	Limit     int    `form:"limit"`
+	SortType  string `form:"sort_type"`
+	SortOrder string `form:"sort_order"`
 }
 
 type ImageOptions struct {
@@ -208,7 +212,16 @@ func (delivery *Delivery) UpdateItem(c *gin.Context) {
 		delivery.SetError(c, http.StatusBadRequest, err)
 		return
 	}
-
+	if len(deliveryItem.Images) == 0 {
+		deliveryItem.Images = append(deliveryItem.Images, "")
+	}
+	if len(deliveryItem.Images) > 1 {
+		for i, v := range deliveryItem.Images {
+			if v == "" {
+				deliveryItem.Images = append(deliveryItem.Images[:i], deliveryItem.Images[i+1:]...)
+			}
+		}
+	}
 	itemBeforUpdate, err := delivery.itemUsecase.GetItem(ctx, uid)
 	if err != nil {
 		delivery.logger.Error(err.Error())
@@ -306,9 +319,17 @@ func (delivery *Delivery) ItemsList(c *gin.Context) {
 			options.Limit = 10
 		}
 	}
+
 	delivery.logger.Sugar().Debugf("options limit is set in default value: %d", options.Limit)
 
-	list, err := delivery.itemUsecase.ItemsList(ctx, options.Offset, options.Limit)
+	if options.SortType == "" {
+		options.SortType = "name"
+		options.SortOrder = "asc"
+	}
+
+	limitOptions := map[string]int{"offset": options.Offset, "limit": options.Limit}
+	sortOptions := map[string]string{"sortType": options.SortType, "sortOrder": options.SortOrder}
+	list, err := delivery.itemUsecase.ItemsList(ctx, limitOptions, sortOptions)
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusInternalServerError, err)
@@ -414,10 +435,17 @@ func (delivery *Delivery) SearchLine(c *gin.Context) {
 	if options.Limit == 0 {
 		options.Limit = 10
 	}
+	if options.SortType == "" {
+		options.SortType = "name"
+		options.SortOrder = "asc"
+	}
 
 	delivery.logger.Sugar().Debugf("options limit is set in default value: %d", options.Limit)
 	ctx := c.Request.Context()
-	list, err := delivery.itemUsecase.SearchLine(ctx, options.Param, options.Offset, options.Limit)
+
+	limitOptions := map[string]int{"offset": options.Offset, "limit": options.Limit}
+	sortOptions := map[string]string{"sortType": options.SortType, "sortOrder": options.SortOrder}
+	list, err := delivery.itemUsecase.SearchLine(ctx, options.Param, limitOptions, sortOptions)
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusInternalServerError, err)
@@ -480,8 +508,15 @@ func (delivery *Delivery) GetItemsByCategory(c *gin.Context) {
 	}
 	delivery.logger.Sugar().Debugf("options limit is set in default value: %d", options.Limit)
 
+	if options.SortType == "" {
+		options.SortType = "name"
+		options.SortOrder = "asc"
+	}
+
 	ctx := c.Request.Context()
-	list, err := delivery.itemUsecase.GetItemsByCategory(ctx, options.Param, options.Offset, options.Limit)
+	limitOptions := map[string]int{"offset": options.Offset, "limit": options.Limit}
+	sortOptions := map[string]string{"sortType": options.SortType, "sortOrder": options.SortOrder}
+	list, err := delivery.itemUsecase.GetItemsByCategory(ctx, options.Param, limitOptions, sortOptions)
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusInternalServerError, err)
@@ -577,6 +612,11 @@ func (delivery *Delivery) UploadItemImage(c *gin.Context) {
 		return
 	}
 	item.Images = append(item.Images, path)
+	for i, v := range item.Images {
+		if v == "" {
+			item.Images = append(item.Images[:i], item.Images[i+1:]...)
+		}
+	}
 
 	err = delivery.itemUsecase.UpdateItem(ctx, item)
 	if err != nil {
@@ -644,6 +684,9 @@ func (delivery *Delivery) DeleteItemImage(c *gin.Context) {
 			item.Images = append(item.Images[:idx], item.Images[idx+1:]...)
 			break
 		}
+	}
+	if len(item.Images) == 0 {
+		item.Images = append(item.Images, "")
 	}
 	err = delivery.itemUsecase.UpdateItem(ctx, item)
 	if err != nil {
