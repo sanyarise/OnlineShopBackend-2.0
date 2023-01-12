@@ -50,3 +50,10 @@ type OrderStore interface {
 	GetOrderByID(ctx context.Context, id uuid.UUID) (models.Order, error)
 	GetOrdersForUser(ctx context.Context, user *models.User) (chan models.Order, error)
 }
+
+type RightsStore interface {
+	CreateRights(ctx context.Context, rights *models.Rights) (uuid.UUID, error)
+	UpdateRights(ctx context.Context, rights *models.Rights) error
+	DeleteRights(ctx context.Context, id uuid.UUID) error
+	GetRights(ctx context.Context, id uuid.UUID) (*models.Rights, error)
+}
