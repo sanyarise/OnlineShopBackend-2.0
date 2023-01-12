@@ -9,7 +9,18 @@
 
 package models
 
-import "github.com/google/uuid"
+import (
+	"errors"
+	"fmt"
+	"regexp"
+	"strings"
+	"unicode"
+
+	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
+)
+
+var regexpEmail = regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
 
 type User struct {
 	ID        uuid.UUID
@@ -20,3 +31,64 @@ type User struct {
 	Address   UserAddress `json:"address,omitempty"`
 	Rights    Rights
 }
+
+func (user *User) ValidationCheck() error {
+	if user.Email == "" && user.Firstname == "" && user.Lastname == "" {
+		return fmt.Errorf("empty fields")
+	}
+	if len(user.Firstname) > 100 || len(user.Lastname) > 100 {
+		return fmt.Errorf("user name or user lastname too long")
+	}
+	if !regexpEmail.MatchString(strings.ToLower(user.Email)) {
+		return errors.New("invalid email format")
+	}
+	if len(user.Password) < 5 {
+		return fmt.Errorf("password is too short")
+	}
+	if len(user.Password) > 16 {
+		return fmt.Errorf("password is too long")
+	}
+	for _, char := range user.Password {
+		if !unicode.IsDigit(char) && !unicode.Is(unicode.Latin, char) {
+			return fmt.Errorf("password should contain latin letter or numbers only")
+		}
+	}
+	return nil
+}
+
+func (user *User) GeneratePasswordHash() (string, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(user.Password), 14)
+	if err != nil {
+		return "", err
+	}
+	return string(bytes), nil
+}
+
+func (user *User) CheckPasswordHash(password string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+	return err == nil
+}
+
+/*const salt = "sjdhkashdsw823rgfeg"
+
+func ValidationCheck(user models.User) error {
+	if user.Email == "" && user.Firstname == "" && user.Lastname == "" {
+		return fmt.Errorf("empty field")
+	}
+	if len(user.Password) < 5 {
+		return fmt.Errorf("password is too short")
+	}
+	for _, char := range user.Password {
+		if !unicode.IsDigit(char) && !unicode.Is(unicode.Latin, char) {
+			return fmt.Errorf("password should contain latin letter or numbers only")
+		}
+	}
+	return nil
+}
+
+func GeneratePasswordHash(password string) string {
+	hash := sha1.New()
+	hash.Write([]byte(password))
+
+	return fmt.Sprintf("%x", hash.Sum([]byte(salt)))
+}*/

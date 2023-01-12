@@ -12,6 +12,7 @@ import (
 
 type Config struct {
 	IsProd            bool   `toml:"is_prod" env:"IS_PROD" envDefault:"false"`
+	SecretKey         string `toml:"secret_key" env:"SECRET_KEY" envDefault:"dsf498uh324seyu2837912sd7*7897"`
 	DSN               string `toml:"dsn" env:"DSN" envDefault:"postgres://shopteam:123@localhost:5432/shop?sslmode=disable"`
 	Port              string `toml:"port" env:"PORT" envDefault:":8000"`
 	FsPath            string `toml:"fs_path" env:"FS_PATH" envDefault:"./static/files/"`

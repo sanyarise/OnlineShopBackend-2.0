@@ -22,10 +22,11 @@ import (
 type Delivery struct {
 	itemUsecase     usecase.IItemUsecase
 	categoryUsecase usecase.ICategoryUsecase
-	userUsecase usecase.IUserUsecase
+	userUsecase     usecase.IUserUsecase
 	cartUsecase     usecase.ICartUsecase
 	logger          *zap.Logger
 	filestorage     filestorage.FileStorager
+	secretKey       string
 }
 
 // NewDelivery initialize delivery layer
@@ -35,14 +36,17 @@ func NewDelivery(
 	categoryUsecase usecase.ICategoryUsecase,
 	cartUsecase usecase.ICartUsecase,
 	logger *zap.Logger, fs filestorage.FileStorager,
+	secretKey string,
 ) *Delivery {
 	logger.Debug("Enter in NewDelivery()")
 	return &Delivery{
 		itemUsecase:     itemUsecase,
 		categoryUsecase: categoryUsecase,
 		cartUsecase:     cartUsecase,
-		userUsecase: userUsecase,
-		logger:          logger, filestorage: fs,
+		userUsecase:     userUsecase,
+		logger:          logger,
+		filestorage:     fs,
+		secretKey:       secretKey,
 	}
 }
 

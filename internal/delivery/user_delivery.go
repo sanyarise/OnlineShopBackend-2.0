@@ -13,11 +13,11 @@ import (
 	"OnlineShopBackend/internal/delivery/user"
 	"OnlineShopBackend/internal/delivery/user/userconfig"
 	"OnlineShopBackend/internal/models"
-	"OnlineShopBackend/internal/usecase"
+	"net/http"
+
 	"github.com/dghubble/gologin/v2"
 	gg "github.com/dghubble/gologin/v2/google"
 	"golang.org/x/oauth2/yandex"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -56,11 +56,17 @@ func (delivery *Delivery) CreateUser(c *gin.Context) {
 	}
 
 	// Password validation check
-	if err := user.ValidationCheck(*newUser); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	if err := newUser.ValidationCheck(); err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
 		return
 	}
-	hashPassword := user.GeneratePasswordHash(newUser.Password)
+	hashPassword, err := newUser.GeneratePasswordHash()
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
+		return
+	}
 	newUser.Password = hashPassword
 
 	// Create a user
@@ -70,10 +76,13 @@ func (delivery *Delivery) CreateUser(c *gin.Context) {
 	}
 	delivery.logger.Info("success: user was created")
 
-	token, err := delivery.userUsecase.CreateSessionJWT(c.Request.Context(), createdUser)
+	token, err := delivery.userUsecase.CreateSessionJWT(c.Request.Context(), createdUser, delivery.secretKey)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
+
+	c.SetSameSite(http.SameSiteLaxMode)
+	c.SetCookie("Authorization", token.AccessToken, 3600*24*30, "", "", false, true)
 
 	//user.IssueSession(delivery.logger, createdUser.ID.String())
 
@@ -95,13 +104,13 @@ func (delivery *Delivery) CreateUser(c *gin.Context) {
 //		@Router			/user/login [post]
 func (delivery *Delivery) LoginUser(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery LoginUser()")
-	var userCredentials usecase.Credentials
+	var userCredentials user.Credentials
 	if err := c.ShouldBindJSON(&userCredentials); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 	userExist, err := delivery.userUsecase.GetUserByEmail(c.Request.Context(), userCredentials.Email) //TODO check password
-	if err != nil || userExist.Password != user.GeneratePasswordHash(userCredentials.Password) {
+	if err != nil || !userExist.CheckPasswordHash(userCredentials.Password) {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
@@ -111,13 +120,15 @@ func (delivery *Delivery) LoginUser(c *gin.Context) {
 		return
 	}
 
-	token, err := delivery.userUsecase.CreateSessionJWT(c.Request.Context(), userExist)
+	token, err := delivery.userUsecase.CreateSessionJWT(c.Request.Context(), userExist, delivery.secretKey)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
+	c.SetSameSite(http.SameSiteLaxMode)
+	c.SetCookie("Authorization", token.AccessToken, 3600*24*30, "", "", false, true)
 
-	c.JSON(http.StatusOK, token)
+	c.JSON(http.StatusOK, gin.H{})
 }
 
 // UserProfile user profile
@@ -146,17 +157,17 @@ func (delivery *Delivery) UserProfile(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 	}
-	userProfile := usecase.Profile{
+	userProfile := models.User{
 		Email:     userData.Email,
-		FirstName: userData.Firstname,
-		LastName:  userData.Lastname,
-		Address: usecase.Address{
+		Firstname: userData.Firstname,
+		Lastname:  userData.Lastname,
+		Address: models.UserAddress{
 			Zipcode: userData.Address.Zipcode,
 			Country: userData.Address.Country,
 			City:    userData.Address.City,
 			Street:  userData.Address.Street,
 		},
-		Rights: usecase.Rights{
+		Rights: models.Rights{
 			ID:    userData.Rights.ID,
 			Name:  userData.Rights.Name,
 			Rules: userData.Rights.Rules,
@@ -171,6 +182,7 @@ func (delivery *Delivery) UserProfileUpdate(c *gin.Context) {
 	userCr, err := delivery.userUsecase.UserIdentity(header)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
 
 	var newInfoUser *models.User
@@ -290,7 +302,7 @@ func (delivery *Delivery) success(c *gin.Context) http.HandlerFunc {
 				return
 			}
 		}
-		token, err := delivery.userUsecase.CreateSessionJWT(c.Request.Context(), u)
+		token, err := delivery.userUsecase.CreateSessionJWT(c.Request.Context(), u, delivery.secretKey)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 			return
@@ -364,4 +376,3 @@ func (delivery *Delivery) CallbackYandex(c *gin.Context) {
 	//c.JSON(http.StatusOK, gin.H{})
 
 }
-

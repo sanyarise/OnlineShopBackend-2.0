@@ -27,10 +27,6 @@ func NewUserUsecase(userStore repository.UserStore, logger *zap.Logger) IUserUse
 	return &UserUsecase{userStore: userStore, logger: logger}
 }
 
-//type JwtRealisation struct {
-//	ttl int64
-//}
-
 type Payload struct {
 	jwt.StandardClaims
 	Email    string
@@ -39,43 +35,13 @@ type Payload struct {
 	Password string
 }
 
-type Credentials struct {
-	Email    string `json:"email" binding:"required"`
-	Password string `json:"password" binding:"required"`
-}
-
 type Token struct {
 	AccessToken  string `json:"access_token"`
 	RefreshToken string `json:"refresh_token,omitempty"`
 }
 
-//type SessionLog struct {
-//	logger zap.Logger
-//}
-
-type Profile struct {
-	Email     string  `json:"email,omitempty"`
-	FirstName string  `json:"firstname,omitempty"`
-	LastName  string  `json:"lastname,omitempty"`
-	Address   Address `json:"address,omitempty"`
-	Rights    Rights  `json:"rights,omitempty"`
-}
-
-type Address struct {
-	Zipcode string `json:"zipcode,omitempty"`
-	Country string `json:"country,omitempty"`
-	City    string `json:"city,omitempty"`
-	Street  string `json:"street,omitempty"`
-}
-
-type Rights struct {
-	ID    uuid.UUID `json:"id,omitempty"`
-	Name  string    `json:"name,omitempty"`
-	Rules []string  `json:"rules,omitempty"`
-}
-
 func (usecase *UserUsecase) CreateUser(ctx context.Context, user *models.User) (*models.User, error) {
-	usecase.logger.Debug("Enter in usecase CreateUser()")
+	usecase.logger.Sugar().Debugf("Enter in usecase CreateUser() with args: ctx, user: %v", user)
 
 	rights, err := usecase.userStore.GetRightsId(ctx, "Customer")
 	if err != nil {
@@ -112,14 +78,13 @@ func (usecase *UserUsecase) GetUserByEmail(ctx context.Context, email string) (*
 
 	user, err := usecase.userStore.GetUserByEmail(ctx, email)
 	if err != nil {
-		return &models.User{}, err
+		return nil, err
 	}
 
 	return user, nil
 }
 
 func (usecase *UserUsecase) GetRightsId(ctx context.Context, name string) (*models.Rights, error) {
-	//var rights models.Rights
 
 	rights, err := usecase.userStore.GetRightsId(ctx, name)
 	if err != nil {
@@ -137,8 +102,7 @@ func (usecase *UserUsecase) UpdateUserData(ctx context.Context, user *models.Use
 	return user, nil
 }
 
-func (usecase *UserUsecase) NewJWT(payload Payload) (string, error) {
-	key := []byte("dsf498uh324seyu2837912sd7*7897")              //TODO
+func (usecase *UserUsecase) NewJWT(payload Payload, key string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &payload) //jwt.SigningMethodHS256
 	return token.SignedString(key)
 }
@@ -156,7 +120,7 @@ func (usecase *UserUsecase) NewRefreshToken() (string, error) {
 	return fmt.Sprintf("%x", refreshToken), nil
 }
 
-func (usecase *UserUsecase) ParseAuthHeader(header string) (*Payload, error) {
+func (usecase *UserUsecase) UserIdentity(header string) (*Payload, error) {
 	if header == "" {
 		return &Payload{}, errors.New("empty header")
 	}
@@ -192,15 +156,7 @@ func (usecase *UserUsecase) ParseAuthHeader(header string) (*Payload, error) {
 	return userCred, nil
 }
 
-func (usecase *UserUsecase) UserIdentity(header string) (*Payload, error) {
-	userCr, err := usecase.ParseAuthHeader(header)
-	if err != nil {
-		return &Payload{}, errors.New("parse error")
-	}
-	return userCr, nil
-}
-
-func (usecase *UserUsecase) CreateSessionJWT(ctx context.Context, user *models.User) (Token, error) {
+func (usecase *UserUsecase) CreateSessionJWT(ctx context.Context, user *models.User, key string) (Token, error) {
 	payload := Payload{
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Hour * 72).Unix(),
@@ -211,7 +167,7 @@ func (usecase *UserUsecase) CreateSessionJWT(ctx context.Context, user *models.U
 		Password: user.Password,
 	}
 
-	accessToken, err := usecase.NewJWT(payload)
+	accessToken, err := usecase.NewJWT(payload, key)
 	if err != nil {
 		return Token{}, fmt.Errorf("unable to create a token")
 	}
@@ -232,4 +188,3 @@ func (usecase *UserUsecase) CreateSessionJWT(ctx context.Context, user *models.U
 
 	return token, nil
 }
-

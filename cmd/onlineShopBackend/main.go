@@ -58,7 +58,7 @@ func main() {
 	cartUsecase := usecase.NewCartUseCase(cartStore, l)
 
 	filestorage := filestorage.NewOnDiskLocalStorage(cfg.ServerURL, cfg.FsPath, l)
-	delivery := delivery.NewDelivery(itemUsecase, userUsecase, categoryUsecase, cartUsecase, l, filestorage)
+	delivery := delivery.NewDelivery(itemUsecase, userUsecase, categoryUsecase, cartUsecase, l, filestorage, cfg.SecretKey)
 
 	router := router.NewRouter(delivery, l)
 	serverOptions := map[string]int{
@@ -77,7 +77,6 @@ func main() {
 	l.Info(fmt.Sprintf("Server start successful on port: %v", cfg.Port))
 
 	<-ctx.Done()
-
 
 	err = pgstore.ShutDown(cfg.Timeout)
 	if err != nil {
