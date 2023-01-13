@@ -13,6 +13,7 @@ import (
 	"OnlineShopBackend/internal/delivery/user"
 	"OnlineShopBackend/internal/delivery/user/userconfig"
 	"OnlineShopBackend/internal/models"
+	"fmt"
 	"net/http"
 
 	"github.com/dghubble/gologin/v2"
@@ -43,12 +44,12 @@ func (delivery *Delivery) CreateUser(c *gin.Context) {
 	}
 
 	// Password validation check
-	if err := newUser.ValidationCheck(); err != nil {
+	if err := newUser.ValidationCheck(delivery.logger); err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusBadRequest, err)
 		return
 	}
-	hashPassword, err := newUser.GeneratePasswordHash()
+	hashPassword, err := newUser.GeneratePasswordHash(delivery.logger)
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusBadRequest, err)
@@ -83,8 +84,9 @@ func (delivery *Delivery) LoginUser(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	fmt.Printf("userCredentials: %v", userCredentials)
 	userExist, err := delivery.userUsecase.GetUserByEmail(c.Request.Context(), userCredentials.Email) //TODO check password
-	if err != nil || !userExist.CheckPasswordHash(userCredentials.Password) {
+	if err != nil || !userExist.CheckPasswordHash(userCredentials.Password, delivery.logger) {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}

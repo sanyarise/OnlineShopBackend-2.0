@@ -107,11 +107,7 @@ INSERT INTO items(id, name, category, description, price, vendor, pictures) VALU
 INSERT INTO items(id, name, category, description, price, vendor, pictures) VALUES ('7eb10fc6-20e8-4b3b-95a3-0f55cf0145d6', 'smartphone techno', 'd0d3df2d-f6c8-4956-9d76-998ee1ec8a39', 'best smartphone', 8990, 'samsung', '{"http://localhost:8000/files/items/7eb10fc6-20e8-4b3b-95a3-0f55cf0145d6/20221213132833.jpeg"}');
 INSERT INTO rights(name, rules) VALUES ('Customer', '{common}');
 INSERT INTO rights(id, name, rules) VALUES ('fa9c4027-b2d4-4468-8cf5-beae213ab46d', 'Admin', '{admin}');
-INSERT INTO users(name, password, email, rights) VALUES ('admin', 'qwerty12345', 'admin@gmail.com', 'fa9c4027-b2d4-4468-8cf5-beae213ab46d');
-
-
-
-
+INSERT INTO users(id, name, lastname, password, email, rights, zipcode, country, city, street) VALUES ('38811cd6-0feb-475b-86d5-c617d4ca2427','testname','testlastname', 'qwerty12345', 'admin@gmail.com', 'fa9c4027-b2d4-4468-8cf5-beae213ab46d','000000','testcountry','testcity','teststreet');
 
 
 

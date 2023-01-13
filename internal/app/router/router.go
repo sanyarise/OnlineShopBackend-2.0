@@ -72,12 +72,12 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 	}
 
 	routes := Routes{
-		{
+		/*{
 			"Index",
 			http.MethodGet,
 			"/",
 			delivery.Index,
-		},
+		},*/
 		{
 			"GetFileList",
 			http.MethodGet,
@@ -327,6 +327,7 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 			gin.DELETE(route.Pattern, route.HandlerFunc)
 		}
 	}
+	gin.GET("/", delivery.Authorize, delivery.Index)
 	router.Engine = gin
 	return router
 }

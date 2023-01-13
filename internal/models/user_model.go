@@ -17,6 +17,7 @@ import (
 	"unicode"
 
 	"github.com/google/uuid"
+	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -32,7 +33,8 @@ type User struct {
 	Rights    Rights
 }
 
-func (user *User) ValidationCheck() error {
+func (user *User) ValidationCheck(logger *zap.Logger) error {
+	logger.Debug("Enter in models user ValidationCheck()")
 	if user.Email == "" && user.Firstname == "" && user.Lastname == "" {
 		return fmt.Errorf("empty fields")
 	}
@@ -53,18 +55,22 @@ func (user *User) ValidationCheck() error {
 			return fmt.Errorf("password should contain latin letter or numbers only")
 		}
 	}
+	logger.Info("Validation success")
 	return nil
 }
 
-func (user *User) GeneratePasswordHash() (string, error) {
+func (user *User) GeneratePasswordHash(logger *zap.Logger) (string, error) {
+	logger.Debug("Enter in models.User GeneratePasswordHash()")
 	bytes, err := bcrypt.GenerateFromPassword([]byte(user.Password), 14)
 	if err != nil {
 		return "", err
 	}
+	logger.Info("Generation Password hash success")
 	return string(bytes), nil
 }
 
-func (user *User) CheckPasswordHash(password string) bool {
+func (user *User) CheckPasswordHash(password string, logger *zap.Logger) bool {
+	logger.Sugar().Debugf("Enter in models user CheckPasswordHash() with args: password: %s, logger", password)
 	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	return err == nil
 }

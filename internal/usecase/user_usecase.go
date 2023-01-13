@@ -24,6 +24,7 @@ type UserUsecase struct {
 }
 
 func NewUserUsecase(userStore repository.UserStore, logger *zap.Logger) IUserUsecase {
+	logger.Debug("Enter in usecase NewUserUsecase()")
 	return &UserUsecase{userStore: userStore, logger: logger}
 }
 
@@ -74,6 +75,7 @@ func (usecase *UserUsecase) CreateUser(ctx context.Context, user *models.User) (
 }
 
 func (usecase *UserUsecase) GetUserByEmail(ctx context.Context, email string) (*models.User, error) {
+	usecase.logger.Sugar().Debugf("Enter in usecase GetUserByEmail() with args: ctx, email: %s", email)
 	var user *models.User
 
 	user, err := usecase.userStore.GetUserByEmail(ctx, email)
@@ -85,16 +87,16 @@ func (usecase *UserUsecase) GetUserByEmail(ctx context.Context, email string) (*
 }
 
 func (usecase *UserUsecase) GetRightsId(ctx context.Context, name string) (*models.Rights, error) {
-
+	usecase.logger.Sugar().Debugf("Enter in usecase user GetRightsId() with args: ctx, name: %s", name)
 	rights, err := usecase.userStore.GetRightsId(ctx, name)
 	if err != nil {
 		return nil, err
 	}
-
 	return &rights, nil
 }
 
 func (usecase *UserUsecase) UpdateUserData(ctx context.Context, user *models.User) (*models.User, error) {
+	usecase.logger.Sugar().Debugf("Enter in usecase UpdateUserData() with args: ctx, user: %v", user)
 	user, err := usecase.userStore.UpdateUserData(ctx, user)
 	if err != nil {
 		return nil, err
@@ -103,11 +105,13 @@ func (usecase *UserUsecase) UpdateUserData(ctx context.Context, user *models.Use
 }
 
 func (usecase *UserUsecase) NewJWT(payload Payload, key string) (string, error) {
+	usecase.logger.Sugar().Debugf("Enter in usecase user NewJWT() with args: payload: %v, key: %s", payload, key)
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &payload) //jwt.SigningMethodHS256
 	return token.SignedString(key)
 }
 
 func (usecase *UserUsecase) NewRefreshToken() (string, error) {
+	usecase.logger.Sugar().Debugf("Enter in usecase user NewRefreshToken()")
 	refreshToken := make([]byte, 32)
 	t := rand.NewSource(time.Now().Unix())
 	r := rand.New(t)
@@ -121,6 +125,7 @@ func (usecase *UserUsecase) NewRefreshToken() (string, error) {
 }
 
 func (usecase *UserUsecase) UserIdentity(header string) (*Payload, error) {
+	usecase.logger.Sugar().Debugf("Enter in usecase UserIdentity() with args: header: %s", header)
 	if header == "" {
 		return &Payload{}, errors.New("empty header")
 	}
@@ -157,6 +162,7 @@ func (usecase *UserUsecase) UserIdentity(header string) (*Payload, error) {
 }
 
 func (usecase *UserUsecase) CreateSessionJWT(ctx context.Context, user *models.User, key string) (Token, error) {
+	usecase.logger.Sugar().Debugf("Enter in usecase user CreateSessionJWT() with args: ctx, user: %v, key: %s", user, key)
 	payload := Payload{
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Hour * 72).Unix(),

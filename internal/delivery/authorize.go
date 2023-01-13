@@ -11,6 +11,7 @@ import (
 )
 
 func (delivery *Delivery) Authorize(c *gin.Context) {
+	delivery.logger.Debug("Enter in delivery Authorize()")
 	tokenString, err := c.Cookie("Authorization")
 	if err != nil {
 		c.AbortWithStatus(http.StatusUnauthorized)

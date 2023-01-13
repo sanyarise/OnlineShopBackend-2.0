@@ -53,11 +53,21 @@ func (u *user) GetUserByEmail(ctx context.Context, email string) (*models.User, 
 		return &models.User{}, fmt.Errorf("context is closed")
 	default:
 		pool := u.storage.GetPool()
-		row := pool.QueryRow(ctx, `SELECT users.id, users.name, lastname, password, email, rights.id, zipcode, country, city, street,
-		rights.name, rights.rules FROM users INNER JOIN rights ON email=$1 and rights.id=users.rights`, email)
+		row := pool.QueryRow(ctx, `SELECT users.id, users.name, lastname, password, email, rights.id, zipcode, country, city, street, rights.name, rights.rules FROM users INNER JOIN rights ON email=$1 and rights.id=users.rights`, email)
 		var user = models.User{}
-		err := row.Scan(&user.ID, &user.Firstname, &user.Lastname, &user.Password, &user.Email, &user.Rights.ID,
-			&user.Address.Zipcode, &user.Address.Country, &user.Address.City, &user.Address.Street, &user.Rights.Name, &user.Rights.Rules)
+		err := row.Scan(
+			&user.ID,
+			&user.Firstname,
+			&user.Lastname,
+			&user.Password,
+			&user.Email,
+			&user.Rights.ID,
+			&user.Address.Zipcode,
+			&user.Address.Country,
+			&user.Address.City,
+			&user.Address.Street,
+			&user.Rights.Name,
+			&user.Rights.Rules)
 		if err != nil {
 			return &models.User{}, fmt.Errorf("can't get user from database: %w", err)
 		}
