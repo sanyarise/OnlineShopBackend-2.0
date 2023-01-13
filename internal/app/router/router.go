@@ -54,7 +54,6 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 	//config.AllowHeaders = []string{"Authorization"}
 	//gin.Use(cors.New(config))
 
-
 	//gin.Use(cors.New(cors.Config{
 	//	AllowOrigins: []string{"https://accounts.google.com", "https://accounts.google.com/o/oauth2/auth?", "http://localhost:8000", "http://localhost:3000", "http://localhost:8000/user/login/google", "*"}, //,
 	//	AllowMethods:     []string{"PUT", "PATCH", "GET", "POST", "OPTIONS", "*"},
@@ -62,7 +61,6 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 	//	ExposeHeaders:    []string{"Content-Length", "*"},
 	//	AllowCredentials: true,
 	//}))
-
 
 	gin.Use(ginzap.RecoveryWithZap(logger, true))
 	gin.Static("/files", "./static/files")
@@ -219,6 +217,36 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 			delivery.DeleteCart,
 		},
 		{
+			"CreateRights",
+			http.MethodPost,
+			"/rights/create",
+			delivery.CreateRights,
+		},
+		{
+			"UpdateRights",
+			http.MethodPut,
+			"/rights/update",
+			delivery.UpdateRights,
+		},
+		{
+			"DeleteRights",
+			http.MethodDelete,
+			"/rights/delete/:rightsID",
+			delivery.DeleteRights,
+		},
+		{
+			"GetRights",
+			http.MethodGet,
+			"/rights/:rightsID",
+			delivery.GetRights,
+		},
+		{
+			"RightsList",
+			http.MethodGet,
+			"/rights/list",
+			delivery.RightsList,
+		},
+		{
 			"CreateUser",
 			http.MethodPost,
 			"/user/create",
@@ -302,7 +330,6 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 	router.Engine = gin
 	return router
 }
-
 
 func CORSMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
