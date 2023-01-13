@@ -9,21 +9,21 @@ import (
 	"go.uber.org/zap"
 )
 
-var _ IRightsUsecase = usecaseRights{}
+var _ IRightsUsecase = rightsUsecase{}
 
-type usecaseRights struct {
+type rightsUsecase struct {
 	rightsRepo repository.RightsStore
 	logger     *zap.Logger
 }
 
-func NewUsecaseRights(rigthsRepo repository.RightsStore, logger *zap.Logger) IRightsUsecase {
-	return &usecaseRights{
+func NewRightsUsecase(rigthsRepo repository.RightsStore, logger *zap.Logger) IRightsUsecase {
+	return &rightsUsecase{
 		rightsRepo: rigthsRepo,
 		logger:     logger,
 	}
 }
 
-func (usecase usecaseRights) CreateRights(ctx context.Context, rights *models.Rights) (uuid.UUID, error) {
+func (usecase rightsUsecase) CreateRights(ctx context.Context, rights *models.Rights) (uuid.UUID, error) {
 	usecase.logger.Sugar().Debugf("Enter in usecase CreateRights() with args: ctx, rights: %v", rights)
 
 	id, err := usecase.rightsRepo.CreateRights(ctx, rights)
@@ -33,7 +33,7 @@ func (usecase usecaseRights) CreateRights(ctx context.Context, rights *models.Ri
 	return id, nil
 }
 
-func (usecase usecaseRights) UpdateRights(ctx context.Context, rights *models.Rights) error {
+func (usecase rightsUsecase) UpdateRights(ctx context.Context, rights *models.Rights) error {
 	usecase.logger.Sugar().Debugf("Enter in usecase UpdateRights() with args: ctx, rights: %v", rights)
 
 	err := usecase.rightsRepo.UpdateRights(ctx, rights)
@@ -43,7 +43,7 @@ func (usecase usecaseRights) UpdateRights(ctx context.Context, rights *models.Ri
 	return nil
 }
 
-func (usecase usecaseRights) DeleteRights(ctx context.Context, id uuid.UUID) error {
+func (usecase rightsUsecase) DeleteRights(ctx context.Context, id uuid.UUID) error {
 	usecase.logger.Sugar().Debugf("Enter in usecase DeleteRights() with args: ctx, id: %v", id)
 
 	err := usecase.rightsRepo.DeleteRights(ctx, id)
@@ -53,7 +53,7 @@ func (usecase usecaseRights) DeleteRights(ctx context.Context, id uuid.UUID) err
 	return nil
 }
 
-func (usecase usecaseRights) GetRights(ctx context.Context, id uuid.UUID) (*models.Rights, error) {
+func (usecase rightsUsecase) GetRights(ctx context.Context, id uuid.UUID) (*models.Rights, error) {
 	usecase.logger.Sugar().Debugf("Enter in usecase GetRights() with args: ctx, id: %v", id)
 
 	rights, err := usecase.rightsRepo.GetRights(ctx, id)
@@ -63,7 +63,7 @@ func (usecase usecaseRights) GetRights(ctx context.Context, id uuid.UUID) (*mode
 	return rights, nil
 }
 
-func (usecase usecaseRights) RightsList(ctx context.Context) ([]models.Rights, error) {
+func (usecase rightsUsecase) RightsList(ctx context.Context) ([]models.Rights, error) {
 	usecase.logger.Debug("Enter in usecase RightsList() with args: ctx")
 
 	rightsList, err := usecase.rightsRepo.RightsList(ctx)

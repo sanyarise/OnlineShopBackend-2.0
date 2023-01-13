@@ -77,7 +77,7 @@ func (delivery *Delivery) GetCart(c *gin.Context) {
 //	@Tags			carts
 //	@Accept			json
 //	@Produce		json
-//	@Param			userID	path		string	true	"Id of user (if user autorized)"
+//	@Param			userID	path		string	true	"Id of user (if user authorized)"
 //	@Success		201		{object}	cart.CartId
 //	@Failure		400		{object}	ErrorResponse
 //	@Failure		403		"Forbidden"

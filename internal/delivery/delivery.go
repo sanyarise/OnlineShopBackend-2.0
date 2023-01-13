@@ -24,6 +24,7 @@ type Delivery struct {
 	categoryUsecase usecase.ICategoryUsecase
 	userUsecase     usecase.IUserUsecase
 	cartUsecase     usecase.ICartUsecase
+	rightsUsecase   usecase.IRightsUsecase
 	logger          *zap.Logger
 	filestorage     filestorage.FileStorager
 	secretKey       string
@@ -35,6 +36,7 @@ func NewDelivery(
 	userUsecase usecase.IUserUsecase,
 	categoryUsecase usecase.ICategoryUsecase,
 	cartUsecase usecase.ICartUsecase,
+	rightsUsecase usecase.IRightsUsecase,
 	logger *zap.Logger, fs filestorage.FileStorager,
 	secretKey string,
 ) *Delivery {
@@ -44,6 +46,7 @@ func NewDelivery(
 		categoryUsecase: categoryUsecase,
 		cartUsecase:     cartUsecase,
 		userUsecase:     userUsecase,
+		rightsUsecase:   rightsUsecase,
 		logger:          logger,
 		filestorage:     fs,
 		secretKey:       secretKey,
