@@ -27,19 +27,6 @@ import (
 	//"golang.org/x/oauth2/yandex"
 )
 
-// CreateUser create a new user
-//
-//		@Summary		Create a new user
-//		@Description	Method provides to create a user
-//		@Tags			user
-//		@Accept			json
-//		@Produce		json
-//	 	@Param			user	body	user.Credentials	true	"User data" //TODO
-//		@Success		200	{object} user.Token
-//		@Failure		400	"Bad Request"
-//		@Failure		404	{object}	ErrorResponse	"404 Not Found"
-//		@Failure		500	{object}	ErrorResponse
-//		@Router			/user/create [post]
 func (delivery *Delivery) CreateUser(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery CreateUser()")
 	ctx := c.Request.Context()
@@ -89,19 +76,6 @@ func (delivery *Delivery) CreateUser(c *gin.Context) {
 	c.JSON(http.StatusOK, token)
 }
 
-// LoginUser login user
-//
-//		@Summary		Login user
-//		@Description	Method provides to login a user
-//		@Tags			user
-//		@Accept			json
-//		@Produce		json
-//	 @Param			user	body	user.Credentials	true	"User data"
-//		@Success		200	{object} user.Token //TODO
-//		@Failure		404	"Bad Request"
-//		@Failure		404	{object}	ErrorResponse	"404 Not Found"
-//		@Failure		500	{object}	ErrorResponse
-//		@Router			/user/login [post]
 func (delivery *Delivery) LoginUser(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery LoginUser()")
 	var userCredentials user.Credentials
@@ -131,19 +105,6 @@ func (delivery *Delivery) LoginUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{})
 }
 
-// UserProfile user profile
-//
-//	@Summary		User profile
-//	@Description	Method provides to get profile info
-//	@Tags			user
-//	@Accept			json
-//	@Produce		json
-//	@Security	    ApiKeyAuth || firebase
-//	@Success		200	{object} user.Profile //TODO
-//	@Failure		404	"Bad Request"
-//	@Failure		404	{object}	ErrorResponse	"404 Not Found"
-//	@Failure		500	{object}	ErrorResponse
-//	@Router			/user/profile [get]
 func (delivery *Delivery) UserProfile(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery UserProfile()")
 	header := c.GetHeader("Authorization")
@@ -217,16 +178,6 @@ func (delivery *Delivery) TokenUpdate(c *gin.Context) {
 
 }
 
-// LoginUserGoogle Login Google
-//
-//	@Summary		Login with Google oauth2
-//	@Description	Method provides to log in with Google
-//	@Tags			user
-//	@Accept			json
-//	@Produce		json
-//	@Success		200
-//	@Failure		500
-//	@Router			/user/login/google [get]
 func (delivery *Delivery) LoginUserGoogle(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery LoginUserGoogle()")
 	cfg, err := userconfig.NewUserConfig()
@@ -247,16 +198,6 @@ func (delivery *Delivery) LoginUserGoogle(c *gin.Context) {
 
 }
 
-// CallbackGoogle internal method
-//
-//	@Summary		Callback Google provides logic for oauth google login
-//	@Description	Method provides to log in with Google
-//	@Tags			user
-//	@Accept			json
-//	@Produce		json
-//	@Success		200
-//	@Failure		500
-//	@Router			/user/callbackGoogle [get]
 func (delivery *Delivery) CallbackGoogle(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery CallbackGoogle()")
 	cfg, err := userconfig.NewUserConfig()
@@ -330,16 +271,6 @@ func failure(c *gin.Context) http.HandlerFunc {
 	}
 }
 
-// LogoutUser logout
-//
-//	@Summary		Logout
-//	@Description	Method provides to log out
-//	@Tags			user
-//	@Accept			json
-//	@Produce		json
-//	@Success		200
-//	@Failure		404	"Bad Request"
-//	@Router			/user/logout [get]
 func (delivery *Delivery) LogoutUser(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery LogoutUser()")
 	c.SetCookie("token", "", -1, "/", "http://localhost:3000", false, true) //TODO change to webapp url

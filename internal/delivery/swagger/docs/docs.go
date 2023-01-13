@@ -89,7 +89,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Id of user (if user autorized)",
+                        "description": "Id of user (if user authorized)",
                         "name": "userID",
                         "in": "path",
                         "required": true
@@ -1293,9 +1293,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/user/create": {
+        "/rights/create/": {
             "post": {
-                "description": "Method provides to create a user",
+                "description": "Method provides to create rights.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1303,29 +1303,35 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "user"
+                    "rights"
                 ],
-                "summary": "Create a new user",
+                "summary": "Method provides to create rights",
                 "parameters": [
                     {
-                        "description": "User data",
-                        "name": "user",
+                        "description": "Data for creating rights",
+                        "name": "rights",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/user.Credentials"
+                            "$ref": "#/definitions/rights.ShortRights"
                         }
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "201": {
+                        "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/user.Token"
+                            "$ref": "#/definitions/rights.RightsId"
                         }
                     },
                     "400": {
-                        "description": "Bad Request"
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
                     },
                     "404": {
                         "description": "404 Not Found",
@@ -1342,9 +1348,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/user/login": {
-            "post": {
-                "description": "Method provides to login a user",
+        "/rights/delete/{rightsID}": {
+            "delete": {
+                "description": "Method provides to delete rights.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1352,74 +1358,49 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "user"
+                    "rights"
                 ],
-                "summary": "Login user",
+                "summary": "Method provides to delete rights",
                 "parameters": [
                     {
-                        "description": "User data",
-                        "name": "user",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/user.Credentials"
-                        }
+                        "type": "string",
+                        "description": "id of rights",
+                        "name": "rightsID",
+                        "in": "path",
+                        "required": true
                     }
                 ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/user.Token"
-                        }
-                    },
-                    "404": {
-                        "description": "404 Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/delivery.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/delivery.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/user/logout": {
-            "get": {
-                "description": "Method provides to log out",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "user"
-                ],
-                "summary": "Logout",
                 "responses": {
                     "200": {
                         "description": "OK"
                     },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
                     "404": {
-                        "description": "Bad Request"
+                        "description": "404 Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
                     }
                 }
             }
         },
-        "/user/profile": {
+        "/rights/list": {
             "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": [],
-                        "firebase": []
-                    }
-                ],
-                "description": "Method provides to get profile info",
+                "description": "Method provides to get list of rights",
                 "consumes": [
                     "application/json"
                 ],
@@ -1427,15 +1408,132 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "user"
+                    "rights"
                 ],
-                "summary": "User profile",
+                "summary": "Get list of rights",
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "List of rights",
                         "schema": {
-                            "$ref": "#/definitions/user.Profile"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/rights.OutRights"
+                            }
                         }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "404 Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/rights/update": {
+            "put": {
+                "description": "Method provides to update rights",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "rights"
+                ],
+                "summary": "Method provides to update rights",
+                "parameters": [
+                    {
+                        "description": "Data for updating rights",
+                        "name": "rights",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/rights.OutRights"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "404 Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/rights/{rightsID}": {
+            "get": {
+                "description": "The method allows you to get the rights by id.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "rights"
+                ],
+                "summary": "Get rights by id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id of rights",
+                        "name": "rightsID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Rights structure",
+                        "schema": {
+                            "$ref": "#/definitions/rights.OutRights"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
                     },
                     "404": {
                         "description": "404 Not Found",
@@ -1497,6 +1595,7 @@ const docTemplate = `{
             "required": [
                 "item_id",
                 "price",
+                "quantity",
                 "title"
             ],
             "properties": {
@@ -1513,6 +1612,12 @@ const docTemplate = `{
                     "default": 10,
                     "minimum": 0,
                     "example": 1990
+                },
+                "quantity": {
+                    "type": "integer",
+                    "default": 1,
+                    "minimum": 1,
+                    "example": 3
                 },
                 "title": {
                     "type": "string",
@@ -1803,62 +1908,21 @@ const docTemplate = `{
                 }
             }
         },
-        "user.Address": {
+        "rights.OutRights": {
             "type": "object",
-            "properties": {
-                "city": {
-                    "type": "string"
-                },
-                "country": {
-                    "type": "string"
-                },
-                "street": {
-                    "type": "string"
-                },
-                "zipcode": {
-                    "type": "string"
-                }
-            }
-        },
-        "user.Credentials": {
-            "type": "object",
-            "properties": {
-                "email": {
-                    "type": "string"
-                },
-                "password": {
-                    "type": "string"
-                }
-            }
-        },
-        "user.Profile": {
-            "type": "object",
-            "properties": {
-                "address": {
-                    "$ref": "#/definitions/user.Address"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "first_name": {
-                    "type": "string"
-                },
-                "last_name": {
-                    "type": "string"
-                },
-                "rights": {
-                    "$ref": "#/definitions/user.Rights"
-                }
-            }
-        },
-        "user.Rights": {
-            "type": "object",
+            "required": [
+                "id",
+                "name"
+            ],
             "properties": {
                 "id": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "uuid",
+                    "example": "00000000-0000-0000-0000-000000000000"
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "admin"
                 },
                 "rules": {
                     "type": "array",
@@ -1868,14 +1932,34 @@ const docTemplate = `{
                 }
             }
         },
-        "user.Token": {
+        "rights.RightsId": {
             "type": "object",
+            "required": [
+                "id"
+            ],
             "properties": {
-                "access_token": {
-                    "type": "string"
+                "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "example": "00000000-0000-0000-0000-000000000000"
+                }
+            }
+        },
+        "rights.ShortRights": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "example": "admin"
                 },
-                "refresh_token": {
-                    "type": "string"
+                "rules": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         }

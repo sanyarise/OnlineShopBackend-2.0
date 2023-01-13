@@ -10,6 +10,20 @@ import (
 	"github.com/google/uuid"
 )
 
+// CreateRights
+//
+//	@Summary		Method provides to create rights
+//	@Description	Method provides to create rights.
+//	@Tags			rights
+//	@Accept			json
+//	@Produce		json
+//	@Param			rights	body		rights.ShortRights	true	"Data for creating rights"
+//	@Success		201		{object}	rights.RightsId
+//	@Failure		400		{object}	ErrorResponse
+//	@Failure		403		"Forbidden"
+//	@Failure		404		{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500		{object}	ErrorResponse
+//	@Router			/rights/create/ [post]
 func (delivery *Delivery) CreateRights(c *gin.Context) {
 	delivery.logger.Sugar().Debugf("Enter in delivery CreateRights()")
 
@@ -41,6 +55,20 @@ func (delivery *Delivery) CreateRights(c *gin.Context) {
 	c.JSON(http.StatusCreated, rights.RightsId{Value: id.String()})
 }
 
+// UpdateItem - update rights
+//
+//	@Summary		Method provides to update rights
+//	@Description	Method provides to update rights
+//	@Tags			rights
+//	@Accept			json
+//	@Produce		json
+//	@Param			rights	body	rights.OutRights	true	"Data for updating rights"
+//	@Success		200
+//	@Failure		400	{object}	ErrorResponse
+//	@Failure		403	"Forbidden"
+//	@Failure		404	{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500	{object}	ErrorResponse
+//	@Router			/rights/update [put]
 func (delivery *Delivery) UpdateRights(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery UpdateRights()")
 
@@ -71,6 +99,20 @@ func (delivery *Delivery) UpdateRights(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{})
 }
 
+// DeleteRights deleted rights by id
+//
+//	@Summary		Method provides to delete rights
+//	@Description	Method provides to delete rights.
+//	@Tags			rights
+//	@Accept			json
+//	@Produce		json
+//	@Param			rightsID	path	string	true	"id of rights"
+//	@Success		200
+//	@Failure		400	{object}	ErrorResponse
+//	@Failure		403	"Forbidden"
+//	@Failure		404	{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500	{object}	ErrorResponse
+//	@Router			/rights/delete/{rightsID} [delete]
 func (delivery *Delivery) DeleteRights(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery DeleteRights()")
 
@@ -91,6 +133,20 @@ func (delivery *Delivery) DeleteRights(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{})
 }
 
+// GetRights - returns rights by id
+//
+//	@Summary		Get rights by id
+//	@Description	The method allows you to get the rights by id.
+//	@Tags			rights
+//	@Accept			json
+//	@Produce		json
+//	@Param			rightsID	path		string				true	"id of rights"
+//	@Success		200			{object}	rights.OutRights	"Rights structure"
+//	@Failure		400			{object}	ErrorResponse
+//	@Failure		403			"Forbidden"
+//	@Failure		404			{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500			{object}	ErrorResponse
+//	@Router			/rights/{rightsID} [get]
 func (delivery *Delivery) GetRights(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery GetRights()")
 
@@ -115,6 +171,19 @@ func (delivery *Delivery) GetRights(c *gin.Context) {
 	})
 }
 
+// RightsList - returns list of all rights
+//
+//	@Summary		Get list of rights
+//	@Description	Method provides to get list of rights
+//	@Tags			rights
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	array		rights.OutRights	"List of rights"
+//	@Failure		400	{object}	ErrorResponse
+//	@Failure		403	"Forbidden"
+//	@Failure		404	{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500	{object}	ErrorResponse
+//	@Router			/rights/list [get]
 func (delivery *Delivery) RightsList(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery RightsList()")
 
@@ -134,5 +203,5 @@ func (delivery *Delivery) RightsList(c *gin.Context) {
 			Rules: right.Rules,
 		}
 	}
-	c.JSON(http.StatusOK, rights.RightsList{List: outList})
+	c.JSON(http.StatusOK, outList)
 }

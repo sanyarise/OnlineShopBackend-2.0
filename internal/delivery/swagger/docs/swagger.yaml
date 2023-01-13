@@ -40,12 +40,18 @@ definitions:
         example: 1990
         minimum: 0
         type: integer
+      quantity:
+        default: 1
+        example: 3
+        minimum: 1
+        type: integer
       title:
         example: Пылесос
         type: string
     required:
     - item_id
     - price
+    - quantity
     - title
     type: object
   cart.ShortCart:
@@ -254,54 +260,43 @@ definitions:
     - price
     - title
     type: object
-  user.Address:
-    properties:
-      city:
-        type: string
-      country:
-        type: string
-      street:
-        type: string
-      zipcode:
-        type: string
-    type: object
-  user.Credentials:
-    properties:
-      email:
-        type: string
-      password:
-        type: string
-    type: object
-  user.Profile:
-    properties:
-      address:
-        $ref: '#/definitions/user.Address'
-      email:
-        type: string
-      first_name:
-        type: string
-      last_name:
-        type: string
-      rights:
-        $ref: '#/definitions/user.Rights'
-    type: object
-  user.Rights:
+  rights.OutRights:
     properties:
       id:
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
         type: string
       name:
+        example: admin
         type: string
       rules:
         items:
           type: string
         type: array
+    required:
+    - id
+    - name
     type: object
-  user.Token:
+  rights.RightsId:
     properties:
-      access_token:
+      id:
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
         type: string
-      refresh_token:
+    required:
+    - id
+    type: object
+  rights.ShortRights:
+    properties:
+      name:
+        example: admin
         type: string
+      rules:
+        items:
+          type: string
+        type: array
+    required:
+    - name
     type: object
 info:
   contact:
@@ -387,7 +382,7 @@ paths:
       - application/json
       description: Method provides to create cart with items.
       parameters:
-      - description: Id of user (if user autorized)
+      - description: Id of user (if user authorized)
         in: path
         name: userID
         required: true
@@ -1154,27 +1149,30 @@ paths:
       summary: Method provides to update store item
       tags:
       - items
-  /user/create:
-    post:
+  /rights/{rightsID}:
+    get:
       consumes:
       - application/json
-      description: Method provides to create a user
+      description: The method allows you to get the rights by id.
       parameters:
-      - description: User data
-        in: body
-        name: user
+      - description: id of rights
+        in: path
+        name: rightsID
         required: true
-        schema:
-          $ref: '#/definitions/user.Credentials'
+        type: string
       produces:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Rights structure
           schema:
-            $ref: '#/definitions/user.Token'
+            $ref: '#/definitions/rights.OutRights'
         "400":
           description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
         "404":
           description: 404 Not Found
           schema:
@@ -1183,66 +1181,34 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/delivery.ErrorResponse'
-      summary: Create a new user
+      summary: Get rights by id
       tags:
-      - user
-  /user/login:
+      - rights
+  /rights/create/:
     post:
       consumes:
       - application/json
-      description: Method provides to login a user
+      description: Method provides to create rights.
       parameters:
-      - description: User data
+      - description: Data for creating rights
         in: body
-        name: user
+        name: rights
         required: true
         schema:
-          $ref: '#/definitions/user.Credentials'
+          $ref: '#/definitions/rights.ShortRights'
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
           schema:
-            $ref: '#/definitions/user.Token'
-        "404":
-          description: 404 Not Found
-          schema:
-            $ref: '#/definitions/delivery.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/delivery.ErrorResponse'
-      summary: Login user
-      tags:
-      - user
-  /user/logout:
-    get:
-      consumes:
-      - application/json
-      description: Method provides to log out
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-        "404":
+            $ref: '#/definitions/rights.RightsId'
+        "400":
           description: Bad Request
-      summary: Logout
-      tags:
-      - user
-  /user/profile:
-    get:
-      consumes:
-      - application/json
-      description: Method provides to get profile info
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
           schema:
-            $ref: '#/definitions/user.Profile'
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
         "404":
           description: 404 Not Found
           schema:
@@ -1251,10 +1217,105 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/delivery.ErrorResponse'
-      security:
-      - ApiKeyAuth: []
-        firebase: []
-      summary: User profile
+      summary: Method provides to create rights
       tags:
-      - user
+      - rights
+  /rights/delete/{rightsID}:
+    delete:
+      consumes:
+      - application/json
+      description: Method provides to delete rights.
+      parameters:
+      - description: id of rights
+        in: path
+        name: rightsID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Method provides to delete rights
+      tags:
+      - rights
+  /rights/list:
+    get:
+      consumes:
+      - application/json
+      description: Method provides to get list of rights
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of rights
+          schema:
+            items:
+              $ref: '#/definitions/rights.OutRights'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Get list of rights
+      tags:
+      - rights
+  /rights/update:
+    put:
+      consumes:
+      - application/json
+      description: Method provides to update rights
+      parameters:
+      - description: Data for updating rights
+        in: body
+        name: rights
+        required: true
+        schema:
+          $ref: '#/definitions/rights.OutRights'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Method provides to update rights
+      tags:
+      - rights
 swagger: "2.0"

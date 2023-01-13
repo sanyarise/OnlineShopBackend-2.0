@@ -288,11 +288,26 @@ func (mr *MockUserStoreMockRecorder) Create(ctx, user interface{}) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockUserStore)(nil).Create), ctx, user)
 }
 
+// GetRightsId mocks base method.
+func (m *MockUserStore) GetRightsId(ctx context.Context, name string) (models.Rights, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetRightsId", ctx, name)
+	ret0, _ := ret[0].(models.Rights)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetRightsId indicates an expected call of GetRightsId.
+func (mr *MockUserStoreMockRecorder) GetRightsId(ctx, name interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRightsId", reflect.TypeOf((*MockUserStore)(nil).GetRightsId), ctx, name)
+}
+
 // GetUserByEmail mocks base method.
-func (m *MockUserStore) GetUserByEmail(ctx context.Context, email string) (models.User, error) {
+func (m *MockUserStore) GetUserByEmail(ctx context.Context, email string) (*models.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUserByEmail", ctx, email)
-	ret0, _ := ret[0].(models.User)
+	ret0, _ := ret[0].(*models.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -301,6 +316,35 @@ func (m *MockUserStore) GetUserByEmail(ctx context.Context, email string) (model
 func (mr *MockUserStoreMockRecorder) GetUserByEmail(ctx, email interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByEmail", reflect.TypeOf((*MockUserStore)(nil).GetUserByEmail), ctx, email)
+}
+
+// SaveSession mocks base method.
+func (m *MockUserStore) SaveSession(ctx context.Context, token string, t int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveSession", ctx, token, t)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SaveSession indicates an expected call of SaveSession.
+func (mr *MockUserStoreMockRecorder) SaveSession(ctx, token, t interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveSession", reflect.TypeOf((*MockUserStore)(nil).SaveSession), ctx, token, t)
+}
+
+// UpdateUserData mocks base method.
+func (m *MockUserStore) UpdateUserData(ctx context.Context, user *models.User) (*models.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateUserData", ctx, user)
+	ret0, _ := ret[0].(*models.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateUserData indicates an expected call of UpdateUserData.
+func (mr *MockUserStoreMockRecorder) UpdateUserData(ctx, user interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserData", reflect.TypeOf((*MockUserStore)(nil).UpdateUserData), ctx, user)
 }
 
 // MockCartStore is a mock of CartStore interface.
@@ -506,4 +550,100 @@ func (m *MockOrderStore) GetOrdersForUser(ctx context.Context, user *models.User
 func (mr *MockOrderStoreMockRecorder) GetOrdersForUser(ctx, user interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOrdersForUser", reflect.TypeOf((*MockOrderStore)(nil).GetOrdersForUser), ctx, user)
+}
+
+// MockRightsStore is a mock of RightsStore interface.
+type MockRightsStore struct {
+	ctrl     *gomock.Controller
+	recorder *MockRightsStoreMockRecorder
+}
+
+// MockRightsStoreMockRecorder is the mock recorder for MockRightsStore.
+type MockRightsStoreMockRecorder struct {
+	mock *MockRightsStore
+}
+
+// NewMockRightsStore creates a new mock instance.
+func NewMockRightsStore(ctrl *gomock.Controller) *MockRightsStore {
+	mock := &MockRightsStore{ctrl: ctrl}
+	mock.recorder = &MockRightsStoreMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockRightsStore) EXPECT() *MockRightsStoreMockRecorder {
+	return m.recorder
+}
+
+// CreateRights mocks base method.
+func (m *MockRightsStore) CreateRights(ctx context.Context, rights *models.Rights) (uuid.UUID, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateRights", ctx, rights)
+	ret0, _ := ret[0].(uuid.UUID)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateRights indicates an expected call of CreateRights.
+func (mr *MockRightsStoreMockRecorder) CreateRights(ctx, rights interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRights", reflect.TypeOf((*MockRightsStore)(nil).CreateRights), ctx, rights)
+}
+
+// DeleteRights mocks base method.
+func (m *MockRightsStore) DeleteRights(ctx context.Context, id uuid.UUID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteRights", ctx, id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteRights indicates an expected call of DeleteRights.
+func (mr *MockRightsStoreMockRecorder) DeleteRights(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteRights", reflect.TypeOf((*MockRightsStore)(nil).DeleteRights), ctx, id)
+}
+
+// GetRights mocks base method.
+func (m *MockRightsStore) GetRights(ctx context.Context, id uuid.UUID) (*models.Rights, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetRights", ctx, id)
+	ret0, _ := ret[0].(*models.Rights)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetRights indicates an expected call of GetRights.
+func (mr *MockRightsStoreMockRecorder) GetRights(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRights", reflect.TypeOf((*MockRightsStore)(nil).GetRights), ctx, id)
+}
+
+// RightsList mocks base method.
+func (m *MockRightsStore) RightsList(ctx context.Context) ([]models.Rights, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RightsList", ctx)
+	ret0, _ := ret[0].([]models.Rights)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// RightsList indicates an expected call of RightsList.
+func (mr *MockRightsStoreMockRecorder) RightsList(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RightsList", reflect.TypeOf((*MockRightsStore)(nil).RightsList), ctx)
+}
+
+// UpdateRights mocks base method.
+func (m *MockRightsStore) UpdateRights(ctx context.Context, rights *models.Rights) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateRights", ctx, rights)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateRights indicates an expected call of UpdateRights.
+func (mr *MockRightsStoreMockRecorder) UpdateRights(ctx, rights interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateRights", reflect.TypeOf((*MockRightsStore)(nil).UpdateRights), ctx, rights)
 }

@@ -6,6 +6,7 @@ package mocks
 
 import (
 	models "OnlineShopBackend/internal/models"
+	usecase "OnlineShopBackend/internal/usecase"
 	context "context"
 	reflect "reflect"
 
@@ -429,4 +430,228 @@ func (m *MockICartUsecase) GetCart(ctx context.Context, cartId uuid.UUID) (*mode
 func (mr *MockICartUsecaseMockRecorder) GetCart(ctx, cartId interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCart", reflect.TypeOf((*MockICartUsecase)(nil).GetCart), ctx, cartId)
+}
+
+// MockIUserUsecase is a mock of IUserUsecase interface.
+type MockIUserUsecase struct {
+	ctrl     *gomock.Controller
+	recorder *MockIUserUsecaseMockRecorder
+}
+
+// MockIUserUsecaseMockRecorder is the mock recorder for MockIUserUsecase.
+type MockIUserUsecaseMockRecorder struct {
+	mock *MockIUserUsecase
+}
+
+// NewMockIUserUsecase creates a new mock instance.
+func NewMockIUserUsecase(ctrl *gomock.Controller) *MockIUserUsecase {
+	mock := &MockIUserUsecase{ctrl: ctrl}
+	mock.recorder = &MockIUserUsecaseMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockIUserUsecase) EXPECT() *MockIUserUsecaseMockRecorder {
+	return m.recorder
+}
+
+// CreateSessionJWT mocks base method.
+func (m *MockIUserUsecase) CreateSessionJWT(ctx context.Context, user *models.User, key string) (usecase.Token, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateSessionJWT", ctx, user, key)
+	ret0, _ := ret[0].(usecase.Token)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateSessionJWT indicates an expected call of CreateSessionJWT.
+func (mr *MockIUserUsecaseMockRecorder) CreateSessionJWT(ctx, user, key interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateSessionJWT", reflect.TypeOf((*MockIUserUsecase)(nil).CreateSessionJWT), ctx, user, key)
+}
+
+// CreateUser mocks base method.
+func (m *MockIUserUsecase) CreateUser(ctx context.Context, user *models.User) (*models.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateUser", ctx, user)
+	ret0, _ := ret[0].(*models.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateUser indicates an expected call of CreateUser.
+func (mr *MockIUserUsecaseMockRecorder) CreateUser(ctx, user interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockIUserUsecase)(nil).CreateUser), ctx, user)
+}
+
+// GetRightsId mocks base method.
+func (m *MockIUserUsecase) GetRightsId(ctx context.Context, name string) (*models.Rights, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetRightsId", ctx, name)
+	ret0, _ := ret[0].(*models.Rights)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetRightsId indicates an expected call of GetRightsId.
+func (mr *MockIUserUsecaseMockRecorder) GetRightsId(ctx, name interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRightsId", reflect.TypeOf((*MockIUserUsecase)(nil).GetRightsId), ctx, name)
+}
+
+// GetUserByEmail mocks base method.
+func (m *MockIUserUsecase) GetUserByEmail(ctx context.Context, email string) (*models.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserByEmail", ctx, email)
+	ret0, _ := ret[0].(*models.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUserByEmail indicates an expected call of GetUserByEmail.
+func (mr *MockIUserUsecaseMockRecorder) GetUserByEmail(ctx, email interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByEmail", reflect.TypeOf((*MockIUserUsecase)(nil).GetUserByEmail), ctx, email)
+}
+
+// NewJWT mocks base method.
+func (m *MockIUserUsecase) NewJWT(payload usecase.Payload, key string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "NewJWT", payload, key)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// NewJWT indicates an expected call of NewJWT.
+func (mr *MockIUserUsecaseMockRecorder) NewJWT(payload, key interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewJWT", reflect.TypeOf((*MockIUserUsecase)(nil).NewJWT), payload, key)
+}
+
+// UpdateUserData mocks base method.
+func (m *MockIUserUsecase) UpdateUserData(ctx context.Context, user *models.User) (*models.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateUserData", ctx, user)
+	ret0, _ := ret[0].(*models.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateUserData indicates an expected call of UpdateUserData.
+func (mr *MockIUserUsecaseMockRecorder) UpdateUserData(ctx, user interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserData", reflect.TypeOf((*MockIUserUsecase)(nil).UpdateUserData), ctx, user)
+}
+
+// UserIdentity mocks base method.
+func (m *MockIUserUsecase) UserIdentity(header string) (*usecase.Payload, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UserIdentity", header)
+	ret0, _ := ret[0].(*usecase.Payload)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UserIdentity indicates an expected call of UserIdentity.
+func (mr *MockIUserUsecaseMockRecorder) UserIdentity(header interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UserIdentity", reflect.TypeOf((*MockIUserUsecase)(nil).UserIdentity), header)
+}
+
+// MockIRightsUsecase is a mock of IRightsUsecase interface.
+type MockIRightsUsecase struct {
+	ctrl     *gomock.Controller
+	recorder *MockIRightsUsecaseMockRecorder
+}
+
+// MockIRightsUsecaseMockRecorder is the mock recorder for MockIRightsUsecase.
+type MockIRightsUsecaseMockRecorder struct {
+	mock *MockIRightsUsecase
+}
+
+// NewMockIRightsUsecase creates a new mock instance.
+func NewMockIRightsUsecase(ctrl *gomock.Controller) *MockIRightsUsecase {
+	mock := &MockIRightsUsecase{ctrl: ctrl}
+	mock.recorder = &MockIRightsUsecaseMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockIRightsUsecase) EXPECT() *MockIRightsUsecaseMockRecorder {
+	return m.recorder
+}
+
+// CreateRights mocks base method.
+func (m *MockIRightsUsecase) CreateRights(ctx context.Context, rights *models.Rights) (uuid.UUID, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateRights", ctx, rights)
+	ret0, _ := ret[0].(uuid.UUID)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateRights indicates an expected call of CreateRights.
+func (mr *MockIRightsUsecaseMockRecorder) CreateRights(ctx, rights interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRights", reflect.TypeOf((*MockIRightsUsecase)(nil).CreateRights), ctx, rights)
+}
+
+// DeleteRights mocks base method.
+func (m *MockIRightsUsecase) DeleteRights(ctx context.Context, id uuid.UUID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteRights", ctx, id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteRights indicates an expected call of DeleteRights.
+func (mr *MockIRightsUsecaseMockRecorder) DeleteRights(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteRights", reflect.TypeOf((*MockIRightsUsecase)(nil).DeleteRights), ctx, id)
+}
+
+// GetRights mocks base method.
+func (m *MockIRightsUsecase) GetRights(ctx context.Context, id uuid.UUID) (*models.Rights, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetRights", ctx, id)
+	ret0, _ := ret[0].(*models.Rights)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetRights indicates an expected call of GetRights.
+func (mr *MockIRightsUsecaseMockRecorder) GetRights(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRights", reflect.TypeOf((*MockIRightsUsecase)(nil).GetRights), ctx, id)
+}
+
+// RightsList mocks base method.
+func (m *MockIRightsUsecase) RightsList(ctx context.Context) ([]models.Rights, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RightsList", ctx)
+	ret0, _ := ret[0].([]models.Rights)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// RightsList indicates an expected call of RightsList.
+func (mr *MockIRightsUsecaseMockRecorder) RightsList(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RightsList", reflect.TypeOf((*MockIRightsUsecase)(nil).RightsList), ctx)
+}
+
+// UpdateRights mocks base method.
+func (m *MockIRightsUsecase) UpdateRights(ctx context.Context, rights *models.Rights) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateRights", ctx, rights)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateRights indicates an expected call of UpdateRights.
+func (mr *MockIRightsUsecaseMockRecorder) UpdateRights(ctx, rights interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateRights", reflect.TypeOf((*MockIRightsUsecase)(nil).UpdateRights), ctx, rights)
 }
