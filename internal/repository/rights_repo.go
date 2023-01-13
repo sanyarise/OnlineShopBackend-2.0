@@ -148,3 +148,32 @@ func (repo rightsRepo) GetRights(ctx context.Context, id uuid.UUID) (*models.Rig
 	repo.logger.Info("Get item success")
 	return &rights, nil
 }
+
+func (repo rightsRepo) RightsList(ctx context.Context) ([]models.Rights, error) {
+	repo.logger.Debugf("Enter in repository RightsList() with args: ctx")
+
+	pool := repo.storage.GetPool()
+	rights := models.Rights{}
+	rightsList := make([]models.Rights, 0, 100)
+
+	rows, err := pool.Query(ctx, `SELECT * FROM rights`)
+	if err != nil {
+		msg := fmt.Errorf("error on rights list query context: %w", err)
+		repo.logger.Error(msg.Error())
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		if err := rows.Scan(
+			&rights.ID,
+			&rights.Name,
+			&rights.Rules,
+		); err != nil {
+			repo.logger.Error(err.Error())
+			return nil, err
+		}
+		rightsList = append(rightsList, rights)
+	}
+	return rightsList, nil
+}

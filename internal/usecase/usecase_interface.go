@@ -49,3 +49,11 @@ type IUserUsecase interface {
 	UserIdentity(header string) (*Payload, error)
 	CreateSessionJWT(ctx context.Context, user *models.User, key string) (Token, error)
 }
+
+type IRightsUsecase interface {
+	CreateRights(ctx context.Context, rights *models.Rights) (uuid.UUID, error)
+	UpdateRights(ctx context.Context, rights *models.Rights) error
+	DeleteRights(ctx context.Context, id uuid.UUID) error
+	GetRights(ctx context.Context, id uuid.UUID) (*models.Rights, error)
+	RightsList(ctx context.Context)([]models.Rights, error)
+}

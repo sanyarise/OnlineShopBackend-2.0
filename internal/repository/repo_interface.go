@@ -56,4 +56,5 @@ type RightsStore interface {
 	UpdateRights(ctx context.Context, rights *models.Rights) error
 	DeleteRights(ctx context.Context, id uuid.UUID) error
 	GetRights(ctx context.Context, id uuid.UUID) (*models.Rights, error)
+	RightsList(ctx context.Context)([]models.Rights, error)
 }
