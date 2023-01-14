@@ -77,19 +77,19 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 			http.MethodGet,
 			"/",
 			delivery.Index,
-		},*/
+		},
 		{
 			"GetFileList",
 			http.MethodGet,
 			"/images/list",
 			delivery.GetFileList,
-		},
-		{
+		},*/
+		/*{
 			"CreateCategory",
 			http.MethodPost,
 			"/categories/create",
 			delivery.CreateCategory,
-		},
+		},*/
 		{
 			"GetCategory",
 			http.MethodGet,
@@ -102,36 +102,36 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 			"/categories/list",
 			delivery.GetCategoryList,
 		},
-		{
+		/*{
 			"UpdateCategory",
 			http.MethodPut,
 			"/categories/:categoryID",
 			delivery.UpdateCategory,
-		},
-		{
+		},*/
+		/*{
 			"UploadCategoryImage",
 			http.MethodPost,
 			"/categories/image/upload/:categoryID",
 			delivery.UploadCategoryImage,
-		},
-		{
+		},*/
+		/*{
 			"DeleteCategoryImage",
 			http.MethodDelete,
 			"/categories/image/delete", //?id=25f32441-587a-452d-af8c-b3876ae29d45&name=20221209194557.jpeg
 			delivery.DeleteCategoryImage,
-		},
-		{
+		},*/
+		/*{
 			"DeleteCategory",
 			http.MethodDelete,
 			"/categories/delete/:categoryID",
 			delivery.DeleteCategory,
-		},
-		{
+		},*/
+		/*{
 			"CreateItem",
 			http.MethodPost,
 			"/items/create",
 			delivery.CreateItem,
-		},
+		},*/
 		{
 			"GetItem",
 			http.MethodGet,
@@ -144,24 +144,24 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 			"/items/", //?param=categoryName&offset=20&limit=10
 			delivery.GetItemsByCategory,
 		},
-		{
+		/*{
 			"UpdateItem",
 			http.MethodPut,
 			"/items/update",
 			delivery.UpdateItem,
-		},
-		{
+		},*/
+		/*{
 			"UploadItemImage",
 			http.MethodPost,
 			"/items/image/upload/:itemID",
 			delivery.UploadItemImage,
-		},
-		{
+		},*/
+		/*{
 			"DeleteItemImage",
 			http.MethodDelete,
 			"/items/image/delete", //?id=25f32441-587a-452d-af8c-b3876ae29d45&name=20221209194557.jpeg
 			delivery.DeleteItemImage,
-		},
+		},*/
 		{
 			"ItemsQuantity",
 			http.MethodGet,
@@ -180,12 +180,12 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 			"/items/search/", //?param=searchRequest&offset=20&limit=10
 			delivery.SearchLine,
 		},
-		{
+		/*{
 			"DeleteItem",
 			http.MethodDelete,
 			"/items/delete/:itemID",
 			delivery.DeleteItem,
-		},
+		},*/
 		{
 			"GetCart",
 			http.MethodGet,
@@ -216,7 +216,7 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 			"/cart/delete/:cartID",
 			delivery.DeleteCart,
 		},
-		{
+		/*{
 			"CreateRights",
 			http.MethodPost,
 			"/rights/create",
@@ -233,19 +233,19 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 			http.MethodDelete,
 			"/rights/delete/:rightsID",
 			delivery.DeleteRights,
-		},
+		},*/
 		{
 			"GetRights",
 			http.MethodGet,
 			"/rights/:rightsID",
 			delivery.GetRights,
 		},
-		{
+		/*{
 			"RightsList",
 			http.MethodGet,
 			"/rights/list",
 			delivery.RightsList,
-		},
+		},*/
 		{
 			"CreateUser",
 			http.MethodPost,
@@ -299,12 +299,12 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 			"/user/profile",
 			delivery.UserProfile,
 		},
-		{
+		/*{
 			"userProfileUpdate",
 			http.MethodPut,
 			"/user/profile/edit",
 			delivery.UserProfileUpdate,
-		},
+		},*/
 		{
 			"tokenUpdate",
 			http.MethodPost,
@@ -328,6 +328,23 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 		}
 	}
 	gin.GET("/", delivery.Authorize, delivery.Index)
+	gin.GET("/images/list", delivery.Authorize, delivery.GetFileList)
+	gin.POST("/categories/create", delivery.Authorize, delivery.CreateCategory)
+	gin.PUT("/categories/:categoryID", delivery.Authorize, delivery.UpdateCategory)
+	gin.POST("/categories/image/upload/:categoryID", delivery.Authorize, delivery.UploadCategoryImage)
+	gin.DELETE("/categories/image/delete", delivery.Authorize, delivery.DeleteCategoryImage) //?id=25f32441-587a-452d-af8c-b3876ae29d45&name=20221209194557.jpeg
+	gin.DELETE("/categories/delete/:categoryID", delivery.Authorize, delivery.DeleteCategory)
+	gin.POST("/items/create", delivery.Authorize, delivery.CreateItem)
+	gin.PUT("/items/update", delivery.Authorize, delivery.UpdateItem)
+	gin.POST("/items/image/upload/:itemID", delivery.Authorize, delivery.UploadItemImage)
+	gin.DELETE("/items/image/delete", delivery.Authorize, delivery.DeleteItemImage) //?id=25f32441-587a-452d-af8c-b3876ae29d45&name=20221209194557.jpeg
+	gin.DELETE("/items/delete/:itemID", delivery.Authorize, delivery.DeleteItem)
+	gin.POST("/rights/create", delivery.Authorize, delivery.CreateRights)
+	gin.PUT("/rights/update", delivery.Authorize, delivery.UpdateRights)
+	gin.DELETE("/rights/delete/:rightsID", delivery.Authorize, delivery.DeleteRights)
+	gin.GET("/rights/list", delivery.Authorize, delivery.GetRights)
+	gin.PUT("/user/profile/edit", delivery.Authorize, delivery.UserProfileUpdate)
+
 	router.Engine = gin
 	return router
 }

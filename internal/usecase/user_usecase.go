@@ -107,7 +107,12 @@ func (usecase *UserUsecase) UpdateUserData(ctx context.Context, user *models.Use
 func (usecase *UserUsecase) NewJWT(payload Payload, key string) (string, error) {
 	usecase.logger.Sugar().Debugf("Enter in usecase user NewJWT() with args: payload: %v, key: %s", payload, key)
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &payload) //jwt.SigningMethodHS256
-	return token.SignedString(key)
+	signedString, err := token.SignedString([]byte(key))
+	if err != nil {
+		usecase.logger.Sugar().Errorf("error on create signed string: %v", err)
+		return "", err
+	}
+	return signedString, nil
 }
 
 func (usecase *UserUsecase) NewRefreshToken() (string, error) {

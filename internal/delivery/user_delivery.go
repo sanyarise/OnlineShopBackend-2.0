@@ -74,7 +74,7 @@ func (delivery *Delivery) CreateUser(c *gin.Context) {
 
 	//user.IssueSession(delivery.logger, createdUser.ID.String())
 
-	c.JSON(http.StatusOK, token)
+	c.JSON(http.StatusOK, user.UserId{Value: createdUser.ID.String()})
 }
 
 func (delivery *Delivery) LoginUser(c *gin.Context) {
@@ -105,6 +105,39 @@ func (delivery *Delivery) LoginUser(c *gin.Context) {
 	c.SetCookie("Authorization", token.AccessToken, 3600*24*30, "", "", false, true)
 
 	c.JSON(http.StatusOK, gin.H{})
+}
+
+func (delivery *Delivery) GetUserById(c *gin.Context) {
+	delivery.logger.Debug("Enter in delivery GetUserById()")
+	id, err := uuid.Parse(c.Param("userID"))
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
+		return
+	}
+	modelsUser, err := delivery.userUsecase.GetUserById(ctx, id)
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusInternalServerError, err)
+		return
+	}
+	c.JSON(http.StatusOK, user.OutUser{
+		Id:        modelsUser.Id.String(),
+		Firstname: modelsUser.Firstname,
+		Lastname:  modelsUser.Lastname,
+		Email:     modelsUser.Email,
+		Address: user.Address{
+			Zipcode: modelsUser.Address.Zipcode,
+			Country: modelsUser.Address.Country,
+			City:    modelsUser.Address.City,
+			Street:  modelsUser.Address.Street,
+		},
+		Rights: user.Rights{
+			ID:    modelsUser.Rights.ID.String(),
+			Name:  modelsUser.Rights.Name,
+			Rules: modelsUser.Rights.Rules,
+		},
+	})
 }
 
 func (delivery *Delivery) UserProfile(c *gin.Context) {
@@ -275,9 +308,9 @@ func failure(c *gin.Context) http.HandlerFunc {
 
 func (delivery *Delivery) LogoutUser(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery LogoutUser()")
-	c.SetCookie("token", "", -1, "/", "http://localhost:3000", false, true) //TODO change to webapp url
+	//c.SetCookie("token", "", -1, "/", "http://localhost:3000", false, true) //TODO change to webapp url
+	c.SetCookie("Authorization", "", 0, "", "", false, true)
 	c.JSON(http.StatusOK, gin.H{"you have been successfully logged out": nil})
-
 }
 
 // LoginUserYandex -

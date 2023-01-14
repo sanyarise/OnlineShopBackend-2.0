@@ -148,3 +148,60 @@ func (u *user) SaveSession(ctx context.Context, token string, t int64) error {
 	}
 	return nil
 }
+
+func (u *user) GetUserById(ctx context.Context, id uuid.UUID) (*models.User, error) {
+	u.logger.Debugf("Enter in repository GetUserById() with args: ctx, id: %v", id)
+	select {
+	case <-ctx.Done():
+		return &models.User{}, fmt.Errorf("context is closed")
+	default:
+		pool := u.storage.GetPool()
+		row := pool.QueryRow(ctx, `SELECT users.id, users.name, lastname, email, rights.id, zipcode, country, city, street, rights.name, rights.rules FROM users INNER JOIN rights ON users.id=$1 and rights.id=users.rights`, id)
+		var user = models.User{}
+		err := row.Scan(
+			&user.ID,
+			&user.Firstname,
+			&user.Lastname,
+			&user.Email,
+			&user.Rights.ID,
+			&user.Address.Zipcode,
+			&user.Address.Country,
+			&user.Address.City,
+			&user.Address.Street,
+			&user.Rights.Name,
+			&user.Rights.Rules)
+		if err != nil {
+			return &models.User{}, fmt.Errorf("can't get user from database: %w", err)
+		}
+		return &user, nil
+	}
+}
+
+func (u *user) GetUsersList(ctx context.Context) ([]models.User, error) {
+	u.logger.Debug("Enter in repository GetAllUsers()")
+	
+	pool := u.storage.GetPool()
+	user := models.User{}
+	usersList := make([]models.User, 0, 100)
+
+	rows, err := pool.Query(ctx, `SELECT users.id, users.name, lastname, email, rights.id, zipcode, country, city, street, rights.name, rights.rules FROM users INNER JOIN rights ON rights.id=users.rights`)
+	if err != nil {
+		msg := fmt.Errorf("error on users list query context: %w", err)
+		u.logger.Error(msg.Error())
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		if err := rows.Scan(
+			&user.ID,
+			&rights.Name,
+			&rights.Rules,
+		); err != nil {
+			repo.logger.Error(err.Error())
+			return nil, err
+		}
+		rightsList = append(rightsList, rights)
+	}
+	return rightsList, nil
+}
