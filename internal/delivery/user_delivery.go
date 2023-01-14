@@ -115,6 +115,7 @@ func (delivery *Delivery) GetUserById(c *gin.Context) {
 		delivery.SetError(c, http.StatusBadRequest, err)
 		return
 	}
+	ctx := c.Request.Context()
 	modelsUser, err := delivery.userUsecase.GetUserById(ctx, id)
 	if err != nil {
 		delivery.logger.Error(err.Error())
@@ -122,7 +123,7 @@ func (delivery *Delivery) GetUserById(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, user.OutUser{
-		Id:        modelsUser.Id.String(),
+		Id:        modelsUser.ID.String(),
 		Firstname: modelsUser.Firstname,
 		Lastname:  modelsUser.Lastname,
 		Email:     modelsUser.Email,
@@ -138,6 +139,38 @@ func (delivery *Delivery) GetUserById(c *gin.Context) {
 			Rules: modelsUser.Rights.Rules,
 		},
 	})
+}
+
+func (delivery *Delivery) GetUsersList(c *gin.Context) {
+	delivery.logger.Debug("Enter in delivery GetUsersList()")
+	ctx := c.Request.Context()
+	modelsUsers, err := delivery.userUsecase.GetUsersList(ctx)
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusInternalServerError, err)
+		return
+	}
+	users := make([]user.OutUser, len(modelsUsers))
+	for i, mUser := range modelsUsers {
+		users[i] = user.OutUser{
+			Id:        mUser.ID.String(),
+			Firstname: mUser.Firstname,
+			Lastname:  mUser.Lastname,
+			Email:     mUser.Email,
+			Address: user.Address{
+				Zipcode: mUser.Address.Zipcode,
+				Country: mUser.Address.Country,
+				City:    mUser.Address.City,
+				Street:  mUser.Address.Street,
+			},
+			Rights: user.Rights{
+				ID:    mUser.Rights.ID.String(),
+				Name:  mUser.Rights.Name,
+				Rules: mUser.Rights.Rules,
+			},
+		}
+	}
+	c.JSON(http.StatusOK, users)
 }
 
 func (delivery *Delivery) UserProfile(c *gin.Context) {

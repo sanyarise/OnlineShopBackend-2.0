@@ -344,6 +344,8 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 	gin.DELETE("/rights/delete/:rightsID", delivery.Authorize, delivery.DeleteRights)
 	gin.GET("/rights/list", delivery.Authorize, delivery.GetRights)
 	gin.PUT("/user/profile/edit", delivery.Authorize, delivery.UserProfileUpdate)
+	gin.GET("/user/:userID", delivery.Authorize, delivery.GetUserById)
+	gin.GET("/user/list", delivery.Authorize, delivery.GetUsersList)
 
 	router.Engine = gin
 	return router

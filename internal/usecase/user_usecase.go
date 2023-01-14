@@ -199,3 +199,22 @@ func (usecase *UserUsecase) CreateSessionJWT(ctx context.Context, user *models.U
 
 	return token, nil
 }
+
+func (usecase *UserUsecase) GetUserById(ctx context.Context, id uuid.UUID) (*models.User, error) {
+	usecase.logger.Sugar().Debugf("Enter in usecase GetuserById() with args: ctx, id: %v", id)
+
+	user, err := usecase.userStore.GetUserById(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+
+func (usecase *UserUsecase) GetUsersList(ctx context.Context) ([]models.User, error) {
+	usecase.logger.Debug("Enter in usecase GetUsersList()")
+	users, err := usecase.userStore.GetUsersList(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return users, nil
+}
