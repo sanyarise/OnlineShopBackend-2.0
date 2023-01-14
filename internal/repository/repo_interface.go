@@ -32,6 +32,8 @@ type UserStore interface {
 	GetRightsId(ctx context.Context, name string) (models.Rights, error)
 	UpdateUserData(ctx context.Context, user *models.User) (*models.User, error)
 	SaveSession(ctx context.Context, token string, t int64) error
+	GetUsersList(ctx context.Context) ([]models.User, error)
+	GetUserById(ctx context.Context, id uuid.UUID) (*models.User, error)
 }
 
 type CartStore interface {
@@ -56,5 +58,5 @@ type RightsStore interface {
 	UpdateRights(ctx context.Context, rights *models.Rights) error
 	DeleteRights(ctx context.Context, id uuid.UUID) error
 	GetRights(ctx context.Context, id uuid.UUID) (*models.Rights, error)
-	RightsList(ctx context.Context)([]models.Rights, error)
+	RightsList(ctx context.Context) ([]models.Rights, error)
 }

@@ -179,7 +179,7 @@ func (u *user) GetUserById(ctx context.Context, id uuid.UUID) (*models.User, err
 
 func (u *user) GetUsersList(ctx context.Context) ([]models.User, error) {
 	u.logger.Debug("Enter in repository GetAllUsers()")
-	
+
 	pool := u.storage.GetPool()
 	user := models.User{}
 	usersList := make([]models.User, 0, 100)
@@ -195,13 +195,20 @@ func (u *user) GetUsersList(ctx context.Context) ([]models.User, error) {
 	for rows.Next() {
 		if err := rows.Scan(
 			&user.ID,
-			&rights.Name,
-			&rights.Rules,
-		); err != nil {
-			repo.logger.Error(err.Error())
+			&user.Firstname,
+			&user.Lastname,
+			&user.Email,
+			&user.Rights.ID,
+			&user.Address.Zipcode,
+			&user.Address.Country,
+			&user.Address.City,
+			&user.Address.Street,
+			&user.Rights.Name,
+			&user.Rights.Rules); err != nil {
+			u.logger.Error(err.Error())
 			return nil, err
 		}
-		rightsList = append(rightsList, rights)
+		usersList = append(usersList, user)
 	}
-	return rightsList, nil
+	return usersList, nil
 }
