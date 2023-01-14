@@ -293,12 +293,12 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 			"/user/callbackYandex",
 			delivery.CallbackYandex,
 		},
-		{
+		/*{
 			"userProfile",
 			http.MethodGet,
 			"/user/profile",
 			delivery.UserProfile,
-		},
+		},*/
 		/*{
 			"userProfileUpdate",
 			http.MethodPut,
@@ -343,9 +343,11 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 	gin.PUT("/rights/update", delivery.Authorize, delivery.UpdateRights)
 	gin.DELETE("/rights/delete/:rightsID", delivery.Authorize, delivery.DeleteRights)
 	gin.GET("/rights/list", delivery.Authorize, delivery.GetRights)
+	gin.GET("/user/profile", delivery.Authorize, delivery.UserProfile)
 	gin.PUT("/user/profile/edit", delivery.Authorize, delivery.UserProfileUpdate)
 	gin.GET("/user/:userID", delivery.Authorize, delivery.GetUserById)
 	gin.GET("/user/list", delivery.Authorize, delivery.GetUsersList)
+	gin.PUT("/user/update/rights", delivery.Authorize, delivery.ChangeUserRole)
 
 	router.Engine = gin
 	return router

@@ -145,7 +145,7 @@ func (repo rightsRepo) GetRights(ctx context.Context, id uuid.UUID) (*models.Rig
 		repo.logger.Errorf("Error in rows scan get rights by id: %s", err)
 		return &models.Rights{}, fmt.Errorf("error in rows scan get rights by id: %w", err)
 	}
-	repo.logger.Info("Get item success")
+	repo.logger.Info("Get rights success")
 	return &rights, nil
 }
 
@@ -176,4 +176,23 @@ func (repo rightsRepo) RightsList(ctx context.Context) ([]models.Rights, error) 
 		rightsList = append(rightsList, rights)
 	}
 	return rightsList, nil
+}
+
+func (repo rightsRepo) GetRightsByName(ctx context.Context, name string) (*models.Rights, error) {
+	repo.logger.Debugf("Enter in repository GetRightsByName() with args ctx, name: %s", name)
+
+	rights := models.Rights{}
+	pool := repo.storage.GetPool()
+	row := pool.QueryRow(ctx, `SELECT id, name, rules FROM rights WHERE name=$1`, name)
+	err := row.Scan(
+		&rights.ID,
+		&rights.Name,
+		&rights.Rules,
+	)
+	if err != nil {
+		repo.logger.Errorf("Error in rows scan get rights by name: %s", err)
+		return &models.Rights{}, fmt.Errorf("error in rows scan get rights by name: %w", err)
+	}
+	repo.logger.Info("Get rights success")
+	return &rights, nil
 }

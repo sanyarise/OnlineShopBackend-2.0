@@ -375,3 +375,38 @@ func (delivery *Delivery) CallbackYandex(c *gin.Context) {
 	//c.JSON(http.StatusOK, gin.H{})
 
 }
+
+func (delivery *Delivery) ChangeUserRole(c *gin.Context) {
+	delivery.logger.Debug("Enter in delivery ChangeUserRole()")
+
+	var newRights user.ChangeRights
+	if err := c.ShouldBindJSON(&newRights); err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
+		return
+	}
+	if newRights.RightsName == "" {
+		err := fmt.Errorf("empty fields in request is not correct")
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
+		return
+	}
+	isRights, err := delivery.rightsUsecase.GetRightsByName(ctx, newRights.RightsName)
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
+		return
+	}
+	userId, err := uuid.Parse(newRights.UserId)
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
+		return
+	}
+	err := delivery.userUsecase.ChangeUserRole(ctx, userId, isRights.ID)
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusInternalServerError, err)
+		return
+	}
+}

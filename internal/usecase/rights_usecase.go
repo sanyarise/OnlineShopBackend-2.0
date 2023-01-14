@@ -72,3 +72,13 @@ func (usecase rightsUsecase) RightsList(ctx context.Context) ([]models.Rights, e
 	}
 	return rightsList, nil
 }
+
+func (usecase rightsUsecase) GetRightsByName(ctx context.Context, name string) (*models.Rights, error) {
+	usecase.logger.Sugar().Debugf("Enter in usecase GetRightsByName() with args: ctx, name: %s", name)
+
+	rights, err := usecase.rightsRepo.GetRightsByName(ctx, name)
+	if err != nil {
+		return nil, err
+	}
+	return rights, nil
+}

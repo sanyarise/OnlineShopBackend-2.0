@@ -58,4 +58,5 @@ type IRightsUsecase interface {
 	DeleteRights(ctx context.Context, id uuid.UUID) error
 	GetRights(ctx context.Context, id uuid.UUID) (*models.Rights, error)
 	RightsList(ctx context.Context) ([]models.Rights, error)
+	GetRightsByName(ctx context.Context, name string) (*models.Rights, error)
 }
