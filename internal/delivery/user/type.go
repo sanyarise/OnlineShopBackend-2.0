@@ -31,6 +31,11 @@ type Rights struct {
 }
 
 type ChangeRights struct {
-	UserId string
-	RightsName string
+	UserId     string `json:"id" binding:"required,uuid" example:"00000000-0000-0000-0000-000000000000" format:"uuid"`
+	RightsName string `json:"rights_name" binding:"required" example:"customer"`
+}
+
+type ChangePass struct {
+	OldPass string `json:"old_password" binding:"required" minLenght:"5" maxLenght:"16"`
+	NewPass string `json:"new_password" binding:"required" minLenght:"5" maxLenght:"16"`
 }

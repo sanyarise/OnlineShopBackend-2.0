@@ -113,9 +113,9 @@ func (u *user) UpdateUserData(ctx context.Context, user *models.User) (*models.U
 			user.ID)
 		if err != nil {
 			u.logger.Errorf("error on update user %s: %s", user.ID, err)
-			return &models.User{}, fmt.Errorf("error on update item %s: %w", user.ID, err)
+			return &models.User{}, fmt.Errorf("error on update user %s: %w", user.ID, err)
 		}
-		u.logger.Infof("item %s successfully updated %s", user.ID, user.Lastname)
+		u.logger.Infof("user %s successfully updated %s", user.ID, user.Lastname)
 		return user, nil
 	}
 }
@@ -156,12 +156,13 @@ func (u *user) GetUserById(ctx context.Context, id uuid.UUID) (*models.User, err
 		return &models.User{}, fmt.Errorf("context is closed")
 	default:
 		pool := u.storage.GetPool()
-		row := pool.QueryRow(ctx, `SELECT users.id, users.name, lastname, email, rights.id, zipcode, country, city, street, rights.name, rights.rules FROM users INNER JOIN rights ON users.id=$1 and rights.id=users.rights`, id)
+		row := pool.QueryRow(ctx, `SELECT users.id, users.name, lastname, password, email, rights.id, zipcode, country, city, street, rights.name, rights.rules FROM users INNER JOIN rights ON users.id=$1 and rights.id=users.rights`, id)
 		var user = models.User{}
 		err := row.Scan(
 			&user.ID,
 			&user.Firstname,
 			&user.Lastname,
+			&user.Password,
 			&user.Email,
 			&user.Rights.ID,
 			&user.Address.Zipcode,
@@ -211,4 +212,84 @@ func (u *user) GetUsersList(ctx context.Context) ([]models.User, error) {
 		usersList = append(usersList, user)
 	}
 	return usersList, nil
+}
+
+func (u *user) ChangeUserRole(ctx context.Context, userId uuid.UUID, rightsId uuid.UUID) error {
+	u.logger.Debug("Enter in repository ChangeUserRole() with args: ctx, userId: %v, rightsId: %v", userId, rightsId)
+	select {
+	case <-ctx.Done():
+		return fmt.Errorf("context is closed")
+	default:
+		pool := u.storage.GetPool()
+		tx, err := pool.BeginTx(ctx, pgx.TxOptions{})
+		if err != nil {
+			u.logger.Errorf("can't create transaction: %s", err)
+			return fmt.Errorf("can't create transaction: %w", err)
+		}
+		u.logger.Debug("transaction begin success")
+		defer func() {
+			if err != nil {
+				u.logger.Errorf("transaction rolled back")
+				if err = tx.Rollback(ctx); err != nil {
+					u.logger.Errorf("can't rollback %s", err)
+				}
+
+			} else {
+				u.logger.Info("transaction commited")
+				if err != tx.Commit(ctx) {
+					u.logger.Errorf("can't commit %s", err)
+				}
+			}
+		}()
+
+		_, err = tx.Exec(ctx, `UPDATE users SET rights=$1 WHERE id=$2`,
+			rightsId,
+			userId)
+		if err != nil {
+			u.logger.Errorf("error on update user %s: %s", userId, err)
+			return fmt.Errorf("error on update user %s: %w", userId, err)
+		}
+		u.logger.Infof("user with id %s successfully updated: new rights is: %s", userId, rightsId)
+		return nil
+	}
+}
+
+func (u *user) ChangeUserPassword(ctx context.Context, userId uuid.UUID, newPassword string) error {
+	u.logger.Debug("Enter in repository ChangeUserPassword() with args: ctx, userId: %v, newPassword: %s", userId, newPassword)
+	select {
+	case <-ctx.Done():
+		return fmt.Errorf("context is closed")
+	default:
+		pool := u.storage.GetPool()
+		tx, err := pool.BeginTx(ctx, pgx.TxOptions{})
+		if err != nil {
+			u.logger.Errorf("can't create transaction: %s", err)
+			return fmt.Errorf("can't create transaction: %w", err)
+		}
+		u.logger.Debug("transaction begin success")
+		defer func() {
+			if err != nil {
+				u.logger.Errorf("transaction rolled back")
+				if err = tx.Rollback(ctx); err != nil {
+					u.logger.Errorf("can't rollback %s", err)
+				}
+
+			} else {
+				u.logger.Info("transaction commited")
+				if err != tx.Commit(ctx) {
+					u.logger.Errorf("can't commit %s", err)
+				}
+			}
+		}()
+
+		_, err = tx.Exec(ctx, `UPDATE users SET password=$1 WHERE id=$2`,
+			newPassword,
+			userId)
+		if err != nil {
+			u.logger.Errorf("error on update user %s: %s", userId, err)
+			return fmt.Errorf("error on update user %s: %w", userId, err)
+		}
+		u.logger.Infof("user with id %s successfully updated", userId)
+		return nil
+	}
 }

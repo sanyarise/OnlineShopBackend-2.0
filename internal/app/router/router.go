@@ -348,6 +348,7 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 	gin.GET("/user/:userID", delivery.Authorize, delivery.GetUserById)
 	gin.GET("/user/list", delivery.Authorize, delivery.GetUsersList)
 	gin.PUT("/user/update/rights", delivery.Authorize, delivery.ChangeUserRole)
+	gin.PUT("/user/update/password", delivery.Authorize, delivery.ChangeUserPassword)
 
 	router.Engine = gin
 	return router

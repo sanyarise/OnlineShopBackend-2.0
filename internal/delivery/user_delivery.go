@@ -15,6 +15,7 @@ import (
 	"OnlineShopBackend/internal/models"
 	"fmt"
 	"net/http"
+	"reflect"
 
 	"github.com/dghubble/gologin/v2"
 	gg "github.com/dghubble/gologin/v2/google"
@@ -391,6 +392,7 @@ func (delivery *Delivery) ChangeUserRole(c *gin.Context) {
 		delivery.SetError(c, http.StatusBadRequest, err)
 		return
 	}
+	ctx := c.Request.Context()
 	isRights, err := delivery.rightsUsecase.GetRightsByName(ctx, newRights.RightsName)
 	if err != nil {
 		delivery.logger.Error(err.Error())
@@ -403,10 +405,76 @@ func (delivery *Delivery) ChangeUserRole(c *gin.Context) {
 		delivery.SetError(c, http.StatusBadRequest, err)
 		return
 	}
-	err := delivery.userUsecase.ChangeUserRole(ctx, userId, isRights.ID)
+	err = delivery.userUsecase.ChangeUserRole(ctx, userId, isRights.ID)
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusInternalServerError, err)
 		return
 	}
+	delivery.logger.Sugar().Infof("Role of user with id: %v changed success", userId)
+	c.JSON(http.StatusOK, gin.H{})
+}
+
+func (delivery *Delivery) ChangeUserPassword(c *gin.Context) {
+	delivery.logger.Debug("Enter in delivery ChangeuserPassword()")
+
+	var passOptions user.ChangePass
+	err := c.ShouldBindJSON(&passOptions)
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
+		return
+	}
+
+	id, ok := c.Get("userId")
+	if !ok {
+		err := fmt.Errorf("user not found")
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusNotFound, err)
+		return
+	}
+	var userId string
+	switch id.(type) {
+	case string:
+		v := reflect.ValueOf(id)
+		userId = v.String()
+	default:
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+	uid, err := uuid.Parse(userId)
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
+		return
+	}
+
+	ctx := c.Request.Context()
+
+	user, err := delivery.userUsecase.GetUserById(ctx, uid)
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusNotFound, err)
+		return
+	}
+	if !user.CheckPasswordHash(passOptions.OldPass, delivery.logger) {
+		err := fmt.Errorf("old password is uncorrect")
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
+		return
+	}
+	user.Password = passOptions.NewPass
+	hashPassword, err := user.GeneratePasswordHash(delivery.logger)
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
+		return
+	}
+	err = delivery.userUsecase.ChangeUserPassword(ctx, uid, hashPassword)
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusInternalServerError, err)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{})
 }

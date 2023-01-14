@@ -34,6 +34,8 @@ type UserStore interface {
 	SaveSession(ctx context.Context, token string, t int64) error
 	GetUsersList(ctx context.Context) ([]models.User, error)
 	GetUserById(ctx context.Context, id uuid.UUID) (*models.User, error)
+	ChangeUserRole(ctx context.Context, userId uuid.UUID, rightsId uuid.UUID) error
+	ChangeUserPassword(ctx context.Context, userId uuid.UUID, newPassword string) error
 }
 
 type CartStore interface {

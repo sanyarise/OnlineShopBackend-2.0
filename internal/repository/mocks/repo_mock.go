@@ -273,6 +273,20 @@ func (m *MockUserStore) EXPECT() *MockUserStoreMockRecorder {
 	return m.recorder
 }
 
+// ChangeUserRole mocks base method.
+func (m *MockUserStore) ChangeUserRole(ctx context.Context, userId, rightsId uuid.UUID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ChangeUserRole", ctx, userId, rightsId)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ChangeUserRole indicates an expected call of ChangeUserRole.
+func (mr *MockUserStoreMockRecorder) ChangeUserRole(ctx, userId, rightsId interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChangeUserRole", reflect.TypeOf((*MockUserStore)(nil).ChangeUserRole), ctx, userId, rightsId)
+}
+
 // Create mocks base method.
 func (m *MockUserStore) Create(ctx context.Context, user *models.User) (*models.User, error) {
 	m.ctrl.T.Helper()
@@ -316,6 +330,36 @@ func (m *MockUserStore) GetUserByEmail(ctx context.Context, email string) (*mode
 func (mr *MockUserStoreMockRecorder) GetUserByEmail(ctx, email interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByEmail", reflect.TypeOf((*MockUserStore)(nil).GetUserByEmail), ctx, email)
+}
+
+// GetUserById mocks base method.
+func (m *MockUserStore) GetUserById(ctx context.Context, id uuid.UUID) (*models.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserById", ctx, id)
+	ret0, _ := ret[0].(*models.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUserById indicates an expected call of GetUserById.
+func (mr *MockUserStoreMockRecorder) GetUserById(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserById", reflect.TypeOf((*MockUserStore)(nil).GetUserById), ctx, id)
+}
+
+// GetUsersList mocks base method.
+func (m *MockUserStore) GetUsersList(ctx context.Context) ([]models.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUsersList", ctx)
+	ret0, _ := ret[0].([]models.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUsersList indicates an expected call of GetUsersList.
+func (mr *MockUserStoreMockRecorder) GetUsersList(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUsersList", reflect.TypeOf((*MockUserStore)(nil).GetUsersList), ctx)
 }
 
 // SaveSession mocks base method.
@@ -617,6 +661,21 @@ func (m *MockRightsStore) GetRights(ctx context.Context, id uuid.UUID) (*models.
 func (mr *MockRightsStoreMockRecorder) GetRights(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRights", reflect.TypeOf((*MockRightsStore)(nil).GetRights), ctx, id)
+}
+
+// GetRightsByName mocks base method.
+func (m *MockRightsStore) GetRightsByName(ctx context.Context, name string) (*models.Rights, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetRightsByName", ctx, name)
+	ret0, _ := ret[0].(*models.Rights)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetRightsByName indicates an expected call of GetRightsByName.
+func (mr *MockRightsStoreMockRecorder) GetRightsByName(ctx, name interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRightsByName", reflect.TypeOf((*MockRightsStore)(nil).GetRightsByName), ctx, name)
 }
 
 // RightsList mocks base method.

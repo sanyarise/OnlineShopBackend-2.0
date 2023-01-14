@@ -62,7 +62,7 @@ func (delivery *Delivery) Authorize(c *gin.Context) {
 			c.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
-		c.Set("user", user)
+		c.Set("userId", user.ID.String())
 		c.Next()
 	} else {
 		c.AbortWithStatus(http.StatusUnauthorized)

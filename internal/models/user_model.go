@@ -71,7 +71,9 @@ func (user *User) GeneratePasswordHash(logger *zap.Logger) (string, error) {
 
 func (user *User) CheckPasswordHash(password string, logger *zap.Logger) bool {
 	logger.Sugar().Debugf("Enter in models user CheckPasswordHash() with args: password: %s, logger", password)
+	fmt.Printf("user password is: %v", user.Password)
 	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+	fmt.Printf("err compare hash and password is %v", err)
 	return err == nil
 }
 

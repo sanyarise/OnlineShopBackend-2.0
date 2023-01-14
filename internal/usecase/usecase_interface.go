@@ -50,6 +50,8 @@ type IUserUsecase interface {
 	CreateSessionJWT(ctx context.Context, user *models.User, key string) (Token, error)
 	GetUserById(ctx context.Context, id uuid.UUID) (*models.User, error)
 	GetUsersList(ctx context.Context) ([]models.User, error)
+	ChangeUserRole(ctx context.Context, userId uuid.UUID, rightsId uuid.UUID) error
+	ChangeUserPassword(ctx context.Context, userId uuid.UUID, newPassword string) error
 }
 
 type IRightsUsecase interface {

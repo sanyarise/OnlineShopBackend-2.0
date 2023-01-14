@@ -218,3 +218,21 @@ func (usecase *UserUsecase) GetUsersList(ctx context.Context) ([]models.User, er
 	}
 	return users, nil
 }
+
+func (usecase *UserUsecase) ChangeUserRole(ctx context.Context, userId uuid.UUID, rightsId uuid.UUID) error {
+	usecase.logger.Sugar().Debugf("Enter in usecase ChangeUserRole() with args: ctx, userId: %v, rightsId: %v", userId, rightsId)
+	err := usecase.userStore.ChangeUserRole(ctx, userId, rightsId)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (usecase *UserUsecase) ChangeUserPassword(ctx context.Context, userId uuid.UUID, newPassword string) error {
+	usecase.logger.Sugar().Debugf("Enter in usecase ChangeUserPassword() with args: ctx, userId: %v, newPassword: %s", userId, newPassword)
+	err := usecase.userStore.ChangeUserPassword(ctx, userId, newPassword)
+	if err != nil {
+		return err
+	}
+	return nil
+}
