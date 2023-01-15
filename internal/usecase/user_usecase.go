@@ -4,15 +4,12 @@ import (
 	"OnlineShopBackend/internal/models"
 	"OnlineShopBackend/internal/repository"
 	"context"
-	"encoding/json"
 	"fmt"
 	"math/rand"
-	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
-	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
 
@@ -129,7 +126,7 @@ func (usecase *UserUsecase) NewRefreshToken() (string, error) {
 	return fmt.Sprintf("%x", refreshToken), nil
 }
 
-func (usecase *UserUsecase) UserIdentity(header string) (*Payload, error) {
+/*func (usecase *UserUsecase) UserIdentity(header string) (*Payload, error) {
 	usecase.logger.Sugar().Debugf("Enter in usecase UserIdentity() with args: header: %s", header)
 	if header == "" {
 		return &Payload{}, errors.New("empty header")
@@ -164,7 +161,7 @@ func (usecase *UserUsecase) UserIdentity(header string) (*Payload, error) {
 		Password: cr.Password,
 	}
 	return userCred, nil
-}
+}*/
 
 func (usecase *UserUsecase) CreateSessionJWT(ctx context.Context, user *models.User, key string) (Token, error) {
 	usecase.logger.Sugar().Debugf("Enter in usecase user CreateSessionJWT() with args: ctx, user: %v, key: %s", user, key)

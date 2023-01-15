@@ -327,28 +327,28 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 			gin.DELETE(route.Pattern, route.HandlerFunc)
 		}
 	}
-	gin.GET("/", delivery.Authorize, delivery.Index)
-	gin.GET("/images/list", delivery.Authorize, delivery.GetFileList)
-	gin.POST("/categories/create", delivery.Authorize, delivery.CreateCategory)
-	gin.PUT("/categories/:categoryID", delivery.Authorize, delivery.UpdateCategory)
-	gin.POST("/categories/image/upload/:categoryID", delivery.Authorize, delivery.UploadCategoryImage)
-	gin.DELETE("/categories/image/delete", delivery.Authorize, delivery.DeleteCategoryImage) //?id=25f32441-587a-452d-af8c-b3876ae29d45&name=20221209194557.jpeg
-	gin.DELETE("/categories/delete/:categoryID", delivery.Authorize, delivery.DeleteCategory)
-	gin.POST("/items/create", delivery.Authorize, delivery.CreateItem)
-	gin.PUT("/items/update", delivery.Authorize, delivery.UpdateItem)
-	gin.POST("/items/image/upload/:itemID", delivery.Authorize, delivery.UploadItemImage)
-	gin.DELETE("/items/image/delete", delivery.Authorize, delivery.DeleteItemImage) //?id=25f32441-587a-452d-af8c-b3876ae29d45&name=20221209194557.jpeg
-	gin.DELETE("/items/delete/:itemID", delivery.Authorize, delivery.DeleteItem)
-	gin.POST("/rights/create", delivery.Authorize, delivery.CreateRights)
-	gin.PUT("/rights/update", delivery.Authorize, delivery.UpdateRights)
-	gin.DELETE("/rights/delete/:rightsID", delivery.Authorize, delivery.DeleteRights)
-	gin.GET("/rights/list", delivery.Authorize, delivery.GetRights)
-	gin.GET("/user/profile", delivery.Authorize, delivery.UserProfile)
-	gin.PUT("/user/profile/edit", delivery.Authorize, delivery.UserProfileUpdate)
-	gin.GET("/user/:userID", delivery.Authorize, delivery.GetUserById)
-	gin.GET("/user/list", delivery.Authorize, delivery.GetUsersList)
-	gin.PUT("/user/update/rights", delivery.Authorize, delivery.ChangeUserRole)
-	gin.PUT("/user/update/password", delivery.Authorize, delivery.ChangeUserPassword)
+	gin.GET("/", delivery.Authentificate, delivery.Authorize, delivery.Index)
+	gin.GET("/images/list", delivery.Authentificate, delivery.Authorize, delivery.GetFileList)
+	gin.POST("/categories/create", delivery.Authentificate, delivery.Authorize, delivery.CreateCategory)
+	gin.PUT("/categories/:categoryID", delivery.Authentificate, delivery.Authorize, delivery.UpdateCategory)
+	gin.POST("/categories/image/upload/:categoryID", delivery.Authentificate, delivery.Authorize, delivery.UploadCategoryImage)
+	gin.DELETE("/categories/image/delete", delivery.Authentificate, delivery.Authorize, delivery.DeleteCategoryImage) //?id=25f32441-587a-452d-af8c-b3876ae29d45&name=20221209194557.jpeg
+	gin.DELETE("/categories/delete/:categoryID", delivery.Authentificate, delivery.Authorize, delivery.DeleteCategory)
+	gin.POST("/items/create", delivery.Authentificate, delivery.Authorize, delivery.CreateItem)
+	gin.PUT("/items/update", delivery.Authentificate, delivery.Authorize, delivery.UpdateItem)
+	gin.POST("/items/image/upload/:itemID", delivery.Authentificate, delivery.Authorize, delivery.UploadItemImage)
+	gin.DELETE("/items/image/delete", delivery.Authentificate, delivery.Authorize, delivery.DeleteItemImage) //?id=25f32441-587a-452d-af8c-b3876ae29d45&name=20221209194557.jpeg
+	gin.DELETE("/items/delete/:itemID", delivery.Authentificate, delivery.Authorize, delivery.DeleteItem)
+	gin.POST("/rights/create", delivery.Authentificate, delivery.Authorize, delivery.CreateRights)
+	gin.PUT("/rights/update", delivery.Authentificate, delivery.Authorize, delivery.UpdateRights)
+	gin.DELETE("/rights/delete/:rightsID", delivery.Authentificate, delivery.Authorize, delivery.DeleteRights)
+	gin.GET("/rights/list", delivery.Authentificate, delivery.Authorize, delivery.GetRights)
+	gin.GET("/user/profile", delivery.Authentificate, delivery.Authorize, delivery.UserProfile)
+	gin.PUT("/user/profile/edit", delivery.Authentificate, delivery.Authorize, delivery.UserProfileUpdate)
+	gin.GET("/user/:userID", delivery.Authentificate, delivery.Authorize, delivery.GetUserById)
+	gin.GET("/user/list", delivery.Authentificate, delivery.Authorize, delivery.GetUsersList)
+	gin.PUT("/user/update/rights", delivery.Authentificate, delivery.Authorize, delivery.ChangeUserRole)
+	gin.PUT("/user/update/password", delivery.Authentificate, delivery.Authorize, delivery.ChangeUserPassword)
 
 	router.Engine = gin
 	return router

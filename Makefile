@@ -131,6 +131,9 @@ mock_usecase:
 mock_filestorage:
 	mockgen -source=internal/filestorage/diskFileStorage.go -destination=internal/filestorage/mocks/filestorage_mock.go -package=mocks FileStorager
 
+mock_authorization:
+	mockgen -source=internal/delivery/authorization.go -destination=internal/delivery/mocks/authorization_mock.go -package=mocks
+
 up:
 	docker-compose up -d
 

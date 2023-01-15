@@ -27,6 +27,7 @@ type Delivery struct {
 	rightsUsecase   usecase.IRightsUsecase
 	logger          *zap.Logger
 	filestorage     filestorage.FileStorager
+	policyOpaGateway PolicyGateway
 	secretKey       string
 }
 
@@ -38,6 +39,7 @@ func NewDelivery(
 	cartUsecase usecase.ICartUsecase,
 	rightsUsecase usecase.IRightsUsecase,
 	logger *zap.Logger, fs filestorage.FileStorager,
+	policyOpaGateway PolicyGateway,
 	secretKey string,
 ) *Delivery {
 	logger.Debug("Enter in NewDelivery()")
@@ -49,6 +51,7 @@ func NewDelivery(
 		rightsUsecase:   rightsUsecase,
 		logger:          logger,
 		filestorage:     fs,
+		policyOpaGateway: policyOpaGateway,
 		secretKey:       secretKey,
 	}
 }

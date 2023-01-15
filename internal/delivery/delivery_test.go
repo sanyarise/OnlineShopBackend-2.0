@@ -3,6 +3,7 @@ package delivery
 import (
 	fstor "OnlineShopBackend/internal/filestorage"
 	fs "OnlineShopBackend/internal/filestorage/mocks"
+	auth "OnlineShopBackend/internal/delivery/mocks"
 	"OnlineShopBackend/internal/usecase/mocks"
 	"fmt"
 	"net/http"
@@ -25,7 +26,8 @@ func TestIndex(t *testing.T) {
 	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	rightsUsecase := mocks.NewMockIRightsUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
-	delivery := NewDelivery(itemUsecase, nil, categoryUsecase, cartUsecase, rightsUsecase, logger, filestorage, "")
+	authorization := auth.NewMockPolicyGateway(ctrl)
+	delivery := NewDelivery(itemUsecase, nil, categoryUsecase, cartUsecase, rightsUsecase, logger, filestorage, authorization, "")
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -47,7 +49,8 @@ func TestGetFileList(t *testing.T) {
 	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	rightsUsecase := mocks.NewMockIRightsUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
-	delivery := NewDelivery(itemUsecase, nil, categoryUsecase, cartUsecase, rightsUsecase, logger, filestorage, "")
+	authorization := auth.NewMockPolicyGateway(ctrl)
+	delivery := NewDelivery(itemUsecase, nil, categoryUsecase, cartUsecase, rightsUsecase, logger, filestorage, authorization, "")
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)

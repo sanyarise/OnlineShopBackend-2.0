@@ -1,17 +1,30 @@
-package gateway
+package delivery
 
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt"
 	"go.uber.org/zap"
 )
+
+// EnforcePolicy is a middleware to check all the requests and ask if the requester has permissions
+func (delivery *Delivery) Authorize(c *gin.Context) {
+	delivery.logger.Info("Enforcing policy with middleware")
+
+	allow := delivery.policyOpaGateway.Ask(c)
+
+	if allow {
+		delivery.logger.Info("Action is allowed, continuing process")
+		c.Next()
+	} else {
+		delivery.logger.Info("Action was not allowed, cancelling process")
+		c.AbortWithStatus(http.StatusForbidden)
+	}
+}
 
 type PolicyGateway interface {
 	Ask(*gin.Context) bool
@@ -23,12 +36,12 @@ type opaRequest struct {
 }
 
 type opaInput struct {
-	// The token of the requester
-	Token string `json:"token"`
 	// The path to which the request was made split to an array
 	Path []string `json:"path"`
 	// The HTTP Method
 	Method string `json:"method"`
+	// Users's role
+	Role string `json:"role"`
 }
 
 type opaResponse struct {
@@ -42,7 +55,7 @@ type PolicyOpaGateway struct {
 	logger    *zap.Logger
 }
 
-func NewPolicyOpaGateway(endpoint string, secretKey string, logger *zap.Logger) *PolicyOpaGateway {
+func NewPolicyOpaGateway(endpoint string, secretKey string, logger *zap.Logger) PolicyGateway {
 	return &PolicyOpaGateway{
 		endpoint:  endpoint,
 		secretKey: secretKey,
@@ -52,44 +65,28 @@ func NewPolicyOpaGateway(endpoint string, secretKey string, logger *zap.Logger) 
 
 // Ask requests to OPA with required inputs and returns the decision made by OPA
 func (gateway *PolicyOpaGateway) Ask(c *gin.Context) bool {
-	tokenString, err := c.Cookie("Authorization")
-	if err != nil {
-		gateway.logger.Error(err.Error())
-		c.AbortWithStatus(http.StatusUnauthorized)
-		return false
-	}
-	gateway.logger.Sugar().Debugf("tokenString read from request success: %v", tokenString)
-
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["sub"])
-		}
-		return []byte(gateway.secretKey), nil
-	})
-	if err != nil {
-		gateway.logger.Error(err.Error())
-		c.AbortWithStatus(http.StatusUnauthorized)
-		return false
-	}
-	gateway.logger.Sugar().Debugf("Token parse from tokenstring success: %v", token)
+	gateway.logger.Debug("Enter in gateway Ask()")
 
 	// After splitting, the first element isn't necessary
 	// "/finance/salary/alice" -> ["", "finance", "salary", "alice"]
 	paths := strings.Split(c.Request.URL.RequestURI(), "/")[1:]
-
+	if c.Request.URL.RequestURI() == "/" {
+		paths = []string{"/"}
+	}
 	method := c.Request.Method
+	role, _ := c.Get("role")
 
 	// create input to send to OPA
 	input := &opaInput{
-		Token:  token.Raw,
 		Path:   paths,
 		Method: method,
+		Role:   role.(string),
 	}
 	opaRequest := &opaRequest{
 		Input: input,
 	}
 
-	gateway.logger.Sugar().Debugf("token: %v, path: %v, method: %v", input.Token, input.Path, input.Method)
+	gateway.logger.Sugar().Debugf("path: %v, method: %v, role: %v", input.Path, input.Method, input.Role)
 
 	requestBody, err := json.Marshal(opaRequest)
 	if err != nil {
@@ -117,6 +114,7 @@ func (gateway *PolicyOpaGateway) Ask(c *gin.Context) bool {
 		gateway.logger.Sugar().Errorf("Unmarshalling response body failed, err: %v", err)
 		return false
 	}
+	gateway.logger.Sugar().Debugf("response: %v", opaResponse)
 	gateway.logger.Sugar().Infof("result: %v", opaResponse.Result)
 	return opaResponse.Result
 }

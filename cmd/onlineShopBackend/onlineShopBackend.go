@@ -57,7 +57,8 @@ func main() {
 	cartUsecase := usecase.NewCartUseCase(cartStore, l)
 	rightsUsecase := usecase.NewRightsUsecase(rightsStore, l)
 	filestorage := filestorage.NewOnDiskLocalStorage(cfg.ServerURL, cfg.FsPath, l)
-	delivery := delivery.NewDelivery(itemUsecase, userUsecase, categoryUsecase, cartUsecase, rightsUsecase, l, filestorage, cfg.SecretKey)
+	authorization := delivery.NewPolicyOpaGateway(cfg.OpaEndpoint, cfg.SecretKey, l)
+	delivery := delivery.NewDelivery(itemUsecase, userUsecase, categoryUsecase, cartUsecase, rightsUsecase, l, filestorage, authorization, cfg.SecretKey)
 
 	router := router.NewRouter(delivery, l)
 	serverOptions := map[string]int{

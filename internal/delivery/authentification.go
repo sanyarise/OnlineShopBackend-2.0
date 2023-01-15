@@ -10,7 +10,7 @@ import (
 	"github.com/golang-jwt/jwt"
 )
 
-func (delivery *Delivery) Authorize(c *gin.Context) {
+func (delivery *Delivery) Authentificate(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery Authorize()")
 	tokenString, err := c.Cookie("Authorization")
 	if err != nil {
@@ -35,12 +35,14 @@ func (delivery *Delivery) Authorize(c *gin.Context) {
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		if float64(time.Now().Unix()) > claims["exp"].(float64) {
+			delivery.logger.Error("timeout of token is over")
 			c.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
 		delivery.logger.Sugar().Debugf("claims from token read success: %v", claims)
 		interfaceValue := claims["Email"]
 		delivery.logger.Sugar().Debugf("interface value email : %v", interfaceValue)
+
 		var email string
 		switch interfaceValue.(type) {
 		case string:
@@ -57,12 +59,14 @@ func (delivery *Delivery) Authorize(c *gin.Context) {
 			c.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
-
-		if user.Email == "" {
+		if user.Password != claims["password"].(string) {
+			delivery.logger.Sugar().Errorf("password from jwt not ident to user password")
 			c.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
+
 		c.Set("userId", user.ID.String())
+		c.Set("role", user.Rights.Name)
 		c.Next()
 	} else {
 		c.AbortWithStatus(http.StatusUnauthorized)

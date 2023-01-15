@@ -176,29 +176,31 @@ func (delivery *Delivery) GetUsersList(c *gin.Context) {
 
 func (delivery *Delivery) UserProfile(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery UserProfile()")
-	header := c.GetHeader("Authorization")
-	userCr, err := delivery.userUsecase.UserIdentity(header)
+	id, _ := c.Get("userId")
+	uid, err := uuid.Parse(id.(string))
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
 		return
 	}
-
-	userData, err := delivery.userUsecase.GetUserByEmail(c.Request.Context(), userCr.Email)
+	userData, err := delivery.userUsecase.GetUserById(c.Request.Context(), uid)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusNotFound, err)
+		return
 	}
-	userProfile := models.User{
+	userProfile := user.UserProfile{
 		Email:     userData.Email,
 		Firstname: userData.Firstname,
 		Lastname:  userData.Lastname,
-		Address: models.UserAddress{
+		Address: user.Address{
 			Zipcode: userData.Address.Zipcode,
 			Country: userData.Address.Country,
 			City:    userData.Address.City,
 			Street:  userData.Address.Street,
 		},
-		Rights: models.Rights{
-			ID:    userData.Rights.ID,
+		Rights: user.Rights{
+			ID:    userData.Rights.ID.String(),
 			Name:  userData.Rights.Name,
 			Rules: userData.Rights.Rules,
 		},
@@ -208,21 +210,36 @@ func (delivery *Delivery) UserProfile(c *gin.Context) {
 
 func (delivery *Delivery) UserProfileUpdate(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery UserProfileUpdate()")
-	header := c.GetHeader("Authorization")
-	userCr, err := delivery.userUsecase.UserIdentity(header)
-	if err != nil {
+	//header := c.GetHeader("Authorization")
+	//userCr, err := delivery.userUsecase.UserIdentity(header)
+	//if err != nil {
+	//	c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	//	return
+	//}
+
+	var newInfoUser user.UpdateUserProfile
+	if err := c.ShouldBindJSON(&newInfoUser); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	var newInfoUser *models.User
-	if err = c.ShouldBindJSON(&newInfoUser); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	id, _ := c.Get("userId")
+	uid, err := uuid.Parse(id.(string))
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
+		return
+	}
+	ctx := c.Request.Context()
+	userBefore, err := delivery.userUsecase.GetUserById(ctx, uid)
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusNotFound, err)
 		return
 	}
 
 	updatedUser := models.User{
-		ID:        userCr.UserId,
+		ID:        userBefore.ID,
 		Firstname: newInfoUser.Firstname,
 		Lastname:  newInfoUser.Lastname,
 		Address: models.UserAddress{
@@ -233,14 +250,15 @@ func (delivery *Delivery) UserProfileUpdate(c *gin.Context) {
 		},
 	}
 
-	userUpdated, err := delivery.userUsecase.UpdateUserData(c.Request.Context(), &updatedUser)
+	_, err = delivery.userUsecase.UpdateUserData(c.Request.Context(), &updatedUser)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
 
-	userUpdated.Email = userCr.Email
+	//userUpdated.Email = userCr.Email
 
-	c.JSON(http.StatusCreated, userUpdated)
+	c.JSON(http.StatusOK, gin.H{})
 }
 
 func (delivery *Delivery) TokenUpdate(c *gin.Context) {
@@ -344,7 +362,7 @@ func (delivery *Delivery) LogoutUser(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery LogoutUser()")
 	//c.SetCookie("token", "", -1, "/", "http://localhost:3000", false, true) //TODO change to webapp url
 	c.SetCookie("Authorization", "", 0, "", "", false, true)
-	c.JSON(http.StatusOK, gin.H{"you have been successfully logged out": nil})
+	c.JSON(http.StatusOK, gin.H{"logout": "success"})
 }
 
 // LoginUserYandex -

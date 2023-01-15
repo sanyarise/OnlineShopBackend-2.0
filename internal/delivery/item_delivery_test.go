@@ -3,6 +3,7 @@ package delivery
 import (
 	"OnlineShopBackend/internal/delivery/category"
 	"OnlineShopBackend/internal/delivery/item"
+	auth "OnlineShopBackend/internal/delivery/mocks"
 	fs "OnlineShopBackend/internal/filestorage/mocks"
 	"OnlineShopBackend/internal/models"
 	"OnlineShopBackend/internal/usecase/mocks"
@@ -268,7 +269,8 @@ func TestCreateItem(t *testing.T) {
 	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	rightsUsecase := mocks.NewMockIRightsUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
-	delivery := NewDelivery(itemUsecase, nil, categoryUsecase, cartUsecase, rightsUsecase, logger, filestorage, "")
+	authorization := auth.NewMockPolicyGateway(ctrl)
+	delivery := NewDelivery(itemUsecase, nil, categoryUsecase, cartUsecase, rightsUsecase, logger, filestorage, authorization, "")
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -350,7 +352,8 @@ func TestGetItem(t *testing.T) {
 	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	rightsUsecase := mocks.NewMockIRightsUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
-	delivery := NewDelivery(itemUsecase, nil, categoryUsecase, cartUsecase, rightsUsecase, logger, filestorage, "")
+	authorization := auth.NewMockPolicyGateway(ctrl)
+	delivery := NewDelivery(itemUsecase, nil, categoryUsecase, cartUsecase, rightsUsecase, logger, filestorage, authorization, "")
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -407,7 +410,8 @@ func TestUpdateItem(t *testing.T) {
 	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	rightsUsecase := mocks.NewMockIRightsUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
-	delivery := NewDelivery(itemUsecase, nil, categoryUsecase, cartUsecase, rightsUsecase, logger, filestorage, "")
+	authorization := auth.NewMockPolicyGateway(ctrl)
+	delivery := NewDelivery(itemUsecase, nil, categoryUsecase, cartUsecase, rightsUsecase, logger, filestorage, authorization, "")
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -486,7 +490,8 @@ func TestUpdateItem2(t *testing.T) {
 	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	rightsUsecase := mocks.NewMockIRightsUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
-	delivery := NewDelivery(itemUsecase, nil, categoryUsecase, cartUsecase, rightsUsecase, logger, filestorage, "")
+	authorization := auth.NewMockPolicyGateway(ctrl)
+	delivery := NewDelivery(itemUsecase, nil, categoryUsecase, cartUsecase, rightsUsecase, logger, filestorage, authorization, "")
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -557,7 +562,8 @@ func TestItemsList(t *testing.T) {
 	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	rightsUsecase := mocks.NewMockIRightsUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
-	delivery := NewDelivery(itemUsecase, nil, categoryUsecase, cartUsecase, rightsUsecase, logger, filestorage, "")
+	authorization := auth.NewMockPolicyGateway(ctrl)
+	delivery := NewDelivery(itemUsecase, nil, categoryUsecase, cartUsecase, rightsUsecase, logger, filestorage, authorization, "")
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -647,7 +653,8 @@ func TestItemsQuantity(t *testing.T) {
 	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	rightsUsecase := mocks.NewMockIRightsUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
-	delivery := NewDelivery(itemUsecase, nil, categoryUsecase, cartUsecase, rightsUsecase, logger, filestorage, "")
+	authorization := auth.NewMockPolicyGateway(ctrl)
+	delivery := NewDelivery(itemUsecase, nil, categoryUsecase, cartUsecase, rightsUsecase, logger, filestorage, authorization, "")
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -687,8 +694,8 @@ func TestSearchLine(t *testing.T) {
 	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	rightsUsecase := mocks.NewMockIRightsUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
-	delivery := NewDelivery(itemUsecase, nil, categoryUsecase, cartUsecase, rightsUsecase, logger, filestorage, "")
-
+	authorization := auth.NewMockPolicyGateway(ctrl)
+	delivery := NewDelivery(itemUsecase, nil, categoryUsecase, cartUsecase, rightsUsecase, logger, filestorage, authorization, "")
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
 
@@ -762,8 +769,8 @@ func TestGetItemsByCategory(t *testing.T) {
 	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	rightsUsecase := mocks.NewMockIRightsUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
-	delivery := NewDelivery(itemUsecase, nil, categoryUsecase, cartUsecase, rightsUsecase, logger, filestorage, "")
-
+	authorization := auth.NewMockPolicyGateway(ctrl)
+	delivery := NewDelivery(itemUsecase, nil, categoryUsecase, cartUsecase, rightsUsecase, logger, filestorage, authorization, "")
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
 
@@ -837,7 +844,8 @@ func TestUploadItemImage(t *testing.T) {
 	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	rightsUsecase := mocks.NewMockIRightsUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
-	delivery := NewDelivery(itemUsecase, nil, categoryUsecase, cartUsecase, rightsUsecase, logger, filestorage, "")
+	authorization := auth.NewMockPolicyGateway(ctrl)
+	delivery := NewDelivery(itemUsecase, nil, categoryUsecase, cartUsecase, rightsUsecase, logger, filestorage, authorization, "")
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -965,7 +973,8 @@ func TestDeleteItemImage(t *testing.T) {
 	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	rightsUsecase := mocks.NewMockIRightsUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
-	delivery := NewDelivery(itemUsecase, nil, categoryUsecase, cartUsecase, rightsUsecase, logger, filestorage, "")
+	authorization := auth.NewMockPolicyGateway(ctrl)
+	delivery := NewDelivery(itemUsecase, nil, categoryUsecase, cartUsecase, rightsUsecase, logger, filestorage, authorization, "")
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -1039,8 +1048,8 @@ func TestDeleteItem(t *testing.T) {
 	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	rightsUsecase := mocks.NewMockIRightsUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
-	delivery := NewDelivery(itemUsecase, nil, categoryUsecase, cartUsecase, rightsUsecase, logger, filestorage, "")
-
+	authorization := auth.NewMockPolicyGateway(ctrl)
+	delivery := NewDelivery(itemUsecase, nil, categoryUsecase, cartUsecase, rightsUsecase, logger, filestorage, authorization, "")
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
 

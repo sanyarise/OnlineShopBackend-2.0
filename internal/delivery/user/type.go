@@ -39,3 +39,17 @@ type ChangePass struct {
 	OldPass string `json:"old_password" binding:"required" minLenght:"5" maxLenght:"16"`
 	NewPass string `json:"new_password" binding:"required" minLenght:"5" maxLenght:"16"`
 }
+
+type UserProfile struct {
+	Firstname string `json:"first_name" example:"Иван"`
+	Lastname  string `json:"last_name" example:"Иванов"`
+	Email     string `json:"email" binding:"required, max=250,email" maxLength:"250" example:"example@gmail.com" format:"email" swaggertype:"string"`
+	Address   `json:"address"`
+	Rights    `json:"rights"`
+}
+
+type UpdateUserProfile struct {
+	Firstname string `json:"first_name" example:"Иван"`
+	Lastname  string `json:"last_name" example:"Иванов"`
+	Address   `json:"address"`
+}
