@@ -342,7 +342,7 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 	gin.POST("/rights/create", delivery.Authentificate, delivery.Authorize, delivery.CreateRights)
 	gin.PUT("/rights/update", delivery.Authentificate, delivery.Authorize, delivery.UpdateRights)
 	gin.DELETE("/rights/delete/:rightsID", delivery.Authentificate, delivery.Authorize, delivery.DeleteRights)
-	gin.GET("/rights/list", delivery.Authentificate, delivery.Authorize, delivery.GetRights)
+	gin.GET("/list/rights", delivery.Authentificate, delivery.Authorize, delivery.RightsList)
 	gin.GET("/user/profile", delivery.Authentificate, delivery.Authorize, delivery.UserProfile)
 	gin.PUT("/user/profile/edit", delivery.Authentificate, delivery.Authorize, delivery.UserProfileUpdate)
 	gin.GET("/user/:userID", delivery.Authentificate, delivery.Authorize, delivery.GetUserById)

@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -36,10 +35,7 @@ type opaRequest struct {
 }
 
 type opaInput struct {
-	// The path to which the request was made split to an array
-	Path []string `json:"path"`
-	// The HTTP Method
-	Method string `json:"method"`
+	Endpoint string `json:"endpoint"`
 	// Users's role
 	Role string `json:"role"`
 }
@@ -66,27 +62,19 @@ func NewPolicyOpaGateway(endpoint string, secretKey string, logger *zap.Logger) 
 // Ask requests to OPA with required inputs and returns the decision made by OPA
 func (gateway *PolicyOpaGateway) Ask(c *gin.Context) bool {
 	gateway.logger.Debug("Enter in gateway Ask()")
-
-	// After splitting, the first element isn't necessary
-	// "/finance/salary/alice" -> ["", "finance", "salary", "alice"]
-	paths := strings.Split(c.Request.URL.RequestURI(), "/")[1:]
-	if c.Request.URL.RequestURI() == "/" {
-		paths = []string{"/"}
-	}
-	method := c.Request.Method
+	endpoint, _ := c.Get("endpoint")
 	role, _ := c.Get("role")
 
 	// create input to send to OPA
 	input := &opaInput{
-		Path:   paths,
-		Method: method,
-		Role:   role.(string),
+		Endpoint: endpoint.(string),
+		Role:     role.(string),
 	}
 	opaRequest := &opaRequest{
 		Input: input,
 	}
 
-	gateway.logger.Sugar().Debugf("path: %v, method: %v, role: %v", input.Path, input.Method, input.Role)
+	gateway.logger.Sugar().Debugf("endpoint: %v, role: %v", input.Endpoint, input.Role)
 
 	requestBody, err := json.Marshal(opaRequest)
 	if err != nil {

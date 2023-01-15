@@ -47,7 +47,7 @@ func (u *user) Create(ctx context.Context, user *models.User) (*models.User, err
 }
 
 func (u *user) GetUserByEmail(ctx context.Context, email string) (*models.User, error) {
-	u.logger.Debug("Enter in repository GetUserByEmail()")
+	u.logger.Debug("Enter in repository GetUserByEmail() with args: ctx, email: %v", email)
 	select {
 	case <-ctx.Done():
 		return &models.User{}, fmt.Errorf("context is closed")
@@ -71,6 +71,7 @@ func (u *user) GetUserByEmail(ctx context.Context, email string) (*models.User, 
 		if err != nil {
 			return &models.User{}, fmt.Errorf("can't get user from database: %w", err)
 		}
+		u.logger.Info("Get user by email success")
 		return &user, nil
 	}
 }

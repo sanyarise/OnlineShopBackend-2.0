@@ -41,7 +41,7 @@ type Token struct {
 func (usecase *UserUsecase) CreateUser(ctx context.Context, user *models.User) (*models.User, error) {
 	usecase.logger.Sugar().Debugf("Enter in usecase CreateUser() with args: ctx, user: %v", user)
 
-	rights, err := usecase.userStore.GetRightsId(ctx, "Customer")
+	rights, err := usecase.userStore.GetRightsId(ctx, "customer")
 	if err != nil {
 		return &models.User{}, err
 	}
