@@ -49,7 +49,7 @@ func (delivery *Delivery) GetCart(c *gin.Context) {
 		delivery.SetError(c, http.StatusInternalServerError, err)
 		return
 	}
-	
+
 	cartItems := make([]cart.CartItem, len(modelCart.Items))
 	for idx, item := range modelCart.Items {
 		cartItems[idx].Id = item.Id.String()
@@ -58,6 +58,10 @@ func (delivery *Delivery) GetCart(c *gin.Context) {
 		if len(item.Images) > 0 {
 			cartItems[idx].Image = item.Images[0]
 		}
+		cartItems[idx].Category.Id = item.Category.Id.String()
+		cartItems[idx].Category.Name = item.Category.Name
+		cartItems[idx].Category.Description = item.Category.Description
+		cartItems[idx].Category.Image = item.Category.Image
 		cartItems[idx].Quantity = item.Quantity
 	}
 
