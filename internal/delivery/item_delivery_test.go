@@ -173,6 +173,18 @@ var (
 		Vendor: "testVendor",
 	}
 
+	testShortModelsItemWithIdWithEmptyImage = &models.Item{
+		Id:          testId,
+		Title:       "testTitle",
+		Description: "testDescription",
+		Category: models.Category{
+			Id: testId,
+		},
+		Price:  10,
+		Vendor: "testVendor",
+		Images: []string{""},
+	}
+
 	testModelsCategoryWithOtherId = &models.Category{
 		Id:          testId2,
 		Name:        "testName",
@@ -180,13 +192,14 @@ var (
 		Image:       "testImg",
 	}
 
-	testShortModelsItemWithIdAndOtherCat = &models.Item{
+	testShortModelsItemWithIdAndOtherCatWithEmptyImage = &models.Item{
 		Id:          testId,
 		Title:       "testTitle",
 		Description: "testDescription",
 		Category:    *testModelsCategoryWithOtherId,
 		Price:       10,
 		Vendor:      "testVendor",
+		Images: []string{""},
 	}
 	testModelsItemWithImage = models.Item{
 		Id:          testId,
@@ -455,7 +468,7 @@ func TestUpdateItem(t *testing.T) {
 	}
 	MockJson(c, testInItem, put)
 	itemUsecase.EXPECT().GetItem(ctx, testId).Return(testModelsItemWithId, nil)
-	itemUsecase.EXPECT().UpdateItem(ctx, testShortModelsItemWithId).Return(fmt.Errorf("error"))
+	itemUsecase.EXPECT().UpdateItem(ctx, testShortModelsItemWithIdWithEmptyImage).Return(fmt.Errorf("error"))
 	delivery.UpdateItem(c)
 	require.Equal(t, 500, w.Code)
 
@@ -467,7 +480,7 @@ func TestUpdateItem(t *testing.T) {
 	}
 	MockJson(c, testInItem, put)
 	itemUsecase.EXPECT().GetItem(ctx, testId).Return(testModelsItemWithId, nil)
-	itemUsecase.EXPECT().UpdateItem(ctx, testShortModelsItemWithId).Return(nil)
+	itemUsecase.EXPECT().UpdateItem(ctx, testShortModelsItemWithIdWithEmptyImage).Return(nil)
 	delivery.UpdateItem(c)
 	require.Equal(t, 200, w.Code)
 }
@@ -492,7 +505,7 @@ func TestUpdateItem2(t *testing.T) {
 	}
 	MockJson(c, testInItem, put)
 	itemUsecase.EXPECT().GetItem(ctx, testId).Return(testModelsItemWithIdAndOtherCatId, nil)
-	itemUsecase.EXPECT().UpdateItem(ctx, testShortModelsItemWithId).Return(nil)
+	itemUsecase.EXPECT().UpdateItem(ctx, testShortModelsItemWithIdWithEmptyImage).Return(nil)
 	categoryUsecase.EXPECT().GetCategory(ctx, testShortModelsItemWithId.Category.Id).Return(nil, fmt.Errorf("error"))
 	delivery.UpdateItem(c)
 	require.Equal(t, 500, w.Code)
@@ -505,9 +518,9 @@ func TestUpdateItem2(t *testing.T) {
 	}
 	MockJson(c, testInItem, put)
 	itemUsecase.EXPECT().GetItem(ctx, testId).Return(testModelsItemWithIdAndOtherCatId, nil)
-	itemUsecase.EXPECT().UpdateItem(ctx, testShortModelsItemWithId).Return(nil)
+	itemUsecase.EXPECT().UpdateItem(ctx, testShortModelsItemWithIdWithEmptyImage).Return(nil)
 	categoryUsecase.EXPECT().GetCategory(ctx, testShortModelsItemWithId.Category.Id).Return(testModelsCategoryWithOtherId, nil)
-	itemUsecase.EXPECT().UpdateItemsInCategoryCash(ctx, testShortModelsItemWithIdAndOtherCat, "create").Return(fmt.Errorf("err"))
+	itemUsecase.EXPECT().UpdateItemsInCategoryCash(ctx, testShortModelsItemWithIdAndOtherCatWithEmptyImage, "create").Return(fmt.Errorf("err"))
 	delivery.UpdateItem(c)
 	require.Equal(t, 500, w.Code)
 
@@ -519,9 +532,9 @@ func TestUpdateItem2(t *testing.T) {
 	}
 	MockJson(c, testInItem, put)
 	itemUsecase.EXPECT().GetItem(ctx, testId).Return(testModelsItemWithIdAndOtherCatId, nil)
-	itemUsecase.EXPECT().UpdateItem(ctx, testShortModelsItemWithId).Return(nil)
+	itemUsecase.EXPECT().UpdateItem(ctx, testShortModelsItemWithIdWithEmptyImage).Return(nil)
 	categoryUsecase.EXPECT().GetCategory(ctx, testShortModelsItemWithId.Category.Id).Return(testModelsCategoryWithOtherId, nil)
-	itemUsecase.EXPECT().UpdateItemsInCategoryCash(ctx, testShortModelsItemWithIdAndOtherCat, "create").Return(nil)
+	itemUsecase.EXPECT().UpdateItemsInCategoryCash(ctx, testShortModelsItemWithIdAndOtherCatWithEmptyImage, "create").Return(nil)
 	itemUsecase.EXPECT().UpdateItemsInCategoryCash(ctx, testModelsItemWithIdAndOtherCatId, "delete").Return(fmt.Errorf("err"))
 	delivery.UpdateItem(c)
 	require.Equal(t, 500, w.Code)
@@ -534,9 +547,9 @@ func TestUpdateItem2(t *testing.T) {
 	}
 	MockJson(c, testInItem, put)
 	itemUsecase.EXPECT().GetItem(ctx, testId).Return(testModelsItemWithIdAndOtherCatId, nil)
-	itemUsecase.EXPECT().UpdateItem(ctx, testShortModelsItemWithId).Return(nil)
+	itemUsecase.EXPECT().UpdateItem(ctx, testShortModelsItemWithIdWithEmptyImage).Return(nil)
 	categoryUsecase.EXPECT().GetCategory(ctx, testShortModelsItemWithId.Category.Id).Return(testModelsCategoryWithOtherId, nil)
-	itemUsecase.EXPECT().UpdateItemsInCategoryCash(ctx, testShortModelsItemWithIdAndOtherCat, "create").Return(nil)
+	itemUsecase.EXPECT().UpdateItemsInCategoryCash(ctx, testShortModelsItemWithIdAndOtherCatWithEmptyImage, "create").Return(nil)
 	itemUsecase.EXPECT().UpdateItemsInCategoryCash(ctx, testModelsItemWithIdAndOtherCatId, "delete").Return(nil)
 	delivery.UpdateItem(c)
 	require.Equal(t, 200, w.Code)
@@ -560,10 +573,12 @@ func TestItemsList(t *testing.T) {
 	c.Request = &http.Request{
 		Header: make(http.Header),
 	}
-	c.Request.URL, _ = url.Parse("?offset=0&limit=1")
+	c.Request.URL, _ = url.Parse("?offset=0&limit=1&sortType=name&sortOrder=asc")
 
 	bytesRes, _ := json.Marshal(&testOutItems.List)
-	itemUsecase.EXPECT().ItemsList(ctx, 0, 1).Return(testItems, nil)
+	testLimitOptions := map[string]int{"offset": 0, "limit": 1}
+	testSortOptions := map[string]string{"sortType": "name", "sortOrder": "asc"}
+	itemUsecase.EXPECT().ItemsList(ctx, testLimitOptions, testSortOptions).Return(testItems, nil)
 	delivery.ItemsList(c)
 	require.Equal(t, 200, w.Code)
 	require.Equal(t, bytesRes, w.Body.Bytes())
@@ -576,7 +591,7 @@ func TestItemsList(t *testing.T) {
 	}
 	c.Request.URL, _ = url.Parse("?offset=0&limit=1")
 
-	itemUsecase.EXPECT().ItemsList(ctx, 0, 1).Return([]models.Item{}, fmt.Errorf("error"))
+	itemUsecase.EXPECT().ItemsList(ctx, testLimitOptions, testSortOptions).Return([]models.Item{}, fmt.Errorf("error"))
 	delivery.ItemsList(c)
 	require.Equal(t, 500, w.Code)
 
@@ -600,7 +615,7 @@ func TestItemsList(t *testing.T) {
 
 	bytesRes, _ = json.Marshal(&testOutItems.List)
 	itemUsecase.EXPECT().ItemsQuantity(ctx).Return(1, nil)
-	itemUsecase.EXPECT().ItemsList(ctx, 0, 1).Return(testItems, nil)
+	itemUsecase.EXPECT().ItemsList(ctx, testLimitOptions, testSortOptions).Return(testItems, nil)
 	delivery.ItemsList(c)
 	require.Equal(t, 200, w.Code)
 	require.Equal(t, bytesRes, w.Body.Bytes())
@@ -614,7 +629,7 @@ func TestItemsList(t *testing.T) {
 
 	bytesRes, _ = json.Marshal(&testOutItems.List)
 	itemUsecase.EXPECT().ItemsQuantity(ctx).Return(100, nil)
-	itemUsecase.EXPECT().ItemsList(ctx, 0, 10).Return(testItems, nil)
+	itemUsecase.EXPECT().ItemsList(ctx, map[string]int{"offset": 0, "limit": 10}, testSortOptions).Return(testItems, nil)
 	delivery.ItemsList(c)
 	require.Equal(t, 200, w.Code)
 	require.Equal(t, bytesRes, w.Body.Bytes())
@@ -689,9 +704,11 @@ func TestSearchLine(t *testing.T) {
 		Header: make(http.Header),
 	}
 	c.Request.URL, _ = url.Parse("?param=test&offset=0&limit=1")
+	testLimitOptions := map[string]int{"offset": 0, "limit": 1}
+	testSortOptions := map[string]string{"sortType": "name", "sortOrder": "asc"}
 
 	bytesRes, _ := json.Marshal(&testOutItems.List)
-	itemUsecase.EXPECT().SearchLine(ctx, "test", 0, 1).Return(testItems, nil)
+	itemUsecase.EXPECT().SearchLine(ctx, "test", testLimitOptions, testSortOptions).Return(testItems, nil)
 	delivery.SearchLine(c)
 	require.Equal(t, 200, w.Code)
 	require.Equal(t, bytesRes, w.Body.Bytes())
@@ -704,7 +721,7 @@ func TestSearchLine(t *testing.T) {
 	}
 	c.Request.URL, _ = url.Parse("?param=test&offset=0&limit=1")
 
-	itemUsecase.EXPECT().SearchLine(ctx, "test", 0, 1).Return([]models.Item{}, fmt.Errorf("error"))
+	itemUsecase.EXPECT().SearchLine(ctx, "test", testLimitOptions, testSortOptions).Return([]models.Item{}, fmt.Errorf("error"))
 	delivery.SearchLine(c)
 	require.Equal(t, 500, w.Code)
 
@@ -738,7 +755,7 @@ func TestSearchLine(t *testing.T) {
 	}
 	c.Request.URL, _ = url.Parse("?param=test&offset=0&limit=0")
 
-	itemUsecase.EXPECT().SearchLine(ctx, "test", 0, 10).Return(testItems, nil)
+	itemUsecase.EXPECT().SearchLine(ctx, "test", map[string]int{"offset": 0, "limit": 10}, testSortOptions).Return(testItems, nil)
 	delivery.SearchLine(c)
 	require.Equal(t, 200, w.Code)
 	require.Equal(t, bytesRes, w.Body.Bytes())
@@ -763,9 +780,11 @@ func TestGetItemsByCategory(t *testing.T) {
 		Header: make(http.Header),
 	}
 	c.Request.URL, _ = url.Parse("?param=test&offset=0&limit=1")
+	testLimitOptions := map[string]int{"offset": 0, "limit": 1}
+	testSortOptions := map[string]string{"sortType": "name", "sortOrder": "asc"}
 
 	bytesRes, _ := json.Marshal(&testOutItems.List)
-	itemUsecase.EXPECT().GetItemsByCategory(ctx, "test", 0, 1).Return(testItems, nil)
+	itemUsecase.EXPECT().GetItemsByCategory(ctx, "test", testLimitOptions, testSortOptions).Return(testItems, nil)
 	delivery.GetItemsByCategory(c)
 	require.Equal(t, 200, w.Code)
 	require.Equal(t, bytesRes, w.Body.Bytes())
@@ -778,7 +797,7 @@ func TestGetItemsByCategory(t *testing.T) {
 	}
 	c.Request.URL, _ = url.Parse("?param=test&offset=0&limit=1")
 
-	itemUsecase.EXPECT().GetItemsByCategory(ctx, "test", 0, 1).Return([]models.Item{}, fmt.Errorf("error"))
+	itemUsecase.EXPECT().GetItemsByCategory(ctx, "test", testLimitOptions, testSortOptions).Return([]models.Item{}, fmt.Errorf("error"))
 	delivery.GetItemsByCategory(c)
 	require.Equal(t, 500, w.Code)
 
@@ -812,7 +831,7 @@ func TestGetItemsByCategory(t *testing.T) {
 	}
 	c.Request.URL, _ = url.Parse("?param=test&offset=0&limit=0")
 
-	itemUsecase.EXPECT().GetItemsByCategory(ctx, "test", 0, 10).Return(testItems, nil)
+	itemUsecase.EXPECT().GetItemsByCategory(ctx, "test", map[string]int{"offset": 0, "limit": 10}, testSortOptions).Return(testItems, nil)
 	delivery.GetItemsByCategory(c)
 	require.Equal(t, 200, w.Code)
 	require.Equal(t, bytesRes, w.Body.Bytes())

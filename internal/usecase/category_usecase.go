@@ -169,12 +169,15 @@ func (usecase *CategoryUsecase) UpdateCash(ctx context.Context, id uuid.UUID, op
 // DeleteCategoryCash deleted cash by deleting categories
 func (usecase *CategoryUsecase) DeleteCategoryCash(ctx context.Context, name string) error {
 	usecase.logger.Debug(fmt.Sprintf("Enter in usecase DeleteCategoryCash() with args: ctx, name: %s", name))
-	err := usecase.categoriesCash.DeleteCash(ctx, name)
-	if err != nil {
-		usecase.logger.Error(fmt.Sprintf("error on delete cash with key: %s, error is %v", name, err))
-		return err
+	keys := []string{name + "nameasc", name + "namedesc", name + "priceasc", name + "pricedesc"}
+	for _, key := range keys {
+		err := usecase.categoriesCash.DeleteCash(ctx, key)
+		if err != nil {
+			usecase.logger.Error(fmt.Sprintf("error on delete cash with key: %s, error is %v", key, err))
+			return err
+		}
 	}
-	err = usecase.categoriesCash.DeleteCash(ctx, name+"Quantity")
+	err := usecase.categoriesCash.DeleteCash(ctx, name+"Quantity")
 	if err != nil {
 		usecase.logger.Error(fmt.Sprintf("error on delete cash with key: %s, error is %v", name, err))
 		return err

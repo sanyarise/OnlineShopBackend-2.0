@@ -184,7 +184,7 @@ func (repo *itemRepo) SearchLine(ctx context.Context, param string) (chan models
 		item := &models.Item{}
 		pool := repo.storage.GetPool()
 		rows, err := pool.Query(ctx, `
-		SELECT items.id, items.name, category, categories.name, categories.description,categories.picture, items.description, price, vendor, pictures FROM items INNER JOIN categories ON category=categories.id WHERE items.name LIKE $1 OR items.description LIKE $1 OR vendor LIKE $1 OR categories.name LIKE $1 WHERE items.deleted_at is null AND categories.deleted_at is null`,
+		SELECT items.id, items.name, category, categories.name, categories.description,categories.picture, items.description, price, vendor, pictures FROM items INNER JOIN categories ON category=categories.id WHERE items.deleted_at is null AND categories.deleted_at is null AND items.name LIKE $1 OR items.description LIKE $1 OR vendor LIKE $1 OR categories.name LIKE $1`,
 			"%"+param+"%")
 		if err != nil {
 			msg := fmt.Errorf("error on search line query context: %w", err)

@@ -82,33 +82,33 @@ func (mr *MockIItemUsecaseMockRecorder) GetItem(ctx, id interface{}) *gomock.Cal
 }
 
 // GetItemsByCategory mocks base method.
-func (m *MockIItemUsecase) GetItemsByCategory(ctx context.Context, categoryName string, offset, limit int) ([]models.Item, error) {
+func (m *MockIItemUsecase) GetItemsByCategory(ctx context.Context, categoryName string, limitOptions map[string]int, sortOptions map[string]string) ([]models.Item, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetItemsByCategory", ctx, categoryName, offset, limit)
+	ret := m.ctrl.Call(m, "GetItemsByCategory", ctx, categoryName, limitOptions, sortOptions)
 	ret0, _ := ret[0].([]models.Item)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetItemsByCategory indicates an expected call of GetItemsByCategory.
-func (mr *MockIItemUsecaseMockRecorder) GetItemsByCategory(ctx, categoryName, offset, limit interface{}) *gomock.Call {
+func (mr *MockIItemUsecaseMockRecorder) GetItemsByCategory(ctx, categoryName, limitOptions, sortOptions interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetItemsByCategory", reflect.TypeOf((*MockIItemUsecase)(nil).GetItemsByCategory), ctx, categoryName, offset, limit)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetItemsByCategory", reflect.TypeOf((*MockIItemUsecase)(nil).GetItemsByCategory), ctx, categoryName, limitOptions, sortOptions)
 }
 
 // ItemsList mocks base method.
-func (m *MockIItemUsecase) ItemsList(ctx context.Context, offset, limit int) ([]models.Item, error) {
+func (m *MockIItemUsecase) ItemsList(ctx context.Context, limitOptions map[string]int, sortOptions map[string]string) ([]models.Item, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ItemsList", ctx, offset, limit)
+	ret := m.ctrl.Call(m, "ItemsList", ctx, limitOptions, sortOptions)
 	ret0, _ := ret[0].([]models.Item)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ItemsList indicates an expected call of ItemsList.
-func (mr *MockIItemUsecaseMockRecorder) ItemsList(ctx, offset, limit interface{}) *gomock.Call {
+func (mr *MockIItemUsecaseMockRecorder) ItemsList(ctx, limitOptions, sortOptions interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ItemsList", reflect.TypeOf((*MockIItemUsecase)(nil).ItemsList), ctx, offset, limit)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ItemsList", reflect.TypeOf((*MockIItemUsecase)(nil).ItemsList), ctx, limitOptions, sortOptions)
 }
 
 // ItemsQuantity mocks base method.
@@ -142,18 +142,18 @@ func (mr *MockIItemUsecaseMockRecorder) ItemsQuantityInCategory(ctx, categoryNam
 }
 
 // SearchLine mocks base method.
-func (m *MockIItemUsecase) SearchLine(ctx context.Context, param string, offset, limit int) ([]models.Item, error) {
+func (m *MockIItemUsecase) SearchLine(ctx context.Context, param string, limitOptions map[string]int, sortOptions map[string]string) ([]models.Item, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SearchLine", ctx, param, offset, limit)
+	ret := m.ctrl.Call(m, "SearchLine", ctx, param, limitOptions, sortOptions)
 	ret0, _ := ret[0].([]models.Item)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // SearchLine indicates an expected call of SearchLine.
-func (mr *MockIItemUsecaseMockRecorder) SearchLine(ctx, param, offset, limit interface{}) *gomock.Call {
+func (mr *MockIItemUsecaseMockRecorder) SearchLine(ctx, param, limitOptions, sortOptions interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchLine", reflect.TypeOf((*MockIItemUsecase)(nil).SearchLine), ctx, param, offset, limit)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchLine", reflect.TypeOf((*MockIItemUsecase)(nil).SearchLine), ctx, param, limitOptions, sortOptions)
 }
 
 // UpdateCash mocks base method.
