@@ -32,16 +32,16 @@ type QuantityOptions struct {
 type Options struct {
 	Offset    int    `form:"offset"`
 	Limit     int    `form:"limit"`
-	SortType  string `form:"sort_type"`
-	SortOrder string `form:"sort_order"`
+	SortType  string `form:"sortType"`
+	SortOrder string `form:"sortOrder"`
 }
 
 type SearchOptions struct {
 	Param     string `form:"param"`
 	Offset    int    `form:"offset"`
 	Limit     int    `form:"limit"`
-	SortType  string `form:"sort_type"`
-	SortOrder string `form:"sort_order"`
+	SortType  string `form:"sortType"`
+	SortOrder string `form:"sortOrder"`
 }
 
 type ImageOptions struct {
