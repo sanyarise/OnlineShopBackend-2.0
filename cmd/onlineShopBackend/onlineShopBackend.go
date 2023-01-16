@@ -7,6 +7,7 @@ import (
 	"OnlineShopBackend/internal/app/server"
 	"OnlineShopBackend/internal/delivery"
 	"OnlineShopBackend/internal/filestorage"
+	"OnlineShopBackend/internal/models"
 	"OnlineShopBackend/internal/repository"
 	"OnlineShopBackend/internal/repository/cash"
 	"OnlineShopBackend/internal/usecase"
@@ -76,6 +77,8 @@ func main() {
 	server.Start()
 	l.Info(fmt.Sprintf("Server start successful on port: %v", cfg.Port))
 
+	setAdmin(userStore, rightsStore, cfg.AdminMail, cfg.AdminPass, l)
+
 	<-ctx.Done()
 
 	err = pgstore.ShutDown(cfg.Timeout)
@@ -128,4 +131,37 @@ func createCashOnStartService(ctx context.Context, categoryUsecase usecase.ICate
 	}
 	l.Info("Items lists in categories cash create success")
 	return nil
+}
+
+func setAdmin(userStore repository.UserStore, rightsStore repository.RightsStore, mail string, pass string, logger *zap.Logger) {
+	logger.Debug("Enter in main setAdmin()")
+	ctx := context.Background()
+	adminRights := &models.Rights{
+		Name:  "admin",
+		Rules: []string{"admin"},
+	}
+	rightsId, err := rightsStore.CreateRights(ctx, adminRights)
+	if err != nil {
+		logger.Error(err.Error())
+		panic(err)
+	}
+	newAdmin := &models.User{
+		Firstname: "Admin",
+		Lastname:  "Admin",
+		Email:     mail,
+		Password:  pass,
+		Rights: models.Rights{
+			ID: rightsId,
+		},
+	}
+	admin, err := userStore.Create(ctx, newAdmin)
+	if err != nil {
+		logger.Error(err.Error())
+		panic(err)
+	}
+	if admin != nil {
+		logger.Info("Set Admin success")
+	} else {
+		panic("Set Admin fatal")
+	}
 }
