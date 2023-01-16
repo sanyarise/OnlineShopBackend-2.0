@@ -7,6 +7,10 @@ allow {
     input.endpoint == "updateUserPassword"
     input.role == "customer"
 }
+allow {
+    input.endpoint == "index"
+    input.role == "customer"
+}
 
 #allow {
 #    input.role == "deliveryman"
@@ -17,6 +21,10 @@ allow {
 #}
 
 # Allow seller actions
+allow {
+    input.endpoint == "index"
+    input.role == "seller"
+}
 allow {
     input.endpoint == "updateUserPassword"
     input.role == "seller"

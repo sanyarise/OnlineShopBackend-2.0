@@ -84,6 +84,8 @@ func (delivery *Delivery) getEndpointName(method string, uri string) string {
 	switch {
 	case method == "GET":
 		switch {
+		case uri == "/":
+			return "index"
 		case strings.Contains(uri, "images"):
 			return "imagesList"
 		case strings.Contains(uri, "list/rights"):
