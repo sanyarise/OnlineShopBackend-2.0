@@ -44,10 +44,5 @@ type IUserUsecase interface {
 	CreateUser(ctx context.Context, user *models.User) (*models.User, error)
 	GetUserByEmail(ctx context.Context, email string) (*models.User, error)
 	GetRightsId(ctx context.Context, name string) (*models.Rights, error)
-	UpdateUserData(ctx context.Context, user *models.User) (*models.User, error)
-	NewJWT(payload Payload) (string, error)
-	ParseAuthHeader(header string) (*Payload, error)
-	UserIdentity(header string) (*Payload, error)
-	CreateSessionJWT(ctx context.Context, user *models.User) (Token, error)
-
+	UpdateUserData(ctx context.Context, id uuid.UUID, user *models.User) (*models.User, error)
 }

@@ -6,6 +6,7 @@ package mocks
 
 import (
 	models "OnlineShopBackend/internal/models"
+	usecase "OnlineShopBackend/internal/usecase"
 	context "context"
 	reflect "reflect"
 
@@ -429,4 +430,147 @@ func (m *MockICartUsecase) GetCart(ctx context.Context, cartId uuid.UUID) (*mode
 func (mr *MockICartUsecaseMockRecorder) GetCart(ctx, cartId interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCart", reflect.TypeOf((*MockICartUsecase)(nil).GetCart), ctx, cartId)
+}
+
+// MockIUserUsecase is a mock of IUserUsecase interface.
+type MockIUserUsecase struct {
+	ctrl     *gomock.Controller
+	recorder *MockIUserUsecaseMockRecorder
+}
+
+// MockIUserUsecaseMockRecorder is the mock recorder for MockIUserUsecase.
+type MockIUserUsecaseMockRecorder struct {
+	mock *MockIUserUsecase
+}
+
+// NewMockIUserUsecase creates a new mock instance.
+func NewMockIUserUsecase(ctrl *gomock.Controller) *MockIUserUsecase {
+	mock := &MockIUserUsecase{ctrl: ctrl}
+	mock.recorder = &MockIUserUsecaseMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockIUserUsecase) EXPECT() *MockIUserUsecaseMockRecorder {
+	return m.recorder
+}
+
+// CreateSessionJWT mocks base method.
+func (m *MockIUserUsecase) CreateSessionJWT(ctx context.Context, user *models.User) (usecase.Token, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateSessionJWT", ctx, user)
+	ret0, _ := ret[0].(usecase.Token)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateSessionJWT indicates an expected call of CreateSessionJWT.
+func (mr *MockIUserUsecaseMockRecorder) CreateSessionJWT(ctx, user interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateSessionJWT", reflect.TypeOf((*MockIUserUsecase)(nil).CreateSessionJWT), ctx, user)
+}
+
+// CreateUser mocks base method.
+func (m *MockIUserUsecase) CreateUser(ctx context.Context, user *models.User) (*models.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateUser", ctx, user)
+	ret0, _ := ret[0].(*models.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateUser indicates an expected call of CreateUser.
+func (mr *MockIUserUsecaseMockRecorder) CreateUser(ctx, user interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockIUserUsecase)(nil).CreateUser), ctx, user)
+}
+
+// GetRightsId mocks base method.
+func (m *MockIUserUsecase) GetRightsId(ctx context.Context, name string) (*models.Rights, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetRightsId", ctx, name)
+	ret0, _ := ret[0].(*models.Rights)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetRightsId indicates an expected call of GetRightsId.
+func (mr *MockIUserUsecaseMockRecorder) GetRightsId(ctx, name interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRightsId", reflect.TypeOf((*MockIUserUsecase)(nil).GetRightsId), ctx, name)
+}
+
+// GetUserByEmail mocks base method.
+func (m *MockIUserUsecase) GetUserByEmail(ctx context.Context, email string) (*models.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserByEmail", ctx, email)
+	ret0, _ := ret[0].(*models.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUserByEmail indicates an expected call of GetUserByEmail.
+func (mr *MockIUserUsecaseMockRecorder) GetUserByEmail(ctx, email interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByEmail", reflect.TypeOf((*MockIUserUsecase)(nil).GetUserByEmail), ctx, email)
+}
+
+// NewJWT mocks base method.
+func (m *MockIUserUsecase) NewJWT(payload usecase.Payload) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "NewJWT", payload)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// NewJWT indicates an expected call of NewJWT.
+func (mr *MockIUserUsecaseMockRecorder) NewJWT(payload interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewJWT", reflect.TypeOf((*MockIUserUsecase)(nil).NewJWT), payload)
+}
+
+// ParseAuthHeader mocks base method.
+func (m *MockIUserUsecase) ParseAuthHeader(header string) (*usecase.Payload, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ParseAuthHeader", header)
+	ret0, _ := ret[0].(*usecase.Payload)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ParseAuthHeader indicates an expected call of ParseAuthHeader.
+func (mr *MockIUserUsecaseMockRecorder) ParseAuthHeader(header interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ParseAuthHeader", reflect.TypeOf((*MockIUserUsecase)(nil).ParseAuthHeader), header)
+}
+
+// UpdateUserData mocks base method.
+func (m *MockIUserUsecase) UpdateUserData(ctx context.Context, user *models.User) (*models.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateUserData", ctx, user)
+	ret0, _ := ret[0].(*models.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateUserData indicates an expected call of UpdateUserData.
+func (mr *MockIUserUsecaseMockRecorder) UpdateUserData(ctx, user interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserData", reflect.TypeOf((*MockIUserUsecase)(nil).UpdateUserData), ctx, user)
+}
+
+// UserIdentity mocks base method.
+func (m *MockIUserUsecase) UserIdentity(header string) (*usecase.Payload, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UserIdentity", header)
+	ret0, _ := ret[0].(*usecase.Payload)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UserIdentity indicates an expected call of UserIdentity.
+func (mr *MockIUserUsecaseMockRecorder) UserIdentity(header interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UserIdentity", reflect.TypeOf((*MockIUserUsecase)(nil).UserIdentity), header)
 }

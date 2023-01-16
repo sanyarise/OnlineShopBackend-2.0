@@ -65,7 +65,7 @@ func (u *user) GetUserByEmail(ctx context.Context, email string) (*models.User, 
 	}
 }
 
-func (u *user) UpdateUserData(ctx context.Context, user *models.User) (*models.User, error) {
+func (u *user) UpdateUserData(ctx context.Context, id uuid.UUID, user *models.User) (*models.User, error) {
 	u.logger.Debug("Enter in repository UpdateUserData()")
 	select {
 	case <-ctx.Done():
@@ -100,7 +100,7 @@ func (u *user) UpdateUserData(ctx context.Context, user *models.User) (*models.U
 			user.Address.City,
 			user.Address.Street,
 			user.Address.Zipcode,
-			user.ID)
+			id)
 		if err != nil {
 			u.logger.Errorf("error on update user %s: %s", user.ID, err)
 			return &models.User{}, fmt.Errorf("error on update item %s: %w", user.ID, err)

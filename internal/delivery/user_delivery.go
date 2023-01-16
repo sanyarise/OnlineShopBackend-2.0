@@ -10,8 +10,9 @@
 package delivery
 
 import (
-	"OnlineShopBackend/internal/delivery/user"
-	"OnlineShopBackend/internal/delivery/user/userconfig"
+	"OnlineShopBackend/internal/delivery/user/googleOauth2"
+	"OnlineShopBackend/internal/delivery/user/jwtauth"
+	"OnlineShopBackend/internal/delivery/user/password"
 	"OnlineShopBackend/internal/models"
 	"OnlineShopBackend/internal/usecase"
 	"github.com/dghubble/gologin/v2"
@@ -27,19 +28,24 @@ import (
 	//"golang.org/x/oauth2/yandex"
 )
 
+const (
+	userCtx = "userID"
+	authorizationHeader = "Authorization"
+)
+
 // CreateUser create a new user
 //
-//		@Summary		Create a new user
-//		@Description	Method provides to create a user
-//		@Tags			user
-//		@Accept			json
-//		@Produce		json
-//	 	@Param			user	body	user.Credentials	true	"User data" //TODO
-//		@Success		200	{object} user.Token
-//		@Failure		400	"Bad Request"
-//		@Failure		404	{object}	ErrorResponse	"404 Not Found"
-//		@Failure		500	{object}	ErrorResponse
-//		@Router			/user/create [post]
+//	@Summary		Create a new user
+//	@Description	Method provides to create a user
+//	@Tags			user
+//	@Accept			json
+//	@Produce		json
+//	@Param			user	body		user.Credentials	true	"User data"	//TODO
+//	@Success		201		{object}	user.Token
+//	@Failure		400		"Bad Request"
+//	@Failure		404		{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500		{object}	ErrorResponse
+//	@Router			/user/create [post]
 func (delivery *Delivery) CreateUser(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery CreateUser()")
 	ctx := c.Request.Context()
@@ -56,11 +62,12 @@ func (delivery *Delivery) CreateUser(c *gin.Context) {
 	}
 
 	// Password validation check
-	if err := user.ValidationCheck(*newUser); err != nil {
+	if err := password.ValidationCheck(*newUser); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	hashPassword := user.GeneratePasswordHash(newUser.Password)
+
+	hashPassword := password.GeneratePasswordHash(newUser.Password)
 	newUser.Password = hashPassword
 
 	// Create a user
@@ -70,29 +77,29 @@ func (delivery *Delivery) CreateUser(c *gin.Context) {
 	}
 	delivery.logger.Info("success: user was created")
 
-	token, err := delivery.userUsecase.CreateSessionJWT(c.Request.Context(), createdUser)
+	token, err := jwtauth.CreateSessionJWT(c.Request.Context(), createdUser)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
 
 	//user.IssueSession(delivery.logger, createdUser.ID.String())
 
-	c.JSON(http.StatusOK, token)
+	c.JSON(http.StatusCreated, token)
 }
 
 // LoginUser login user
 //
-//		@Summary		Login user
-//		@Description	Method provides to login a user
-//		@Tags			user
-//		@Accept			json
-//		@Produce		json
-//	 @Param			user	body	user.Credentials	true	"User data"
-//		@Success		200	{object} user.Token //TODO
-//		@Failure		404	"Bad Request"
-//		@Failure		404	{object}	ErrorResponse	"404 Not Found"
-//		@Failure		500	{object}	ErrorResponse
-//		@Router			/user/login [post]
+//	@Summary		Login user
+//	@Description	Method provides to login a user
+//	@Tags			user
+//	@Accept			json
+//	@Produce		json
+//	@Param			user	body		user.Credentials	true	"User data"
+//	@Success		200		{object}	user.Token			//TODO
+//	@Failure		404		"Bad Request"
+//	@Failure		404		{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500		{object}	ErrorResponse
+//	@Router			/user/login [post]
 func (delivery *Delivery) LoginUser(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery LoginUser()")
 	var userCredentials usecase.Credentials
@@ -100,8 +107,9 @@ func (delivery *Delivery) LoginUser(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
 	userExist, err := delivery.userUsecase.GetUserByEmail(c.Request.Context(), userCredentials.Email) //TODO check password
-	if err != nil || userExist.Password != user.GeneratePasswordHash(userCredentials.Password) {
+	if err != nil || userExist.Password != password.GeneratePasswordHash(userCredentials.Password) {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
@@ -111,7 +119,7 @@ func (delivery *Delivery) LoginUser(c *gin.Context) {
 		return
 	}
 
-	token, err := delivery.userUsecase.CreateSessionJWT(c.Request.Context(), userExist)
+	token, err := jwtauth.CreateSessionJWT(c.Request.Context(), userExist)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
@@ -127,16 +135,16 @@ func (delivery *Delivery) LoginUser(c *gin.Context) {
 //	@Tags			user
 //	@Accept			json
 //	@Produce		json
-//	@Security	    ApiKeyAuth || firebase
-//	@Success		200	{object} user.Profile //TODO
+//	@Security		ApiKeyAuth || firebase
+//	@Success		200	{object}	user.Profile	//TODO
 //	@Failure		404	"Bad Request"
 //	@Failure		404	{object}	ErrorResponse	"404 Not Found"
 //	@Failure		500	{object}	ErrorResponse
 //	@Router			/user/profile [get]
 func (delivery *Delivery) UserProfile(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery UserProfile()")
-	header := c.GetHeader("Authorization")
-	userCr, err := delivery.userUsecase.UserIdentity(header)
+	header := c.GetHeader(authorizationHeader)
+	userCr, err := jwtauth.UserIdentity(header)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
@@ -146,29 +154,30 @@ func (delivery *Delivery) UserProfile(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 	}
-	userProfile := usecase.Profile{
-		Email:     userData.Email,
-		FirstName: userData.Firstname,
-		LastName:  userData.Lastname,
-		Address: usecase.Address{
-			Zipcode: userData.Address.Zipcode,
-			Country: userData.Address.Country,
-			City:    userData.Address.City,
-			Street:  userData.Address.Street,
-		},
-		Rights: usecase.Rights{
-			ID:    userData.Rights.ID,
-			Name:  userData.Rights.Name,
-			Rules: userData.Rights.Rules,
-		},
-	}
-	c.JSON(http.StatusCreated, userProfile)
+	//userProfile := usecase.Profile{
+	//	Email:     userData.Email,
+	//	FirstName: userData.Firstname,
+	//	LastName:  userData.Lastname,
+	//	Address: usecase.Address{
+	//		Zipcode: userData.Address.Zipcode,
+	//		Country: userData.Address.Country,
+	//		City:    userData.Address.City,
+	//		Street:  userData.Address.Street,
+	//	},
+	//	Rights: usecase.Rights{
+	//		ID:    userData.Rights.ID,
+	//		Name:  userData.Rights.Name,
+	//		Rules: userData.Rights.Rules,
+	//	},
+	//}
+	password.SanitizePassword(userData)
+	c.JSON(http.StatusCreated, userData)
 }
 
 func (delivery *Delivery) UserProfileUpdate(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery UserProfileUpdate()")
 	header := c.GetHeader("Authorization")
-	userCr, err := delivery.userUsecase.UserIdentity(header)
+	userCr, err := jwtauth.UserIdentity(header)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
@@ -179,19 +188,19 @@ func (delivery *Delivery) UserProfileUpdate(c *gin.Context) {
 		return
 	}
 
-	updatedUser := models.User{
-		ID:        userCr.UserId,
-		Firstname: newInfoUser.Firstname,
-		Lastname:  newInfoUser.Lastname,
-		Address: models.UserAddress{
-			Zipcode: newInfoUser.Address.Zipcode,
-			Country: newInfoUser.Address.Country,
-			City:    newInfoUser.Address.City,
-			Street:  newInfoUser.Address.Street,
-		},
-	}
+	//updatedUser := models.User{
+	//	ID:        userCr.UserId,
+	//	Firstname: newInfoUser.Firstname,
+	//	Lastname:  newInfoUser.Lastname,
+	//	Address: models.UserAddress{
+	//		Zipcode: newInfoUser.Address.Zipcode,
+	//		Country: newInfoUser.Address.Country,
+	//		City:    newInfoUser.Address.City,
+	//		Street:  newInfoUser.Address.Street,
+	//	},
+	//}
 
-	userUpdated, err := delivery.userUsecase.UpdateUserData(c.Request.Context(), &updatedUser)
+	userUpdated, err := delivery.userUsecase.UpdateUserData(c.Request.Context(), userCr.UserId, newInfoUser)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
@@ -217,7 +226,7 @@ func (delivery *Delivery) TokenUpdate(c *gin.Context) {
 //	@Router			/user/login/google [get]
 func (delivery *Delivery) LoginUserGoogle(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery LoginUserGoogle()")
-	cfg, err := userconfig.NewUserConfig()
+	cfg, err := googleOauth2.NewUserConfig()
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 	}
@@ -247,7 +256,7 @@ func (delivery *Delivery) LoginUserGoogle(c *gin.Context) {
 //	@Router			/user/callbackGoogle [get]
 func (delivery *Delivery) CallbackGoogle(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery CallbackGoogle()")
-	cfg, err := userconfig.NewUserConfig()
+	cfg, err := googleOauth2.NewUserConfig()
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 	}
@@ -290,7 +299,7 @@ func (delivery *Delivery) success(c *gin.Context) http.HandlerFunc {
 				return
 			}
 		}
-		token, err := delivery.userUsecase.CreateSessionJWT(c.Request.Context(), u)
+		token, err := jwtauth.CreateSessionJWT(c.Request.Context(), u)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 			return
