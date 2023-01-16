@@ -73,11 +73,11 @@ func main() {
 	if err != nil {
 		l.Sugar().Fatalf("error on create cash on start: %v", err)
 	}
-
+	setAdmin(userStore, rightsStore, cfg.AdminMail, cfg.AdminPass, l)
 	server.Start()
 	l.Info(fmt.Sprintf("Server start successful on port: %v", cfg.Port))
 
-	setAdmin(userStore, rightsStore, cfg.AdminMail, cfg.AdminPass, l)
+
 
 	<-ctx.Done()
 

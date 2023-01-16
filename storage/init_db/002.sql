@@ -106,10 +106,10 @@ INSERT INTO items(id, name, category, description, price, vendor, pictures) VALU
 INSERT INTO items(id, name, category, description, price, vendor, pictures) VALUES ('3f05a859-1806-4851-a457-c9cb69b22846', 'smartphone techno', 'd0d3df2d-f6c8-4956-9d76-998ee1ec8a39', 'best smartphone', 9990, 'samsung', '{"http://localhost:8000/files/items/3f05a859-1806-4851-a457-c9cb69b22846/20221213132821.jpeg"}');
 INSERT INTO items(id, name, category, description, price, vendor, pictures) VALUES ('7eb10fc6-20e8-4b3b-95a3-0f55cf0145d6', 'smartphone techno', 'd0d3df2d-f6c8-4956-9d76-998ee1ec8a39', 'best smartphone', 8990, 'samsung', '{"http://localhost:8000/files/items/7eb10fc6-20e8-4b3b-95a3-0f55cf0145d6/20221213132833.jpeg"}');
 INSERT INTO rights(name, rules) VALUES ('customer', '{common}');
-INSERT INTO rights(id, name, rules) VALUES ('fa9c4027-b2d4-4468-8cf5-beae213ab46d', 'admin', '{admin}');
+--INSERT INTO rights(id, name, rules) VALUES ('fa9c4027-b2d4-4468-8cf5-beae213ab46d', 'admin', '{admin}');
 INSERT INTO rights(id, name, rules) VALUES ('4c4ffed4-a315-43b2-b29e-f85f02bdafbe', 'seller', '{seller}');
 INSERT INTO rights(id, name, rules) VALUES ('e656eaf5-60ad-4b28-ac4d-6214bc2ff6b8', 'customer', '{customer}');
-INSERT INTO users(id, name, lastname, password, email, rights, zipcode, country, city, street) VALUES ('38811cd6-0feb-475b-86d5-c617d4ca2427','testname','testlastname', '$2a$14$1o4mgkrWLt0qeXUgm.zMYO6Eju/WtcA9HD3EezQvvbMyOkYch8VK.', 'admin@gmail.com', 'fa9c4027-b2d4-4468-8cf5-beae213ab46d','000000','testcountry','testcity','teststreet');
+--INSERT INTO users(id, name, lastname, password, email, rights, zipcode, country, city, street) VALUES ('38811cd6-0feb-475b-86d5-c617d4ca2427','testname','testlastname', '$2a$14$1o4mgkrWLt0qeXUgm.zMYO6Eju/WtcA9HD3EezQvvbMyOkYch8VK.', 'admin@gmail.com', 'fa9c4027-b2d4-4468-8cf5-beae213ab46d','000000','testcountry','testcity','teststreet');
 
 
 

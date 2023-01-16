@@ -25,6 +25,7 @@ func NewUser(storage *PGres, logger *zap.SugaredLogger) UserStore {
 }
 
 func (u *user) Create(ctx context.Context, user *models.User) (*models.User, error) {
+	u.logger.Debugf("Enter in user repository Create() with args: ctx, user: %v", user)
 	select {
 	case <-ctx.Done():
 		return nil, fmt.Errorf("context is closed")
