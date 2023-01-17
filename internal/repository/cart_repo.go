@@ -163,7 +163,7 @@ func (c *cart) GetCart(ctx context.Context, cartId uuid.UUID) (*models.Cart, err
 		c.logger.Debug("read user id success: %v", userId)
 		item := models.ItemWithQuantity{}
 		rows, err := pool.Query(ctx, `
-		SELECT 	i.id, i.name, i.category, cat.name, cat.description, cat.picture, i.price, i.pictures, c.item_quantity
+		SELECT 	i.id, i.name, i.description, i.category, cat.name, cat.description, cat.picture, i.price, i.vendor, i.pictures, c.item_quantity
 		FROM cart_items c, items i, categories cat
 		WHERE c.cart_id=$1 and i.id = c.item_id and cat.id = i.category`, cartId)
 		if err != nil {
@@ -177,11 +177,13 @@ func (c *cart) GetCart(ctx context.Context, cartId uuid.UUID) (*models.Cart, err
 			if err := rows.Scan(
 				&item.Id,
 				&item.Title,
+				&item.Description,
 				&item.Category.Id,
 				&item.Category.Name,
 				&item.Category.Description,
 				&item.Category.Image,
 				&item.Price,
+				&item.Vendor,
 				&item.Images,
 				&item.Quantity,
 			); err != nil {
