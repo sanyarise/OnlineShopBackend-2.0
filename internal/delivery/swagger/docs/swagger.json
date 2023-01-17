@@ -1332,39 +1332,12 @@
         },
         "cart.CartItem": {
             "type": "object",
-            "required": [
-                "itemId",
-                "price",
-                "quantity",
-                "title"
-            ],
             "properties": {
-                "category": {
-                    "$ref": "#/definitions/cart.Category"
-                },
-                "image": {
-                    "type": "string"
-                },
-                "itemId": {
-                    "type": "string",
-                    "format": "uuid",
-                    "example": "00000000-0000-0000-0000-000000000000"
-                },
-                "price": {
-                    "type": "integer",
-                    "default": 10,
-                    "minimum": 0,
-                    "example": 1990
+                "item": {
+                    "$ref": "#/definitions/cart.Item"
                 },
                 "quantity": {
-                    "type": "integer",
-                    "default": 1,
-                    "minimum": 1,
-                    "example": 3
-                },
-                "title": {
-                    "type": "string",
-                    "example": "Пылесос"
+                    "$ref": "#/definitions/cart.Quantity"
                 }
             }
         },
@@ -1391,6 +1364,51 @@
                 "name": {
                     "type": "string",
                     "example": "Электротехника"
+                }
+            }
+        },
+        "cart.Item": {
+            "type": "object",
+            "required": [
+                "itemId",
+                "price",
+                "title"
+            ],
+            "properties": {
+                "category": {
+                    "$ref": "#/definitions/cart.Category"
+                },
+                "image": {
+                    "type": "string"
+                },
+                "itemId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "example": "00000000-0000-0000-0000-000000000000"
+                },
+                "price": {
+                    "type": "integer",
+                    "default": 10,
+                    "minimum": 0,
+                    "example": 1990
+                },
+                "title": {
+                    "type": "string",
+                    "example": "Пылесос"
+                }
+            }
+        },
+        "cart.Quantity": {
+            "type": "object",
+            "required": [
+                "quantity"
+            ],
+            "properties": {
+                "quantity": {
+                    "type": "integer",
+                    "default": 1,
+                    "minimum": 1,
+                    "example": 3
                 }
             }
         },

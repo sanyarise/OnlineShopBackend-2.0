@@ -29,32 +29,10 @@ definitions:
     type: object
   cart.CartItem:
     properties:
-      category:
-        $ref: '#/definitions/cart.Category'
-      image:
-        type: string
-      itemId:
-        example: 00000000-0000-0000-0000-000000000000
-        format: uuid
-        type: string
-      price:
-        default: 10
-        example: 1990
-        minimum: 0
-        type: integer
+      item:
+        $ref: '#/definitions/cart.Item'
       quantity:
-        default: 1
-        example: 3
-        minimum: 1
-        type: integer
-      title:
-        example: Пылесос
-        type: string
-    required:
-    - itemId
-    - price
-    - quantity
-    - title
+        $ref: '#/definitions/cart.Quantity'
     type: object
   cart.Category:
     properties:
@@ -74,6 +52,39 @@ definitions:
     - description
     - id
     - name
+    type: object
+  cart.Item:
+    properties:
+      category:
+        $ref: '#/definitions/cart.Category'
+      image:
+        type: string
+      itemId:
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        type: string
+      price:
+        default: 10
+        example: 1990
+        minimum: 0
+        type: integer
+      title:
+        example: Пылесос
+        type: string
+    required:
+    - itemId
+    - price
+    - title
+    type: object
+  cart.Quantity:
+    properties:
+      quantity:
+        default: 1
+        example: 3
+        minimum: 1
+        type: integer
+    required:
+    - quantity
     type: object
   cart.ShortCart:
     properties:
