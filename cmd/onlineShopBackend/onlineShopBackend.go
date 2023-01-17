@@ -77,8 +77,6 @@ func main() {
 	server.Start()
 	l.Info(fmt.Sprintf("Server start successful on port: %v", cfg.Port))
 
-
-
 	<-ctx.Done()
 
 	err = pgstore.ShutDown(cfg.Timeout)
@@ -154,6 +152,12 @@ func setAdmin(userStore repository.UserStore, rightsStore repository.RightsStore
 			ID: rightsId,
 		},
 	}
+	hash, err := newAdmin.GeneratePasswordHash(logger)
+	if err != nil {
+		logger.Error(err.Error())
+		panic(err)
+	}
+	newAdmin.Password = hash
 	admin, err := userStore.Create(ctx, newAdmin)
 	if err != nil {
 		logger.Error(err.Error())
