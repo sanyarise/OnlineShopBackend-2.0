@@ -26,5 +26,5 @@ type Order struct {
 	User         User
 	Address      UserAddress
 	Status       Status
-	Items        []Item
+	Items        []ItemWithQuantity
 }

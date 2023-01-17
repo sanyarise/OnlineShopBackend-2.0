@@ -58,12 +58,12 @@ func (o *order) Create(ctx context.Context, order *models.Order) (*models.Order,
 			o.logger.Errorf("can't add new order: %w", err)
 			return nil, fmt.Errorf("can't add new order: %w", err)
 		}
-		query := `INSERT INTO order_items (order_id, item_id) VALUES`
+		query := `INSERT INTO order_items (order_id, item_id, item_quantity) VALUES`
 		itemsString := ""
 		// items := make([]interface{}, 0, len(order.Items))
 		// items = append(items, order.ID)
 		for _, item := range order.Items {
-			itemsString += fmt.Sprintf("('%s', '%s'),", order.ID.String(), item.Id.String())
+			itemsString += fmt.Sprintf("('%s', '%s', '%d'),", order.ID.String(), item.Id.String(), item.Quantity)
 			// items = append(items, item.Id.String())
 		}
 		itemsString = itemsString[:len(itemsString)-1]
@@ -148,11 +148,11 @@ func (o *order) GetOrderByID(ctx context.Context, id uuid.UUID) (models.Order, e
 	default:
 		pool := o.storage.GetPool()
 		ordr := models.Order{
-			Items: make([]models.Item, 0),
+			Items: make([]models.ItemWithQuantity, 0),
 		}
 		rows, err := pool.Query(ctx, `SELECT items.id, items.name, categories.id, categories.name, categories.description,
 				items.description, items.price, items.vendor, orders.id, orders.shipment_time,
-				orders.status, orders.address from items INNER JOIN categories ON categories.id=category  INNER JOIN order_items ON
+				orders.status, orders.address, order_items.item_quantity from items INNER JOIN categories ON categories.id=category  INNER JOIN order_items ON
 				items.id=order_items.item_id INNER JOIN orders ON orders.id=order_items.order_id and orders.id = $1 ORDER BY order_id ASC`, id)
 		if err != nil {
 			o.logger.Errorf("can't get order from db: %s", err)
@@ -161,9 +161,9 @@ func (o *order) GetOrderByID(ctx context.Context, id uuid.UUID) (models.Order, e
 		defer rows.Close()
 		var address string
 		for rows.Next() {
-			item := models.Item{}
+			item := models.ItemWithQuantity{}
 			if err := rows.Scan(&item.Id, &item.Title, &item.Category.Id, &item.Category.Name, &item.Category.Description,
-				&item.Description, &item.Price, &item.Vendor, &ordr.ID, &ordr.ShipmentTime, &ordr.Status, &address); err != nil {
+				&item.Description, &item.Price, &item.Vendor, &ordr.ID, &ordr.ShipmentTime, &ordr.Status, &address, &item.Quantity); err != nil {
 				o.logger.Errorf("can't scan data to order object: %w", err)
 				return models.Order{}, err
 			}
@@ -194,7 +194,7 @@ func (o *order) GetOrdersForUser(ctx context.Context, user *models.User) (chan m
 			defer close(resChan)
 			rows, err := pool.Query(ctx, `SELECT items.id, items.name, categories.id, categories.name, categories.description,
 			items.description, items.price, items.vendor, orders.id, orders.shipment_time,
-			orders.status, orders.address from items INNER JOIN categories ON categories.id=category  INNER JOIN order_items ON
+			orders.status, orders.address, order_items.item_quantity from items INNER JOIN categories ON categories.id=category  INNER JOIN order_items ON
 			items.id=order_items.item_id INNER JOIN orders ON orders.id=order_items.order_id and orders.user_id = $1 ORDER BY order_id ASC`, user.ID)
 			if err != nil {
 				o.logger.Errorf("can't get order from db: %s", err)
@@ -202,14 +202,14 @@ func (o *order) GetOrdersForUser(ctx context.Context, user *models.User) (chan m
 			}
 			defer rows.Close()
 			prevOrder := models.Order{
-				Items: make([]models.Item, 0),
+				Items: make([]models.ItemWithQuantity, 0),
 			}
 			for rows.Next() {
 				var address string
-				item := models.Item{}
+				item := models.ItemWithQuantity{}
 				order := models.Order{}
 				if err := rows.Scan(&item.Id, &item.Title, &item.Category.Id, &item.Category.Name, &item.Category.Description,
-					&item.Description, &item.Price, &item.Vendor, &order.ID, &order.ShipmentTime, &order.Status, &address); err != nil {
+					&item.Description, &item.Price, &item.Vendor, &order.ID, &order.ShipmentTime, &order.Status, &address, &item.Quantity); err != nil {
 					o.logger.Errorf("can't scan data to order object: %w", err)
 					return
 				}

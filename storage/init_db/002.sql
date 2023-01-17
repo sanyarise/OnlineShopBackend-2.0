@@ -77,6 +77,7 @@ CREATE TABLE orders (
 CREATE TABLE order_items (
     order_id UUID,
     item_id UUID,
+    item_quantity INTEGER NOT NULL, 
     PRIMARY KEY(order_id, item_id),
     CONSTRAINT fk_order_id
         FOREIGN KEY(order_id) REFERENCES orders(id),

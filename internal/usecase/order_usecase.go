@@ -36,7 +36,7 @@ func (o *order) PlaceOrder(ctx context.Context, cart *models.Cart, user models.U
 			Address:      address,
 			Status:       models.StatusCreated,
 			ShipmentTime: time.Now().Add(models.ProlongedShipmentPeriod),
-			Items:        append([]models.Item{}[:0:0], cart.Items...),
+			Items:        append([]models.ItemWithQuantity{}[:0:0], cart.Items...),
 		}
 		res, err := o.orderStore.Create(ctx, &ordr)
 		if err != nil {

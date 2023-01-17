@@ -38,8 +38,8 @@ var (
 		Image:       "image.url",
 	}
 
-	testItem1 = models.Item{
-		Title:       "testItem1",
+	testItem11 = models.Item{
+		Title:       "testItem11",
 		Description: "Awesome chinese item",
 		Price:       300,
 		Category:    testCategory,
@@ -60,8 +60,8 @@ var (
 		User:         testUser,
 		Address:      testUser.Address,
 		Status:       models.StatusCreated,
-		Items: []models.Item{
-			testItem1, testItem2,
+		Items: []models.ItemWithQuantity{
+			{Item: testItem11, Quantity: 2}, {Item: testItem2, Quantity: 1},
 		},
 	}
 
@@ -112,10 +112,11 @@ func TestPlaceOrder(t *testing.T) {
 	cartID, _ := uuid.NewRandom()
 	userID, _ := uuid.NewRandom()
 	cart := models.Cart{
-		ID:     cartID,
-		UserID: userID,
-		Items: []models.Item{
-			testItem1, testItem2,
+		Id:     cartID,
+		UserId: userID,
+		Items: []models.ItemWithQuantity{
+			{Item: testItem11, Quantity: 1},
+			{Item: testItem2, Quantity: 1},
 		},
 		ExpireAt: time.Now().Add(2 * time.Hour),
 	}
@@ -130,10 +131,11 @@ func TestPlaceOrderDBError(t *testing.T) {
 	cartID, _ := uuid.NewRandom()
 	userID, _ := uuid.NewRandom()
 	cart := models.Cart{
-		ID:     cartID,
-		UserID: userID,
-		Items: []models.Item{
-			testItem1, testItem2,
+		Id:     cartID,
+		UserId: userID,
+		Items: []models.ItemWithQuantity{
+			{Item: testItem11, Quantity: 2},
+			{Item: testItem2, Quantity: 1},
 		},
 		ExpireAt: time.Now().Add(2 * time.Hour),
 	}

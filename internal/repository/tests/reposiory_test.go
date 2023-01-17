@@ -139,7 +139,7 @@ func TestItemCreate(t *testing.T) {
 
 	item := repository.NewItemRepo(store, logger)
 	id, err := item.CreateItem(context.Background(), &models.Item{
-		Title:        "testItem",
+		Title:       "testItem",
 		Description: "desc",
 		Price:       300,
 		Category:    cat,
@@ -163,7 +163,7 @@ func TestItemUpdate(t *testing.T) {
 	assert.NoError(t, err)
 
 	item := models.Item{
-		Title:        "testItem",
+		Title:       "testItem",
 		Description: "desc",
 		Price:       300,
 		Category:    cat,
@@ -181,7 +181,7 @@ func TestItemUpdate(t *testing.T) {
 
 	newItem := models.Item{
 		Id:          item.Id,
-		Title:        "NewName",
+		Title:       "NewName",
 		Description: "desc",
 		Price:       500,
 		Category:    cat,
@@ -212,7 +212,7 @@ func TestItemGet(t *testing.T) {
 	assert.NoError(t, err)
 
 	item := models.Item{
-		Title:        "testItem",
+		Title:       "testItem",
 		Description: "desc",
 		Price:       300,
 		Category:    cat,
@@ -252,7 +252,7 @@ func TestItemSearchLine(t *testing.T) {
 	assert.NoError(t, err)
 
 	item1 := models.Item{
-		Title:        "testItem",
+		Title:       "testItem",
 		Description: "desc",
 		Price:       300,
 		Category:    cat,
@@ -269,7 +269,7 @@ func TestItemSearchLine(t *testing.T) {
 	defer store.GetPool().Exec(context.Background(), `DELETE FROM items`)
 
 	item2 := models.Item{
-		Title:        "Item",
+		Title:       "Item",
 		Description: "desc",
 		Price:       400,
 		Category:    cat,
@@ -308,7 +308,7 @@ func TestItemItemsList(t *testing.T) {
 	assert.NoError(t, err)
 
 	item1 := models.Item{
-		Title:        "testItem",
+		Title:       "testItem",
 		Description: "desc",
 		Price:       300,
 		Category:    cat,
@@ -325,7 +325,7 @@ func TestItemItemsList(t *testing.T) {
 	defer store.GetPool().Exec(context.Background(), `DELETE FROM items`)
 
 	item2 := models.Item{
-		Title:        "Item",
+		Title:       "Item",
 		Description: "desc",
 		Price:       400,
 		Category:    cat,
@@ -364,7 +364,7 @@ func TestCartCreate(t *testing.T) {
 	assert.NoError(t, err)
 
 	item1 := models.Item{
-		Title:        "testItem",
+		Title:       "testItem",
 		Description: "desc",
 		Price:       300,
 		Category:    cat,
@@ -381,7 +381,7 @@ func TestCartCreate(t *testing.T) {
 	defer store.GetPool().Exec(context.Background(), `DELETE FROM items`)
 
 	item2 := models.Item{
-		Title:        "Item",
+		Title:       "Item",
 		Description: "desc",
 		Price:       400,
 		Category:    cat,
@@ -429,15 +429,15 @@ func TestCartCreate(t *testing.T) {
 
 	cartMdl := models.Cart{
 		UserId:   user.ID,
-		Items:    []models.Item{item1, item2},
+		Items:    []models.ItemWithQuantity{{item1, 1}, {item2, 1}},
 		ExpireAt: time.Now().Add(time.Hour * 2),
 	}
 
 	crt := repository.NewCartStore(store, logger)
-	res, err := crt.Create(context.Background(), &cartMdl)
+	res, err := crt.Create(context.Background(), cartMdl.UserId)
 	defer store.GetPool().Exec(context.Background(), `DELETE FROM carts`)
 	require.NoError(t, err)
-	assert.NotEqual(t, uuid.Nil, res.ID)
+	assert.NotEqual(t, uuid.Nil, res)
 }
 
 func TestCartAddItem(t *testing.T) {
@@ -454,7 +454,7 @@ func TestCartAddItem(t *testing.T) {
 	assert.NoError(t, err)
 
 	item1 := models.Item{
-		Name:        "testItem",
+		Title:       "testItem",
 		Description: "desc",
 		Price:       300,
 		Category:    cat,
@@ -471,7 +471,7 @@ func TestCartAddItem(t *testing.T) {
 	defer store.GetPool().Exec(context.Background(), `DELETE FROM items`)
 
 	item2 := models.Item{
-		Name:        "Item",
+		Title:       "Item",
 		Description: "desc",
 		Price:       400,
 		Category:    cat,
@@ -518,18 +518,18 @@ func TestCartAddItem(t *testing.T) {
 	assert.NoError(t, err)
 
 	cartMdl := models.Cart{
-		UserID:   user.ID,
-		Items:    []models.Item{item1},
+		UserId:   user.ID,
+		Items:    []models.ItemWithQuantity{{item1, 1}},
 		ExpireAt: time.Now().Add(time.Hour * 2),
 	}
 
 	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO carts (user_id, expire_at) VALUES ($1, $2) RETURNING id`,
-		cartMdl.UserID, cartMdl.ExpireAt)
-	err = row.Scan(&cartMdl.ID)
+		cartMdl.UserId, cartMdl.ExpireAt)
+	err = row.Scan(&cartMdl.Id)
 	require.NoError(t, err)
 	defer store.GetPool().Exec(context.Background(), `DELETE from carts`)
 	crt := repository.NewCartStore(store, logger)
-	err = crt.AddItemToCart(context.Background(), &cartMdl, &item2)
+	err = crt.AddItemToCart(context.Background(), cartMdl.Id, item2.Id)
 	defer store.GetPool().Exec(context.Background(), `DELETE from cart_items`)
 	require.NoError(t, err)
 	row = store.GetPool().QueryRow(context.Background(), `SELECT COUNT(cart_id) FROM cart_items`)
@@ -553,7 +553,7 @@ func TestCartDelete(t *testing.T) {
 	assert.NoError(t, err)
 
 	item1 := models.Item{
-		Name:        "testItem",
+		Title:       "testItem",
 		Description: "desc",
 		Price:       300,
 		Category:    cat,
@@ -570,7 +570,7 @@ func TestCartDelete(t *testing.T) {
 	defer store.GetPool().Exec(context.Background(), `DELETE FROM items`)
 
 	item2 := models.Item{
-		Name:        "Item",
+		Title:       "Item",
 		Description: "desc",
 		Price:       400,
 		Category:    cat,
@@ -617,19 +617,19 @@ func TestCartDelete(t *testing.T) {
 	assert.NoError(t, err)
 
 	cartMdl := models.Cart{
-		UserID:   user.ID,
-		Items:    []models.Item{item1},
+		UserId:   user.ID,
+		Items:    []models.ItemWithQuantity{{item1, 1}},
 		ExpireAt: time.Now().Add(time.Hour * 2),
 	}
 
 	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO carts (user_id, expire_at) VALUES ($1, $2) RETURNING id`,
-		cartMdl.UserID, cartMdl.ExpireAt)
-	err = row.Scan(&cartMdl.ID)
+		cartMdl.UserId, cartMdl.ExpireAt)
+	err = row.Scan(&cartMdl.Id)
 	require.NoError(t, err)
-	store.GetPool().Exec(context.Background(), `INSERT INTO cart_items (cart_id, item_id) VALUES ($1, $2)`, cartMdl.ID, item1.Id)
+	store.GetPool().Exec(context.Background(), `INSERT INTO cart_items (cart_id, item_id) VALUES ($1, $2)`, cartMdl.Id, item1.Id)
 	defer store.GetPool().Exec(context.Background(), `DELETE from carts`)
 	crt := repository.NewCartStore(store, logger)
-	err = crt.DeleteCart(context.Background(), &cartMdl)
+	err = crt.DeleteCart(context.Background(), cartMdl.Id)
 	require.NoError(t, err)
 
 	row = store.GetPool().QueryRow(context.Background(), `SELECT COUNT(cart_id) FROM cart_items`)
@@ -653,7 +653,7 @@ func TestCartDeleteItem(t *testing.T) {
 	assert.NoError(t, err)
 
 	item1 := models.Item{
-		Name:        "testItem",
+		Title:       "testItem",
 		Description: "desc",
 		Price:       300,
 		Category:    cat,
@@ -670,7 +670,7 @@ func TestCartDeleteItem(t *testing.T) {
 	defer store.GetPool().Exec(context.Background(), `DELETE FROM items`)
 
 	item2 := models.Item{
-		Name:        "Item",
+		Title:       "Item",
 		Description: "desc",
 		Price:       400,
 		Category:    cat,
@@ -717,19 +717,19 @@ func TestCartDeleteItem(t *testing.T) {
 	assert.NoError(t, err)
 
 	cartMdl := models.Cart{
-		UserID:   user.ID,
-		Items:    []models.Item{item1},
+		UserId:   user.ID,
+		Items:    []models.ItemWithQuantity{{Item: item1, Quantity: 1}},
 		ExpireAt: time.Now().Add(time.Hour * 2),
 	}
 
 	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO carts (user_id, expire_at) VALUES ($1, $2) RETURNING id`,
-		cartMdl.UserID, cartMdl.ExpireAt)
-	err = row.Scan(&cartMdl.ID)
+		cartMdl.UserId, cartMdl.ExpireAt)
+	err = row.Scan(&cartMdl.Id)
 	require.NoError(t, err)
 	defer store.GetPool().Exec(context.Background(), `DELETE from carts`)
-	store.GetPool().Exec(context.Background(), `INSERT INTO cart_items (cart_id, item_id) VALUES ($1, $2)`, cartMdl.ID, item1.Id)
+	store.GetPool().Exec(context.Background(), `INSERT INTO cart_items (cart_id, item_id, item_quantity) VALUES ($1, $2, $3)`, cartMdl.Id, item1.Id, cartMdl.Items[0].Quantity)
 	crt := repository.NewCartStore(store, logger)
-	err = crt.DeleteItemFromCart(context.Background(), &cartMdl, &item1)
+	err = crt.DeleteItemFromCart(context.Background(), cartMdl.Id, item1.Id)
 	require.NoError(t, err)
 	row = store.GetPool().QueryRow(context.Background(), `SELECT COUNT(cart_id) FROM cart_items`)
 	var count int
@@ -753,7 +753,7 @@ func TestOrderCreate(t *testing.T) {
 	assert.NoError(t, err)
 
 	item1 := models.Item{
-		Name:        "testItem",
+		Title:       "testItem",
 		Description: "desc",
 		Price:       300,
 		Category:    cat,
@@ -770,7 +770,7 @@ func TestOrderCreate(t *testing.T) {
 	defer store.GetPool().Exec(context.Background(), `DELETE FROM items`)
 
 	item2 := models.Item{
-		Name:        "Item",
+		Title:       "Item",
 		Description: "desc",
 		Price:       400,
 		Category:    cat,
@@ -822,7 +822,7 @@ func TestOrderCreate(t *testing.T) {
 		User:         user,
 		Address:      user.Address,
 		Status:       models.StatusProcessed,
-		Items:        []models.Item{item1, item2},
+		Items:        []models.ItemWithQuantity{{item1, 1}, {item2, 1}},
 	}
 	res, err := ordr.Create(context.Background(), &order)
 	defer store.GetPool().Exec(context.Background(), `DELETE FROM orders`)
@@ -845,7 +845,7 @@ func TestOrderDelete(t *testing.T) {
 	assert.NoError(t, err)
 
 	item1 := models.Item{
-		Name:        "testItem",
+		Title:       "testItem",
 		Description: "desc",
 		Price:       300,
 		Category:    cat,
@@ -862,7 +862,7 @@ func TestOrderDelete(t *testing.T) {
 	defer store.GetPool().Exec(context.Background(), `DELETE FROM items`)
 
 	item2 := models.Item{
-		Name:        "Item",
+		Title:       "Item",
 		Description: "desc",
 		Price:       400,
 		Category:    cat,
@@ -913,7 +913,7 @@ func TestOrderDelete(t *testing.T) {
 		User:         user,
 		Address:      user.Address,
 		Status:       models.StatusProcessed,
-		Items:        []models.Item{item1, item2},
+		Items:        []models.ItemWithQuantity{{item1, 1}, {item2, 1}},
 	}
 
 	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO orders (shipment_time, user_id, status, address) 
@@ -948,7 +948,7 @@ func TestOrderChangeAddres(t *testing.T) {
 	assert.NoError(t, err)
 
 	item1 := models.Item{
-		Name:        "testItem",
+		Title:       "testItem",
 		Description: "desc",
 		Price:       300,
 		Category:    cat,
@@ -965,7 +965,7 @@ func TestOrderChangeAddres(t *testing.T) {
 	defer store.GetPool().Exec(context.Background(), `DELETE FROM items`)
 
 	item2 := models.Item{
-		Name:        "Item",
+		Title:       "Item",
 		Description: "desc",
 		Price:       400,
 		Category:    cat,
@@ -1016,7 +1016,7 @@ func TestOrderChangeAddres(t *testing.T) {
 		User:         user,
 		Address:      user.Address,
 		Status:       models.StatusProcessed,
-		Items:        []models.Item{item1, item2},
+		Items:        []models.ItemWithQuantity{{item1, 1}, {item2, 1}},
 	}
 
 	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO orders (shipment_time, user_id, status, address) 
@@ -1058,7 +1058,7 @@ func TestOrderChangeStatus(t *testing.T) {
 	assert.NoError(t, err)
 
 	item1 := models.Item{
-		Name:        "testItem",
+		Title:       "testItem",
 		Description: "desc",
 		Price:       300,
 		Category:    cat,
@@ -1075,7 +1075,7 @@ func TestOrderChangeStatus(t *testing.T) {
 	defer store.GetPool().Exec(context.Background(), `DELETE FROM items`)
 
 	item2 := models.Item{
-		Name:        "Item",
+		Title:       "Item",
 		Description: "desc",
 		Price:       400,
 		Category:    cat,
@@ -1126,7 +1126,7 @@ func TestOrderChangeStatus(t *testing.T) {
 		User:         user,
 		Address:      user.Address,
 		Status:       models.StatusProcessed,
-		Items:        []models.Item{item1, item2},
+		Items:        []models.ItemWithQuantity{{item1, 1}, {item2, 1}},
 	}
 
 	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO orders (shipment_time, user_id, status, address) 
@@ -1163,7 +1163,7 @@ func TestOrdersGetOrderByID(t *testing.T) {
 	assert.NoError(t, err)
 
 	item1 := models.Item{
-		Name:        "testItem",
+		Title:       "testItem",
 		Description: "desc",
 		Price:       300,
 		Category:    cat,
@@ -1180,7 +1180,7 @@ func TestOrdersGetOrderByID(t *testing.T) {
 	defer store.GetPool().Exec(context.Background(), `DELETE FROM items`)
 
 	item2 := models.Item{
-		Name:        "Item",
+		Title:       "Item",
 		Description: "desc",
 		Price:       400,
 		Category:    cat,
@@ -1231,23 +1231,23 @@ func TestOrdersGetOrderByID(t *testing.T) {
 		User:         user,
 		Address:      user.Address,
 		Status:       models.StatusProcessed,
-		Items:        []models.Item{item1, item2},
+		Items:        []models.ItemWithQuantity{{item1, 1}, {item2, 1}},
 	}
 
 	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO orders (shipment_time, user_id, status, address) 
 	VALUES ($1, $2, $3, $4) RETURNING id`, order.ShipmentTime, order.User.ID, order.Status,
 		fmt.Sprintf("%s -> %s -> %s -> %s", order.User.Address.Zipcode, order.User.Address.Country, order.User.Address.City, order.User.Address.Street))
 	row.Scan(&order.ID)
-
+	fmt.Printf("order id %s: \n", order.ID.String())
 	_, err = store.GetPool().Exec(context.Background(),
-		`INSERT INTO order_items (order_id, item_id) VALUES ($1, $2), ($1, $3)`, order.ID, order.Items[0].Id, order.Items[1].Id)
+		`INSERT INTO order_items (order_id, item_id, item_quantity) VALUES ($1, $2, $3), ($1, $4, $5)`, order.ID, order.Items[0].Id, order.Items[0].Quantity, order.Items[1].Id, order.Items[1].Quantity)
 	require.NoError(t, err)
 	rdrRp := repository.NewOrderRepo(store, logger)
 	res, err := rdrRp.GetOrderByID(context.Background(), order.ID)
 	defer store.GetPool().Exec(context.Background(), `DELETE FROM orders`)
 	defer store.GetPool().Exec(context.Background(), `DELETE FROM order_items`)
 	require.NoError(t, err)
-	require.Equal(t, order.Items[0].Name, res.Items[0].Name)
+	require.Equal(t, order.Items[0].Title, res.Items[0].Title)
 	require.Equal(t, order.ID, res.ID)
 	require.Equal(t, order.Address, res.Address)
 }
@@ -1266,7 +1266,7 @@ func TestOrdersGetOrders(t *testing.T) {
 	assert.NoError(t, err)
 
 	item1 := models.Item{
-		Name:        "testItem",
+		Title:       "testItem",
 		Description: "desc",
 		Price:       300,
 		Category:    cat,
@@ -1283,7 +1283,7 @@ func TestOrdersGetOrders(t *testing.T) {
 	defer store.GetPool().Exec(context.Background(), `DELETE FROM items`)
 
 	item2 := models.Item{
-		Name:        "Item",
+		Title:       "Item",
 		Description: "desc",
 		Price:       400,
 		Category:    cat,
@@ -1334,7 +1334,7 @@ func TestOrdersGetOrders(t *testing.T) {
 		User:         user,
 		Address:      user.Address,
 		Status:       models.StatusProcessed,
-		Items:        []models.Item{item1, item2},
+		Items:        []models.ItemWithQuantity{{item1, 1}, {item2, 1}},
 	}
 
 	order2 := models.Order{
@@ -1342,7 +1342,7 @@ func TestOrdersGetOrders(t *testing.T) {
 		User:         user,
 		Address:      user.Address,
 		Status:       models.StatusCourier,
-		Items:        []models.Item{item1},
+		Items:        []models.ItemWithQuantity{{item1, 1}},
 	}
 
 	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO orders (shipment_time, user_id, status, address) 
@@ -1356,10 +1356,10 @@ func TestOrdersGetOrders(t *testing.T) {
 	row.Scan(&order2.ID)
 
 	_, err = store.GetPool().Exec(context.Background(),
-		`INSERT INTO order_items (order_id, item_id) VALUES ($1, $2), ($1, $3)`, order.ID, order.Items[0].Id, order.Items[1].Id)
+		`INSERT INTO order_items (order_id, item_id, item_quantity) VALUES ($1, $2, $3), ($1, $4, $5)`, order.ID, order.Items[0].Id, order.Items[0].Quantity, order.Items[1].Id, order.Items[1].Quantity)
 	require.NoError(t, err)
 	_, err = store.GetPool().Exec(context.Background(),
-		`INSERT INTO order_items (order_id, item_id) VALUES ($1, $2)`, order2.ID, order2.Items[0].Id)
+		`INSERT INTO order_items (order_id, item_id, item_quantity) VALUES ($1, $2, $3)`, order2.ID, order2.Items[0].Id, order2.Items[0].Quantity)
 	require.NoError(t, err)
 	rdrRp := repository.NewOrderRepo(store, logger)
 	ch, err := rdrRp.GetOrdersForUser(context.Background(), &user)
@@ -1370,11 +1370,11 @@ func TestOrdersGetOrders(t *testing.T) {
 	for o := range ch {
 		res = append(res, o)
 	}
-	require.Equal(t, order.Items[0].Name, res[0].Items[0].Name)
+	require.Equal(t, order.Items[0].Title, res[0].Items[0].Title)
 	// require.Equal(t, order.ID, res[0].ID)
 	require.Equal(t, order.Address, res[0].Address)
 
-	require.Equal(t, order2.Items[0].Name, res[1].Items[0].Name)
+	require.Equal(t, order2.Items[0].Title, res[1].Items[0].Title)
 	// require.Equal(t, order2.ID, res[1].ID)
 	require.Equal(t, order2.Address, res[1].Address)
 }
