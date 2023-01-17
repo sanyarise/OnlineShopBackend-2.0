@@ -429,7 +429,7 @@ func TestCartCreate(t *testing.T) {
 
 	cartMdl := models.Cart{
 		UserId:   user.ID,
-		Items:    []models.ItemWithQuantity{{item1, 1}, {item2, 1}},
+		Items:    []models.ItemWithQuantity{{Item: item1, Quantity: 1}, {Item: item2, Quantity: 1}},
 		ExpireAt: time.Now().Add(time.Hour * 2),
 	}
 
@@ -519,7 +519,7 @@ func TestCartAddItem(t *testing.T) {
 
 	cartMdl := models.Cart{
 		UserId:   user.ID,
-		Items:    []models.ItemWithQuantity{{item1, 1}},
+		Items:    []models.ItemWithQuantity{{Item: item1, Quantity: 1}},
 		ExpireAt: time.Now().Add(time.Hour * 2),
 	}
 
@@ -618,7 +618,7 @@ func TestCartDelete(t *testing.T) {
 
 	cartMdl := models.Cart{
 		UserId:   user.ID,
-		Items:    []models.ItemWithQuantity{{item1, 1}},
+		Items:    []models.ItemWithQuantity{{Item: item1, Quantity: 1}},
 		ExpireAt: time.Now().Add(time.Hour * 2),
 	}
 
@@ -822,7 +822,7 @@ func TestOrderCreate(t *testing.T) {
 		User:         user,
 		Address:      user.Address,
 		Status:       models.StatusProcessed,
-		Items:        []models.ItemWithQuantity{{item1, 1}, {item2, 1}},
+		Items:        []models.ItemWithQuantity{{Item: item1, Quantity: 1}, {Item: item2, Quantity: 1}},
 	}
 	res, err := ordr.Create(context.Background(), &order)
 	defer store.GetPool().Exec(context.Background(), `DELETE FROM orders`)
@@ -913,7 +913,7 @@ func TestOrderDelete(t *testing.T) {
 		User:         user,
 		Address:      user.Address,
 		Status:       models.StatusProcessed,
-		Items:        []models.ItemWithQuantity{{item1, 1}, {item2, 1}},
+		Items:        []models.ItemWithQuantity{{Item: item1, Quantity: 1}, {Item: item2, Quantity: 1}},
 	}
 
 	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO orders (shipment_time, user_id, status, address) 
@@ -1016,7 +1016,7 @@ func TestOrderChangeAddres(t *testing.T) {
 		User:         user,
 		Address:      user.Address,
 		Status:       models.StatusProcessed,
-		Items:        []models.ItemWithQuantity{{item1, 1}, {item2, 1}},
+		Items:        []models.ItemWithQuantity{{Item: item1, Quantity: 1}, {Item: item2, Quantity: 1}},
 	}
 
 	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO orders (shipment_time, user_id, status, address) 
@@ -1126,7 +1126,7 @@ func TestOrderChangeStatus(t *testing.T) {
 		User:         user,
 		Address:      user.Address,
 		Status:       models.StatusProcessed,
-		Items:        []models.ItemWithQuantity{{item1, 1}, {item2, 1}},
+		Items:        []models.ItemWithQuantity{{Item: item1, Quantity: 1}, {Item: item2, Quantity: 1}},
 	}
 
 	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO orders (shipment_time, user_id, status, address) 
@@ -1231,7 +1231,7 @@ func TestOrdersGetOrderByID(t *testing.T) {
 		User:         user,
 		Address:      user.Address,
 		Status:       models.StatusProcessed,
-		Items:        []models.ItemWithQuantity{{item1, 1}, {item2, 1}},
+		Items:        []models.ItemWithQuantity{{Item: item1, Quantity: 1}, {Item: item2, Quantity: 1}},
 	}
 
 	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO orders (shipment_time, user_id, status, address) 
@@ -1334,7 +1334,7 @@ func TestOrdersGetOrders(t *testing.T) {
 		User:         user,
 		Address:      user.Address,
 		Status:       models.StatusProcessed,
-		Items:        []models.ItemWithQuantity{{item1, 1}, {item2, 1}},
+		Items:        []models.ItemWithQuantity{{Item: item1, Quantity: 1}, {Item: item2, Quantity: 1}},
 	}
 
 	order2 := models.Order{
@@ -1342,7 +1342,7 @@ func TestOrdersGetOrders(t *testing.T) {
 		User:         user,
 		Address:      user.Address,
 		Status:       models.StatusCourier,
-		Items:        []models.ItemWithQuantity{{item1, 1}},
+		Items:        []models.ItemWithQuantity{{Item: item1, Quantity: 1}},
 	}
 
 	row = store.GetPool().QueryRow(context.Background(), `INSERT INTO orders (shipment_time, user_id, status, address) 
