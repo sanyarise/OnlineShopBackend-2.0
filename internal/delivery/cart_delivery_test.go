@@ -55,10 +55,23 @@ var (
 		},
 	}
 	testCartItem = cart.CartItem{
-		Id:    testId.String(),
-		Title: "test",
-		Price: 1,
-		Image: "test",
+		Item:     testItem,
+		Quantity: testCartQuantity,
+	}
+	testItem = cart.Item{
+		Id:       testId.String(),
+		Title:    "test",
+		Price:    1,
+		Image:    "test",
+		Category: testCartCategory,
+	}
+	testCartCategory = cart.Category{
+		Id:          testId.String(),
+		Name:        "Test",
+		Description: "Test",
+	}
+	testCartQuantity = cart.Quantity{
+		Quantity: 1,
 	}
 
 	testWrongShortCart = WrongShortCart{
@@ -356,7 +369,7 @@ func TestDeleteItemFromCart(t *testing.T) {
 			Value: testUserId.String(),
 		},
 		{
-			Key: "itemID",
+			Key:   "itemID",
 			Value: testId.String(),
 		},
 	}
@@ -376,7 +389,7 @@ func TestDeleteItemFromCart(t *testing.T) {
 			Value: testUserId.String(),
 		},
 		{
-			Key: "itemID",
+			Key:   "itemID",
 			Value: testId.String(),
 		},
 	}

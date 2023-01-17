@@ -62,7 +62,7 @@ func (delivery *Delivery) GetCart(c *gin.Context) {
 		cartItems[idx].Category.Name = item.Category.Name
 		cartItems[idx].Category.Description = item.Category.Description
 		cartItems[idx].Category.Image = item.Category.Image
-		cartItems[idx].Quantity = item.Quantity
+		cartItems[idx].Quantity.Quantity = item.Quantity
 	}
 
 	cart := cart.Cart{
