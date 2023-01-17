@@ -12,6 +12,7 @@ package delivery
 import (
 	"OnlineShopBackend/internal/delivery/category"
 	"OnlineShopBackend/internal/delivery/item"
+	"OnlineShopBackend/internal/metrics"
 	"OnlineShopBackend/internal/models"
 	"context"
 	"fmt"
@@ -120,6 +121,8 @@ func (delivery *Delivery) CreateItem(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusCreated, item.ItemId{Value: id.String()})
+
+	metrics.ItemsMetrics.ItemsAddedTotal.Inc()
 }
 
 // GetItem - returns item by id
@@ -755,4 +758,6 @@ func (delivery *Delivery) DeleteItem(c *gin.Context) {
 	}
 	delivery.logger.Sugar().Infof("Item with id: %s deleted success", id)
 	c.JSON(http.StatusOK, gin.H{})
+
+	metrics.ItemsMetrics.ItemsDeleted.Inc()
 }

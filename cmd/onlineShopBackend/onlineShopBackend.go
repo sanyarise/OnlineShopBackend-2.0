@@ -13,10 +13,12 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.uber.org/zap"
 )
 
@@ -74,6 +76,10 @@ func main() {
 	server.Start()
 	l.Info(fmt.Sprintf("Server start successful on port: %v", cfg.Port))
 
+	go func() {
+		http.Handle("/metrics", promhttp.Handler())
+		http.ListenAndServe(":2112", nil)
+	}()
 	<-ctx.Done()
 
 	err = pgstore.ShutDown(cfg.Timeout)
