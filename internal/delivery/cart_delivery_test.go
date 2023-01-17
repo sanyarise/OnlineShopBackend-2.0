@@ -2,6 +2,8 @@ package delivery
 
 import (
 	"OnlineShopBackend/internal/delivery/cart"
+	"OnlineShopBackend/internal/delivery/category"
+	"OnlineShopBackend/internal/delivery/item"
 	fs "OnlineShopBackend/internal/filestorage/mocks"
 	"OnlineShopBackend/internal/models"
 	"OnlineShopBackend/internal/usecase/mocks"
@@ -58,14 +60,16 @@ var (
 		Item:     testItem,
 		Quantity: testCartQuantity,
 	}
-	testItem = cart.Item{
-		Id:       testId.String(),
-		Title:    "test",
-		Price:    1,
-		Image:    "test",
-		Category: testCartCategory,
+	testItem = item.OutItem{
+		Id:          testId.String(),
+		Title:       "test",
+		Description: "test",
+		Category:    testCartCategory,
+		Price:       1,
+		Vendor:      "test",
+		Images:      []string{"test"},
 	}
-	testCartCategory = cart.Category{
+	testCartCategory = category.Category{
 		Id:          testId.String(),
 		Name:        "Test",
 		Description: "Test",

@@ -52,16 +52,16 @@ func (delivery *Delivery) GetCart(c *gin.Context) {
 
 	cartItems := make([]cart.CartItem, len(modelCart.Items))
 	for idx, item := range modelCart.Items {
-		cartItems[idx].Id = item.Id.String()
-		cartItems[idx].Title = item.Title
-		cartItems[idx].Price = item.Price
-		if len(item.Images) > 0 {
-			cartItems[idx].Image = item.Images[0]
-		}
-		cartItems[idx].Category.Id = item.Category.Id.String()
-		cartItems[idx].Category.Name = item.Category.Name
-		cartItems[idx].Category.Description = item.Category.Description
-		cartItems[idx].Category.Image = item.Category.Image
+		cartItems[idx].Item.Id = item.Id.String()
+		cartItems[idx].Item.Title = item.Title
+		cartItems[idx].Item.Description = item.Description
+		cartItems[idx].Item.Category.Id = item.Category.Id.String()
+		cartItems[idx].Item.Category.Name = item.Category.Name
+		cartItems[idx].Item.Category.Description = item.Category.Description
+		cartItems[idx].Item.Category.Image = item.Category.Image
+		cartItems[idx].Item.Price = item.Price
+		cartItems[idx].Item.Vendor = item.Vendor
+		cartItems[idx].Item.Images = item.Images
 		cartItems[idx].Quantity.Quantity = item.Quantity
 	}
 
