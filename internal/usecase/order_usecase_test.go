@@ -166,6 +166,7 @@ func TestChangeStatusError(t *testing.T) {
 
 func TestChangeAddress(t *testing.T) {
 	uscs := NewOrderUsecase(&orderRepoMock{}, lgr)
+	oldAddress := testOrder.Address
 	err := uscs.ChangeAddress(context.Background(), &testOrder, models.UserAddress{
 		Street:  "הלל 49",
 		City:    "חיפה",
@@ -173,13 +174,14 @@ func TestChangeAddress(t *testing.T) {
 		Country: "Israel",
 	})
 	defer func() {
-		testOrder.Status = models.StatusCreated
+		testOrder.Address = oldAddress
 	}()
 	require.NoError(t, err)
 }
 
 func TestChangeAddressError(t *testing.T) {
 	uscs := NewOrderUsecase(&orderRepoMock{err: fmt.Errorf("test error")}, lgr)
+	oldAddress := testOrder.Address
 	err := uscs.ChangeAddress(context.Background(), &testOrder, models.UserAddress{
 		Street:  "הלל 49",
 		City:    "חיפה",
@@ -187,7 +189,7 @@ func TestChangeAddressError(t *testing.T) {
 		Country: "Israel",
 	})
 	defer func() {
-		testOrder.Status = models.StatusCreated
+		testOrder.Address = oldAddress
 	}()
 	require.Error(t, err)
 }
