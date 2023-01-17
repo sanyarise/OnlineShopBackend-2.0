@@ -176,7 +176,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/cart/deleteItem": {
+        "/cart/delete/{cartID}/{itemID}": {
             "delete": {
                 "description": "Method provides to delete item from cart.",
                 "consumes": [
@@ -191,13 +191,18 @@ const docTemplate = `{
                 "summary": "Method provides to delete item from cart",
                 "parameters": [
                     {
-                        "description": "Data for delete item from cart",
-                        "name": "cart",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/cart.ShortCart"
-                        }
+                        "type": "string",
+                        "description": "id of cart",
+                        "name": "cartID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "id of item",
+                        "name": "itemID",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -1313,7 +1318,7 @@ const docTemplate = `{
                         "$ref": "#/definitions/cart.CartItem"
                     }
                 },
-                "user_id": {
+                "userId": {
                     "type": "string",
                     "format": "uuid",
                     "example": "00000000-0000-0000-0000-000000000000"
@@ -1335,16 +1340,56 @@ const docTemplate = `{
         },
         "cart.CartItem": {
             "type": "object",
+            "properties": {
+                "item": {
+                    "$ref": "#/definitions/cart.Item"
+                },
+                "quantity": {
+                    "$ref": "#/definitions/cart.Quantity"
+                }
+            }
+        },
+        "cart.Category": {
+            "type": "object",
             "required": [
-                "item_id",
+                "description",
+                "id",
+                "name"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "example": "Электротехнические товары для дома"
+                },
+                "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "example": "00000000-0000-0000-0000-000000000000"
+                },
+                "image": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Электротехника"
+                }
+            }
+        },
+        "cart.Item": {
+            "type": "object",
+            "required": [
+                "itemId",
                 "price",
                 "title"
             ],
             "properties": {
+                "category": {
+                    "$ref": "#/definitions/cart.Category"
+                },
                 "image": {
                     "type": "string"
                 },
-                "item_id": {
+                "itemId": {
                     "type": "string",
                     "format": "uuid",
                     "example": "00000000-0000-0000-0000-000000000000"
@@ -1361,19 +1406,33 @@ const docTemplate = `{
                 }
             }
         },
+        "cart.Quantity": {
+            "type": "object",
+            "required": [
+                "quantity"
+            ],
+            "properties": {
+                "quantity": {
+                    "type": "integer",
+                    "default": 1,
+                    "minimum": 1,
+                    "example": 3
+                }
+            }
+        },
         "cart.ShortCart": {
             "type": "object",
             "required": [
-                "cart_id",
-                "item_id"
+                "cartId",
+                "itemId"
             ],
             "properties": {
-                "cart_id": {
+                "cartId": {
                     "type": "string",
                     "format": "uuid",
                     "example": "00000000-0000-0000-0000-000000000000"
                 },
-                "item_id": {
+                "itemId": {
                     "type": "string",
                     "format": "uuid",
                     "example": "00000000-0000-0000-0000-000000000000"
@@ -1471,11 +1530,11 @@ const docTemplate = `{
         "file.FilesInfo": {
             "type": "object",
             "properties": {
-                "created_date": {
+                "createdDate": {
                     "type": "string",
                     "example": "2022-12-13 12:46:16.0964549 +0300 MSK"
                 },
-                "modify_date": {
+                "modifyDate": {
                     "type": "string",
                     "example": "2022-12-13 12:46:16.0964549 +0300 MSK"
                 },

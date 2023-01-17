@@ -55,10 +55,23 @@ var (
 		},
 	}
 	testCartItem = cart.CartItem{
-		Id:    testId.String(),
-		Title: "test",
-		Price: 1,
-		Image: "test",
+		Item:     testItem,
+		Quantity: testCartQuantity,
+	}
+	testItem = cart.Item{
+		Id:       testId.String(),
+		Title:    "test",
+		Price:    1,
+		Image:    "test",
+		Category: testCartCategory,
+	}
+	testCartCategory = cart.Category{
+		Id:          testId.String(),
+		Name:        "Test",
+		Description: "Test",
+	}
+	testCartQuantity = cart.Quantity{
+		Quantity: 1,
 	}
 
 	testWrongShortCart = WrongShortCart{
@@ -341,7 +354,6 @@ func TestDeleteItemFromCart(t *testing.T) {
 	c.Request = &http.Request{
 		Header: make(http.Header),
 	}
-	MockCartJson(c, testWrongShortCart, "DELETE")
 	delivery.DeleteItemFromCart(c)
 	require.Equal(t, 400, w.Code)
 
@@ -351,8 +363,17 @@ func TestDeleteItemFromCart(t *testing.T) {
 	c.Request = &http.Request{
 		Header: make(http.Header),
 	}
-	MockCartJson(c, testShortCart, "DELETE")
-	cartUsecase.EXPECT().DeleteItemFromCart(ctx, testCartId, testId).Return(err)
+	c.Params = []gin.Param{
+		{
+			Key:   "cartID",
+			Value: testUserId.String(),
+		},
+		{
+			Key:   "itemID",
+			Value: testId.String(),
+		},
+	}
+	cartUsecase.EXPECT().DeleteItemFromCart(ctx, testUserId, testId).Return(err)
 	delivery.DeleteItemFromCart(c)
 	require.Equal(t, 500, w.Code)
 
@@ -362,8 +383,18 @@ func TestDeleteItemFromCart(t *testing.T) {
 	c.Request = &http.Request{
 		Header: make(http.Header),
 	}
-	MockCartJson(c, testShortCart, "DELETE")
-	cartUsecase.EXPECT().DeleteItemFromCart(ctx, testCartId, testId).Return(nil)
+	c.Params = []gin.Param{
+		{
+			Key:   "cartID",
+			Value: testUserId.String(),
+		},
+		{
+			Key:   "itemID",
+			Value: testId.String(),
+		},
+	}
+
+	cartUsecase.EXPECT().DeleteItemFromCart(ctx, testUserId, testId).Return(nil)
 	delivery.DeleteItemFromCart(c)
 	require.Equal(t, 200, w.Code)
 }

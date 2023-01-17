@@ -11,7 +11,7 @@ definitions:
           $ref: '#/definitions/cart.CartItem'
         minItems: 0
         type: array
-      user_id:
+      userId:
         example: 00000000-0000-0000-0000-000000000000
         format: uuid
         type: string
@@ -29,9 +29,37 @@ definitions:
     type: object
   cart.CartItem:
     properties:
+      item:
+        $ref: '#/definitions/cart.Item'
+      quantity:
+        $ref: '#/definitions/cart.Quantity'
+    type: object
+  cart.Category:
+    properties:
+      description:
+        example: Электротехнические товары для дома
+        type: string
+      id:
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        type: string
       image:
         type: string
-      item_id:
+      name:
+        example: Электротехника
+        type: string
+    required:
+    - description
+    - id
+    - name
+    type: object
+  cart.Item:
+    properties:
+      category:
+        $ref: '#/definitions/cart.Category'
+      image:
+        type: string
+      itemId:
         example: 00000000-0000-0000-0000-000000000000
         format: uuid
         type: string
@@ -44,23 +72,33 @@ definitions:
         example: Пылесос
         type: string
     required:
-    - item_id
+    - itemId
     - price
     - title
     type: object
+  cart.Quantity:
+    properties:
+      quantity:
+        default: 1
+        example: 3
+        minimum: 1
+        type: integer
+    required:
+    - quantity
+    type: object
   cart.ShortCart:
     properties:
-      cart_id:
+      cartId:
         example: 00000000-0000-0000-0000-000000000000
         format: uuid
         type: string
-      item_id:
+      itemId:
         example: 00000000-0000-0000-0000-000000000000
         format: uuid
         type: string
     required:
-    - cart_id
-    - item_id
+    - cartId
+    - itemId
     type: object
   category.Category:
     properties:
@@ -125,10 +163,10 @@ definitions:
     type: object
   file.FilesInfo:
     properties:
-      created_date:
+      createdDate:
         example: 2022-12-13 12:46:16.0964549 +0300 MSK
         type: string
-      modify_date:
+      modifyDate:
         example: 2022-12-13 12:46:16.0964549 +0300 MSK
         type: string
       name:
@@ -400,18 +438,22 @@ paths:
       summary: Method provides to delete cart
       tags:
       - carts
-  /cart/deleteItem:
+  /cart/delete/{cartID}/{itemID}:
     delete:
       consumes:
       - application/json
       description: Method provides to delete item from cart.
       parameters:
-      - description: Data for delete item from cart
-        in: body
-        name: cart
+      - description: id of cart
+        in: path
+        name: cartID
         required: true
-        schema:
-          $ref: '#/definitions/cart.ShortCart'
+        type: string
+      - description: id of item
+        in: path
+        name: itemID
+        required: true
+        type: string
       produces:
       - application/json
       responses:
