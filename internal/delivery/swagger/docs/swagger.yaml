@@ -30,54 +30,7 @@ definitions:
   cart.CartItem:
     properties:
       item:
-        $ref: '#/definitions/cart.Item'
-      quantity:
-        $ref: '#/definitions/cart.Quantity'
-    type: object
-  cart.Category:
-    properties:
-      description:
-        example: Электротехнические товары для дома
-        type: string
-      id:
-        example: 00000000-0000-0000-0000-000000000000
-        format: uuid
-        type: string
-      image:
-        type: string
-      name:
-        example: Электротехника
-        type: string
-    required:
-    - description
-    - id
-    - name
-    type: object
-  cart.Item:
-    properties:
-      category:
-        $ref: '#/definitions/cart.Category'
-      image:
-        type: string
-      itemId:
-        example: 00000000-0000-0000-0000-000000000000
-        format: uuid
-        type: string
-      price:
-        default: 10
-        example: 1990
-        minimum: 0
-        type: integer
-      title:
-        example: Пылесос
-        type: string
-    required:
-    - itemId
-    - price
-    - title
-    type: object
-  cart.Quantity:
-    properties:
+        $ref: '#/definitions/item.OutItem'
       quantity:
         default: 1
         example: 3

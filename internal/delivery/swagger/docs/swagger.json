@@ -1332,78 +1332,13 @@
         },
         "cart.CartItem": {
             "type": "object",
-            "properties": {
-                "item": {
-                    "$ref": "#/definitions/cart.Item"
-                },
-                "quantity": {
-                    "$ref": "#/definitions/cart.Quantity"
-                }
-            }
-        },
-        "cart.Category": {
-            "type": "object",
-            "required": [
-                "description",
-                "id",
-                "name"
-            ],
-            "properties": {
-                "description": {
-                    "type": "string",
-                    "example": "Электротехнические товары для дома"
-                },
-                "id": {
-                    "type": "string",
-                    "format": "uuid",
-                    "example": "00000000-0000-0000-0000-000000000000"
-                },
-                "image": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string",
-                    "example": "Электротехника"
-                }
-            }
-        },
-        "cart.Item": {
-            "type": "object",
-            "required": [
-                "itemId",
-                "price",
-                "title"
-            ],
-            "properties": {
-                "category": {
-                    "$ref": "#/definitions/cart.Category"
-                },
-                "image": {
-                    "type": "string"
-                },
-                "itemId": {
-                    "type": "string",
-                    "format": "uuid",
-                    "example": "00000000-0000-0000-0000-000000000000"
-                },
-                "price": {
-                    "type": "integer",
-                    "default": 10,
-                    "minimum": 0,
-                    "example": 1990
-                },
-                "title": {
-                    "type": "string",
-                    "example": "Пылесос"
-                }
-            }
-        },
-        "cart.Quantity": {
-            "type": "object",
             "required": [
                 "quantity"
             ],
             "properties": {
+                "item": {
+                    "$ref": "#/definitions/item.OutItem"
+                },
                 "quantity": {
                     "type": "integer",
                     "default": 1,
