@@ -62,7 +62,7 @@ func (delivery *Delivery) GetCart(c *gin.Context) {
 		cartItems[idx].Category.Name = item.Category.Name
 		cartItems[idx].Category.Description = item.Category.Description
 		cartItems[idx].Category.Image = item.Category.Image
-		cartItems[idx].Quantity = item.Quantity
+		cartItems[idx].Quantity.Quantity = item.Quantity
 	}
 
 	cart := cart.Cart{
@@ -202,42 +202,33 @@ func (delivery *Delivery) DeleteCart(c *gin.Context) {
 //	@Tags			carts
 //	@Accept			json
 //	@Produce		json
-//	@Param			cart	body	cart.ShortCart	true	"Data for delete item from cart"
+//	@Param			cartID	path	string	true	"id of cart"
+//	@Param			itemID	path	string	true	"id of item"
 //	@Success		200
 //	@Failure		400	{object}	ErrorResponse
 //	@Failure		403	"Forbidden"
 //	@Failure		404	{object}	ErrorResponse	"404 Not Found"
 //	@Failure		500	{object}	ErrorResponse
-//	@Router			/cart/deleteItem [delete]
+//	@Router			/cart/delete/{cartID}/{itemID} [delete]
 func (delivery *Delivery) DeleteItemFromCart(c *gin.Context) {
-	delivery.logger.Debug("Enter in delivery AddItemToCart()")
+	delivery.logger.Debug("Enter in delivery DeleteItemFromCart()")
 
 	ctx := c.Request.Context()
 
-	var deliveryCart cart.ShortCart
-	if err := c.ShouldBindJSON(&deliveryCart); err != nil {
-		delivery.logger.Error(err.Error())
-		delivery.SetError(c, http.StatusBadRequest, err)
-		return
-	}
-	if deliveryCart.CartId == "" || deliveryCart.ItemId == "" {
-		err := fmt.Errorf("empty value of cart id or item id")
-		delivery.logger.Error(err.Error())
-		delivery.SetError(c, http.StatusBadRequest, err)
-		return
-	}
-	cartId, err := uuid.Parse(deliveryCart.CartId)
+	cartId, err := uuid.Parse(c.Param("cartID"))
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusBadRequest, err)
 		return
 	}
-	itemId, err := uuid.Parse(deliveryCart.ItemId)
+	delivery.logger.Sugar().Debugf("cartId: %v", cartId)
+	itemId, err := uuid.Parse(c.Param("itemID"))
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusBadRequest, err)
 		return
 	}
+	delivery.logger.Sugar().Debugf("itemId: %v", itemId)
 
 	err = delivery.cartUsecase.DeleteItemFromCart(ctx, cartId, itemId)
 	if err != nil {

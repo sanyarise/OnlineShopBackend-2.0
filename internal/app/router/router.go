@@ -209,7 +209,7 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 		{
 			"DeleteItemFromCart",
 			http.MethodDelete,
-			"/cart/deleteItem",
+			"/cart/delete/:cartID/:itemID",
 			delivery.DeleteItemFromCart,
 		},
 		{
