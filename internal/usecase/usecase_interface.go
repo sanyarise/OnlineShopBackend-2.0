@@ -52,6 +52,7 @@ type IUserUsecase interface {
 	GetUsersList(ctx context.Context) ([]models.User, error)
 	ChangeUserRole(ctx context.Context, userId uuid.UUID, rightsId uuid.UUID) error
 	ChangeUserPassword(ctx context.Context, userId uuid.UUID, newPassword string) error
+	DeleteUser(ctx context.Context, userId uuid.UUID) error
 }
 
 type IRightsUsecase interface {

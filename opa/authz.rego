@@ -7,8 +7,19 @@ allow {
     input.endpoint == "updateUserPassword"
     input.role == "customer"
 }
+
 allow {
     input.endpoint == "index"
+    input.role == "customer"
+}
+
+allow {
+    input.endpoint == "userProfile"
+    input.role == "customer"
+}
+
+allow {
+    input.endpoint == "updateUserProfile"
     input.role == "customer"
 }
 
@@ -25,6 +36,17 @@ allow {
     input.endpoint == "index"
     input.role == "seller"
 }
+
+allow {
+    input.endpoint == "userProfile"
+    input.role == "seller"
+}
+
+allow {
+    input.endpoint == "updateUserProfile"
+    input.role == "seller"
+}
+
 allow {
     input.endpoint == "updateUserPassword"
     input.role == "seller"

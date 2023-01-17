@@ -90,6 +90,8 @@ func (delivery *Delivery) getEndpointName(method string, uri string) string {
 			return "imagesList"
 		case strings.Contains(uri, "list/rights"):
 			return "rightsList"
+		case strings.Contains(uri, "user/profile"):
+			return "userProfile"
 		case strings.Contains(uri, "user/list"):
 			return "userList"
 		case strings.Contains(uri, "user") && len(uri) > 10:

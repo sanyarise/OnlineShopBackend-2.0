@@ -29,37 +29,70 @@ import (
 	//"golang.org/x/oauth2/yandex"
 )
 
+// CreateUser
+//
+//	@Summary		Method provides to create user
+//	@Description	Method provides to create user.
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Param			user	body		user.InUser	true	"Data for creating user"
+//	@Success		201		{object}	user.UserId
+//	@Failure		400		{object}	ErrorResponse
+//	@Failure		403		"Forbidden"
+//	@Failure		404		{object}	ErrorResponse	"404 Not Found"
+//	@Failure		409		{object}	ErrorResponse
+//	@Failure		500		{object}	ErrorResponse
+//	@Router			/user/create [post]
 func (delivery *Delivery) CreateUser(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery CreateUser()")
 	ctx := c.Request.Context()
-	var newUser *models.User
+	var newUser user.InUser
 	if err := c.ShouldBindJSON(&newUser); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	delivery.logger.Sugar().Debugf("newUser: %v", newUser)
 
 	// Check user in database
 	if existedUser, err := delivery.userUsecase.GetUserByEmail(ctx, newUser.Email); err == nil && existedUser.ID != uuid.Nil {
-		c.JSON(http.StatusContinue, gin.H{"error": err.Error()})
+		err := fmt.Errorf("user with email: %v already exists", newUser.Email)
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusConflict, err)
 		return
 	}
 
+	delivery.logger.Debug("Checks success")
+
+	newModelsUser := &models.User{
+		Firstname: newUser.Firstname,
+		Lastname:  newUser.Lastname,
+		Password:  newUser.Password,
+		Email:     newUser.Email,
+		Address: models.UserAddress{
+			Zipcode: newUser.Address.Zipcode,
+			Country: newUser.Address.Country,
+			City:    newUser.Address.City,
+			Street:  newUser.Address.Street,
+		},
+	}
+
 	// Password validation check
-	if err := newUser.ValidationCheck(delivery.logger); err != nil {
+	if err := newModelsUser.ValidationCheck(delivery.logger); err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusBadRequest, err)
 		return
 	}
-	hashPassword, err := newUser.GeneratePasswordHash(delivery.logger)
+	hashPassword, err := newModelsUser.GeneratePasswordHash(delivery.logger)
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusBadRequest, err)
 		return
 	}
-	newUser.Password = hashPassword
+	newModelsUser.Password = hashPassword
 
 	// Create a user
-	createdUser, err := delivery.userUsecase.CreateUser(ctx, newUser)
+	createdUser, err := delivery.userUsecase.CreateUser(ctx, newModelsUser)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
@@ -78,6 +111,20 @@ func (delivery *Delivery) CreateUser(c *gin.Context) {
 	c.JSON(http.StatusOK, user.UserId{Value: createdUser.ID.String()})
 }
 
+// LoginUser
+//
+//	@Summary		Method provides to login user
+//	@Description	Method provides to login user.
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Param			user	body	user.Credentials	true	"Data for login user"
+//	@Success		200
+//	@Failure		400	{object}	ErrorResponse
+//	@Failure		403	"Forbidden"
+//	@Failure		404	{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500	{object}	ErrorResponse
+//	@Router			/user/login [post]
 func (delivery *Delivery) LoginUser(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery LoginUser()")
 	var userCredentials user.Credentials
@@ -108,6 +155,20 @@ func (delivery *Delivery) LoginUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{})
 }
 
+// GetUser - returns user by id
+//
+//	@Summary		Get user by id
+//	@Description	The method allows you to get user by id.
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Param			userID	path		string			true	"id of user"
+//	@Success		200		{object}	user.OutUser	"User structure"
+//	@Failure		400		{object}	ErrorResponse
+//	@Failure		403		"Forbidden"
+//	@Failure		404		{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500		{object}	ErrorResponse
+//	@Router			/user/{userID} [get]
 func (delivery *Delivery) GetUserById(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery GetUserById()")
 	id, err := uuid.Parse(c.Param("userID"))
@@ -142,6 +203,19 @@ func (delivery *Delivery) GetUserById(c *gin.Context) {
 	})
 }
 
+// GetUsersList - returns list of all users
+//
+//	@Summary		Get list of users
+//	@Description	Method provides to get list of users
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	array		user.OutUser	"List of users"
+//	@Failure		400	{object}	ErrorResponse
+//	@Failure		403	"Forbidden"
+//	@Failure		404	{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500	{object}	ErrorResponse
+//	@Router			/user/list [get]
 func (delivery *Delivery) GetUsersList(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery GetUsersList()")
 	ctx := c.Request.Context()
@@ -174,6 +248,19 @@ func (delivery *Delivery) GetUsersList(c *gin.Context) {
 	c.JSON(http.StatusOK, users)
 }
 
+// UserProfile - returns user profile
+//
+//	@Summary		Get profile of user
+//	@Description	Method provides to get profile of user.
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	array		user.UserProfile	"User profile (works only when authorized)"
+//	@Failure		400	{object}	ErrorResponse
+//	@Failure		403	"Forbidden"
+//	@Failure		404	{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500	{object}	ErrorResponse
+//	@Router			/user/profile [get]
 func (delivery *Delivery) UserProfile(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery UserProfile()")
 	id, _ := c.Get("userId")
@@ -205,9 +292,23 @@ func (delivery *Delivery) UserProfile(c *gin.Context) {
 			Rules: userData.Rights.Rules,
 		},
 	}
-	c.JSON(http.StatusCreated, userProfile)
+	c.JSON(http.StatusOK, userProfile)
 }
 
+// UserProfileUpdate - update an user profile
+//
+//	@Summary		Method provides to update user profile
+//	@Description	Method provides to update user profile
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Param			item	body	user.UpdateUserProfile	true	"Data for updating item (works only when authorized)"
+//	@Success		200
+//	@Failure		400	{object}	ErrorResponse
+//	@Failure		403	"Forbidden"
+//	@Failure		404	{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500	{object}	ErrorResponse
+//	@Router			/user/profile/edit [put]
 func (delivery *Delivery) UserProfileUpdate(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery UserProfileUpdate()")
 	//header := c.GetHeader("Authorization")
@@ -358,11 +459,24 @@ func failure(c *gin.Context) http.HandlerFunc {
 	}
 }
 
+// LogoutUser - logout user
+//
+//	@Summary		Method provides to logout user
+//	@Description	Method provides to logout user
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Success		200
+//	@Failure		400	{object}	ErrorResponse
+//	@Failure		403	"Forbidden"
+//	@Failure		404	{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500	{object}	ErrorResponse
+//	@Router			/user/logout [get]
 func (delivery *Delivery) LogoutUser(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery LogoutUser()")
 	//c.SetCookie("token", "", -1, "/", "http://localhost:3000", false, true) //TODO change to webapp url
 	c.SetCookie("Authorization", "", 0, "", "", false, true)
-	c.JSON(http.StatusOK, gin.H{"logout": "success"})
+	c.JSON(http.StatusOK, gin.H{})
 }
 
 // LoginUserYandex -
@@ -395,6 +509,20 @@ func (delivery *Delivery) CallbackYandex(c *gin.Context) {
 
 }
 
+// ChangeUserRole - change user role
+//
+//	@Summary		Method provides to change user role
+//	@Description	Method provides to change user role
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Param			item	body	user.ChangeRights	true	"Data for change user role (works only when authorized)"
+//	@Success		200
+//	@Failure		400	{object}	ErrorResponse
+//	@Failure		403	"Forbidden"
+//	@Failure		404	{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500	{object}	ErrorResponse
+//	@Router			/user/update/rights [put]
 func (delivery *Delivery) ChangeUserRole(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery ChangeUserRole()")
 
@@ -433,6 +561,20 @@ func (delivery *Delivery) ChangeUserRole(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{})
 }
 
+// ChangeUserPassword - change user password
+//
+//	@Summary		Method provides to change user password
+//	@Description	Method provides to change user password
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Param			item	body	user.ChangePass	true	"Data for change user password (works only when authorized)"
+//	@Success		200
+//	@Failure		400	{object}	ErrorResponse
+//	@Failure		403	"Forbidden"
+//	@Failure		404	{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500	{object}	ErrorResponse
+//	@Router			/user/update/password [put]
 func (delivery *Delivery) ChangeUserPassword(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery ChangeuserPassword()")
 
@@ -489,6 +631,51 @@ func (delivery *Delivery) ChangeUserPassword(c *gin.Context) {
 		return
 	}
 	err = delivery.userUsecase.ChangeUserPassword(ctx, uid, hashPassword)
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusInternalServerError, err)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{})
+}
+
+// DeleteUser deleted user by id
+//
+//	@Summary		Method provides to delete user
+//	@Description	Method provides to delete user
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Param			userID	path	string	true	"id of user (works only when authorize)"
+//	@Success		200
+//	@Failure		400	{object}	ErrorResponse
+//	@Failure		403	"Forbidden"
+//	@Failure		404	{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500	{object}	ErrorResponse
+//	@Router			/user/delete/{userID} [delete]
+func (delivery *Delivery) DeleteUser(c *gin.Context) {
+	delivery.logger.Debug("Enter in delivery DeleteUser()")
+
+	id, err := uuid.Parse(c.Param("userID"))
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
+		return
+	}
+	ctx := c.Request.Context()
+	user, err := delivery.userUsecase.GetUserById(ctx, id)
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusInternalServerError, err)
+		return
+	}
+	if user.Rights.Name == "admin" {
+		err := fmt.Errorf("admin is protected by deleted")
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusConflict, err)
+		return
+	}
+	err = delivery.userUsecase.DeleteUser(ctx, id)
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusInternalServerError, err)

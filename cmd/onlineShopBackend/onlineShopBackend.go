@@ -18,6 +18,7 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
@@ -134,14 +135,33 @@ func createCashOnStartService(ctx context.Context, categoryUsecase usecase.ICate
 func setAdmin(userStore repository.UserStore, rightsStore repository.RightsStore, mail string, pass string, logger *zap.Logger) {
 	logger.Debug("Enter in main setAdmin()")
 	ctx := context.Background()
-	adminRights := &models.Rights{
-		Name:  "admin",
-		Rules: []string{"admin"},
-	}
-	rightsId, err := rightsStore.CreateRights(ctx, adminRights)
+	exist, err := userStore.GetUserByEmail(ctx, mail)
+	logger.Sugar().Debugf("existAdmin is: %v", exist)
 	if err != nil {
 		logger.Error(err.Error())
-		panic(err)
+	}
+	if exist.ID != uuid.Nil {
+		logger.Info("User admin is already exists")
+		return
+	}
+	adminRights := &models.Rights{}
+	existAdminRights, err := rightsStore.GetRightsByName(ctx, "admin")
+	if err != nil {
+		logger.Error(err.Error())
+	}
+	logger.Sugar().Debugf("ExistAdminRights: %v", existAdminRights)
+	if existAdminRights.ID == uuid.Nil {
+		adminRights.Name = "admin"
+		adminRights.Rules = []string{"admin"}
+
+		rightsId, err := rightsStore.CreateRights(ctx, adminRights)
+		if err != nil {
+			logger.Error(err.Error())
+			panic(err)
+		}
+		adminRights.ID = rightsId
+	} else {
+		logger.Info("rights admin is already exists")
 	}
 	newAdmin := &models.User{
 		Firstname: "Admin",
@@ -149,7 +169,7 @@ func setAdmin(userStore repository.UserStore, rightsStore repository.RightsStore
 		Email:     mail,
 		Password:  pass,
 		Rights: models.Rights{
-			ID: rightsId,
+			ID: adminRights.ID,
 		},
 	}
 	hash, err := newAdmin.GeneratePasswordHash(logger)

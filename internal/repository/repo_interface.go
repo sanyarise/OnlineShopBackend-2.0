@@ -36,6 +36,7 @@ type UserStore interface {
 	GetUserById(ctx context.Context, id uuid.UUID) (*models.User, error)
 	ChangeUserRole(ctx context.Context, userId uuid.UUID, rightsId uuid.UUID) error
 	ChangeUserPassword(ctx context.Context, userId uuid.UUID, newPassword string) error
+	DeleteUser(ctx context.Context, userId uuid.UUID) error
 }
 
 type CartStore interface {

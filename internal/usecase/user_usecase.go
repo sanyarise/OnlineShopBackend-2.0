@@ -233,3 +233,12 @@ func (usecase *UserUsecase) ChangeUserPassword(ctx context.Context, userId uuid.
 	}
 	return nil
 }
+
+func (usecase *UserUsecase) DeleteUser(ctx context.Context, userId uuid.UUID) error {
+	usecase.logger.Sugar().Debugf("Enter in usecase DeleteUser() with args: ctx, userId: %v", userId)
+	err := usecase.userStore.DeleteUser(ctx, userId)
+	if err != nil {
+		return err
+	}
+	return nil
+}

@@ -295,3 +295,35 @@ func (u *user) ChangeUserPassword(ctx context.Context, userId uuid.UUID, newPass
 		return nil
 	}
 }
+
+func (u *user) DeleteUser(ctx context.Context, userId uuid.UUID) error {
+	u.logger.Debug("Enter in repository DeleteUser() with args: ctx, userId: %v", userId)
+	select {
+	case <-ctx.Done():
+		return fmt.Errorf("context closed")
+	default:
+		pool := u.storage.GetPool()
+		tx, err := pool.BeginTx(ctx, pgx.TxOptions{})
+		defer func() {
+			if err != nil {
+				u.logger.Errorf("transaction rolled back")
+				if err = tx.Rollback(ctx); err != nil {
+					u.logger.Errorf("can't rollback %s", err)
+				}
+
+			} else {
+				u.logger.Info("transaction commited")
+				if err != tx.Commit(ctx) {
+					u.logger.Errorf("can't commit %s", err)
+				}
+			}
+		}()
+		_, err = tx.Exec(ctx, `DELETE FROM users WHERE id=$1`, userId)
+		if err != nil {
+			u.logger.Errorf("can't delete user: %s", err)
+			return fmt.Errorf("can't delete user: %w", err)
+		}
+		u.logger.Info("Delete user with id: %v from database success", userId)
+		return nil
+	}
+}
