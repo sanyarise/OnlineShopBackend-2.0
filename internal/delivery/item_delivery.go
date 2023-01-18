@@ -25,10 +25,6 @@ import (
 	"go.uber.org/zap"
 )
 
-type QuantityOptions struct {
-	CategoryName string `form:"categoryName"`
-}
-
 type Options struct {
 	Offset    int    `form:"offset"`
 	Limit     int    `form:"limit"`
@@ -37,11 +33,8 @@ type Options struct {
 }
 
 type SearchOptions struct {
-	Param     string `form:"param"`
-	Offset    int    `form:"offset"`
-	Limit     int    `form:"limit"`
-	SortType  string `form:"sortType"`
-	SortOrder string `form:"sortOrder"`
+	Param string `form:"param"`
+	Options
 }
 
 type ImageOptions struct {
@@ -355,7 +348,7 @@ func (delivery *Delivery) ItemsList(c *gin.Context) {
 	c.JSON(http.StatusOK, items)
 }
 
-// ItemsQuantity returns quantity of all items
+// ItemsListQuantity returns quantity of all items
 //
 //	@Summary		Get quantity of items
 //	@Description	Method provides to get quantity of items
@@ -367,36 +360,82 @@ func (delivery *Delivery) ItemsList(c *gin.Context) {
 //	@Failure		404	{object}	ErrorResponse	"404 Not Found"
 //	@Failure		500	{object}	ErrorResponse
 //	@Router			/items/quantity [get]
-func (delivery *Delivery) ItemsQuantity(c *gin.Context) {
-	delivery.logger.Debug("Enter in delivery ItemsQuantity()")
-	var options QuantityOptions
-	err := c.Bind(&options)
+func (delivery *Delivery) ItemsListQuantity(c *gin.Context) {
+	delivery.logger.Debug("Enter in delivery ItemsListQuantity()")
+	ctx := c.Request.Context()
+	quantity, err := delivery.itemUsecase.ItemsQuantity(ctx)
 	if err != nil {
 		delivery.logger.Error(err.Error())
-		delivery.SetError(c, http.StatusBadRequest, err)
+		delivery.SetError(c, http.StatusInternalServerError, err)
 		return
 	}
-	delivery.logger.Debug(fmt.Sprintf("options is %v", options))
-	ctx := c.Request.Context()
-	if options.CategoryName == "" {
-		quantity, err := delivery.itemUsecase.ItemsQuantity(ctx)
-		if err != nil {
-			delivery.logger.Error(err.Error())
-			delivery.SetError(c, http.StatusInternalServerError, err)
-			return
-		}
-		itemsQuantity := item.ItemsQuantity{Quantity: quantity}
-		c.JSON(http.StatusOK, itemsQuantity)
-	} else {
-		quantity, err := delivery.itemUsecase.ItemsQuantityInCategory(ctx, options.CategoryName)
-		if err != nil {
-			delivery.logger.Error(err.Error())
-			delivery.SetError(c, http.StatusInternalServerError, err)
-			return
-		}
-		itemsQuantity := item.ItemsQuantity{Quantity: quantity}
-		c.JSON(http.StatusOK, itemsQuantity)
+	itemsQuantity := item.ItemsQuantity{Quantity: quantity}
+	c.JSON(http.StatusOK, itemsQuantity)
+}
+
+// ItemsQuantityInCategory returns quantity of items in category
+//
+//	@Summary		Get quantity of items in category
+//	@Description	Method provides to get quantity of items in category
+//	@Tags			items
+//	@Accept			json
+//	@Produce		json
+//	@Param			categoryName	path		string			true	"Name of category"
+//	@Success		200	{object}	item.ItemsQuantity	"Quantity of items"
+//	@Failure		403	"Forbidden"
+//	@Failure		404	{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500	{object}	ErrorResponse
+//	@Router			/items/quantityCat/{categoryName} [get]
+func (delivery *Delivery) ItemsQuantityInCategory(c *gin.Context) {
+	delivery.logger.Debug("Enter in delivery ItemsQuantityInCategory()")
+	categoryName := c.Param("categoryName")
+	if categoryName == "" {
+		err := fmt.Errorf("empty  categoryName is not correct")
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusInternalServerError, err)
+		return
 	}
+	ctx := c.Request.Context()
+	quantity, err := delivery.itemUsecase.ItemsQuantityInCategory(ctx, categoryName)
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusInternalServerError, err)
+		return
+	}
+	itemsQuantity := item.ItemsQuantity{Quantity: quantity}
+	c.JSON(http.StatusOK, itemsQuantity)
+}
+
+// ItemsQuantityInFavourite returns quantity of favourite items
+//
+//	@Summary		Get quantity of favourite items
+//	@Description	Method provides to get quantity favourite items
+//	@Tags			items
+//	@Accept			json
+//	@Produce		json
+//	@Param			userID	path		string			true	"id of user"
+//	@Success		200	{object}	item.ItemsQuantity	"Quantity of items"
+//	@Failure		403	"Forbidden"
+//	@Failure		404	{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500	{object}	ErrorResponse
+//	@Router			/items/quantityFav/{userID} [get]
+func (delivery *Delivery) ItemsQuantityInFavourite(c *gin.Context) {
+	delivery.logger.Debug("Enter in delivery ItemsQuantityInFavourite()")
+	userId, err := uuid.Parse(c.Param("userID"))
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusInternalServerError, err)
+		return
+	}
+	ctx := c.Request.Context()
+	quantity, err := delivery.itemUsecase.ItemsQuantityInFavourite(ctx, userId)
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusInternalServerError, err)
+		return
+	}
+	itemsQuantity := item.ItemsQuantity{Quantity: quantity}
+	c.JSON(http.StatusOK, itemsQuantity)
 }
 
 // SearchLine - returns list of items with parameters
@@ -807,14 +846,42 @@ func (delivery *Delivery) DeleteFavouriteItem(c *gin.Context) {
 
 func (delivery *Delivery) GetFavouriteItems(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery GetFavouriteItems()")
-	userId, err := uuid.Parse(c.Param("userID"))
+	var options SearchOptions
+	err := c.Bind(&options)
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusBadRequest, err)
 		return
 	}
+	delivery.logger.Debug(fmt.Sprintf("options is %v", options))
+	if options.Param == "" {
+		err = fmt.Errorf("empty search request")
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
+		return
+	}
+	if options.Limit == 0 {
+		options.Limit = 10
+	}
+	delivery.logger.Sugar().Debugf("options limit is set in default value: %d", options.Limit)
+
+	if options.SortType == "" {
+		options.SortType = "name"
+		options.SortOrder = "asc"
+	}
+
+	userId, err := uuid.Parse(options.Param)
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
+		return
+	}
+
+	limitOptions := map[string]int{"offset": options.Offset, "limit": options.Limit}
+	sortOptions := map[string]string{"sortType": options.SortType, "sortOrder": options.SortOrder}
+
 	ctx := c.Request.Context()
-	list, err := delivery.itemUsecase.GetFavouriteItems(ctx, userId)
+	list, err := delivery.itemUsecase.GetFavouriteItems(ctx, userId, limitOptions, sortOptions)
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusInternalServerError, err)
@@ -838,4 +905,9 @@ func (delivery *Delivery) GetFavouriteItems(c *gin.Context) {
 		}
 	}
 	c.JSON(http.StatusOK, items)
+}
+
+func (delivery *Delivery) FavouriteItemsQuantity(c *gin.Context) {
+	delivery.logger.Debug("Enter in delivery FavouriteItemsQuantity()")
+
 }

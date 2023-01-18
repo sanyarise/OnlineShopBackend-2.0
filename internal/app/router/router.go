@@ -152,8 +152,20 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 		{
 			"ItemsQuantity",
 			http.MethodGet,
-			"/items/quantity", //?categoryName={categoryName} - if category name is empty returns quantity of all items
-			delivery.ItemsQuantity,
+			"/items/quantity",
+			delivery.ItemsListQuantity,
+		},
+		{
+			"ItemsQuantityInCategory",
+			http.MethodGet,
+			"/items/quantityCat/:categoryName",
+			delivery.ItemsQuantityInCategory,
+		},
+		{
+			"ItemsQuantityInFavourite",
+			http.MethodGet,
+			"/items/quantityFav/:userID",
+			delivery.ItemsQuantityInFavourite,
 		},
 		{
 			"ItemsList",
@@ -188,7 +200,7 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 		{
 			"GetFavouriteItems",
 			http.MethodGet,
-			"/items/favList/:userID",
+			"/items/favList/:userID", //?param=userIDt&offset=20&limit=10&sort_type=name&sort_order=asc (sort_type == name or price, sort_order == asc or desc)
 			delivery.GetFavouriteItems,
 		},
 		{
