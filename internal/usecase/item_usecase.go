@@ -447,3 +447,30 @@ func (usecase *ItemUsecase) SortItems(items []models.Item, sortType string, sort
 		usecase.logger.Sugar().Errorf("unknown type of sort: %v", sortType)
 	}
 }
+
+func (usecase *ItemUsecase) AddFavouriteItem(ctx context.Context, userId uuid.UUID, itemId uuid.UUID) error {
+	usecase.logger.Sugar().Debugf("Enter in usecase AddFavouriteItem() with args: ctx, userId: %v, itemId: %v", userId, itemId)
+	err := usecase.itemStore.AddFavouriteItem(ctx, userId, itemId)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (usecase *ItemUsecase) DeleteFavouriteItem(ctx context.Context, userId uuid.UUID, itemId uuid.UUID) error {
+	usecase.logger.Sugar().Debugf("Enter in usecase DeleteFavouriteItem() with args: ctx, userId: %v, itemId: %v", userId, itemId)
+	err := usecase.itemStore.DeleteFavouriteItem(ctx, userId, itemId)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (usecase *ItemUsecase) GetFavouriteItems(ctx context.Context, userId uuid.UUID) ([]models.Item, error) {
+	usecase.logger.Sugar().Debugf("Enter in usecase GetFavouriteItems() with args: ctx, userId: %v", userId)
+	items, err := usecase.itemStore.GetFavouriteItems(ctx, userId)
+	if err != nil {
+		return nil, err
+	}
+	return items, nil
+}

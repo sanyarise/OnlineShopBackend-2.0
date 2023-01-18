@@ -19,6 +19,9 @@ type IItemUsecase interface {
 	UpdateCash(ctx context.Context, id uuid.UUID, op string) error
 	UpdateItemsInCategoryCash(ctx context.Context, newItem *models.Item, op string) error
 	DeleteItem(ctx context.Context, id uuid.UUID) error
+	AddFavouriteItem(ctx context.Context, userId uuid.UUID, itemId uuid.UUID) error
+	DeleteFavouriteItem(ctx context.Context, userId uuid.UUID, itemId uuid.UUID) error
+	GetFavouriteItems(ctx context.Context, userId uuid.UUID) ([]models.Item, error)
 }
 
 type ICategoryUsecase interface {
