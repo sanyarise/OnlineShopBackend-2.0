@@ -394,7 +394,7 @@ func (delivery *Delivery) ItemsQuantityInCategory(c *gin.Context) {
 	if categoryName == "" {
 		err := fmt.Errorf("empty  categoryName is not correct")
 		delivery.logger.Error(err.Error())
-		delivery.SetError(c, http.StatusInternalServerError, err)
+		delivery.SetError(c, http.StatusBadRequest, err)
 		return
 	}
 	ctx := c.Request.Context()
@@ -426,7 +426,7 @@ func (delivery *Delivery) ItemsQuantityInFavourite(c *gin.Context) {
 	userId, err := uuid.Parse(c.Param("userID"))
 	if err != nil {
 		delivery.logger.Error(err.Error())
-		delivery.SetError(c, http.StatusInternalServerError, err)
+		delivery.SetError(c, http.StatusBadRequest, err)
 		return
 	}
 	ctx := c.Request.Context()
@@ -959,9 +959,4 @@ func (delivery *Delivery) GetFavouriteItems(c *gin.Context) {
 		}
 	}
 	c.JSON(http.StatusOK, items)
-}
-
-func (delivery *Delivery) FavouriteItemsQuantity(c *gin.Context) {
-	delivery.logger.Debug("Enter in delivery FavouriteItemsQuantity()")
-
 }

@@ -213,6 +213,18 @@ func (mr *MockIItemUsecaseMockRecorder) SearchLine(ctx, param, limitOptions, sor
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchLine", reflect.TypeOf((*MockIItemUsecase)(nil).SearchLine), ctx, param, limitOptions, sortOptions)
 }
 
+// SortItems mocks base method.
+func (m *MockIItemUsecase) SortItems(items []models.Item, sortType, sortOrder string) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SortItems", items, sortType, sortOrder)
+}
+
+// SortItems indicates an expected call of SortItems.
+func (mr *MockIItemUsecaseMockRecorder) SortItems(items, sortType, sortOrder interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SortItems", reflect.TypeOf((*MockIItemUsecase)(nil).SortItems), items, sortType, sortOrder)
+}
+
 // UpdateCash mocks base method.
 func (m *MockIItemUsecase) UpdateCash(ctx context.Context, id uuid.UUID, op string) error {
 	m.ctrl.T.Helper()
