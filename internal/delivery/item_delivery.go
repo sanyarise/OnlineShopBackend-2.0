@@ -756,3 +756,69 @@ func (delivery *Delivery) DeleteItem(c *gin.Context) {
 	delivery.logger.Sugar().Infof("Item with id: %s deleted success", id)
 	c.JSON(http.StatusOK, gin.H{})
 }
+
+func (delivery *Delivery) AddFavouriteItem(c *gin.Context) {
+	delivery.logger.Debug("Enter in delivery AddFavouriteItem()")
+	userId, err := uuid.Parse(c.Param("userID"))
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
+		return
+	}
+	itemId, err := uuid.Parse(c.Param("itemID"))
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
+		return
+	}
+	ctx := c.Request.Context()
+	err = delivery.itemUsecase.AddFavouriteItem(ctx, userId, itemId)
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusInternalServerError, err)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{})
+}
+
+func (delivery *Delivery) DeleteFavouriteItem(c *gin.Context) {
+	delivery.logger.Debug("Enter in delivery DeleteFavouriteItem()")
+	userId, err := uuid.Parse(c.Param("userID"))
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
+		return
+	}
+	itemId, err := uuid.Parse(c.Param("itemID"))
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
+		return
+	}
+	ctx := c.Request.Context()
+	err = delivery.itemUsecase.DeleteFavouriteItem(ctx, userId, itemId)
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusInternalServerError, err)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{})
+}
+
+func (delivery *Delivery) GetFavouriteItems(c *gin.Context) {
+	delivery.logger.Debug("Enter in delivery GetFavouriteItems()")
+	userId, err := uuid.Parse(c.Param("userID"))
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
+		return
+	}
+	ctx := c.Request.Context()
+	items, err := delivery.itemUsecase.GetFavouriteItems(ctx, userId)
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusInternalServerError, err)
+		return
+	}
+	c.JSON(http.StatusOK, items)
+}

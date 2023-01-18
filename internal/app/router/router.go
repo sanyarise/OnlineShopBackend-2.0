@@ -174,6 +174,24 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 			delivery.DeleteItem,
 		},
 		{
+			"AddFavouriteItem",
+			http.MethodPost,
+			"/items/addFav/:userID/:itemID",
+			delivery.AddFavouriteItem,
+		},
+		{
+			"DeleteFavouriteItem",
+			http.MethodDelete,
+			"/items/deleteFav/:userID/:itemID",
+			delivery.DeleteFavouriteItem,
+		},
+		{
+			"GetFavouriteItems",
+			http.MethodGet,
+			"/items/favList/:userID",
+			delivery.GetFavouriteItems,
+		},
+		{
 			"GetCart",
 			http.MethodGet,
 			"/cart/:cartID",
