@@ -12,7 +12,7 @@ import (
 )
 
 func (delivery *Delivery) Authentificate(c *gin.Context) {
-	delivery.logger.Debug("Enter in delivery Authorize()")
+	delivery.logger.Debug("Enter in delivery Authentificate()")
 	tokenString, err := c.Cookie("Authorization")
 	if err != nil {
 		delivery.logger.Error(err.Error())
