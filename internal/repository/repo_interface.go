@@ -17,7 +17,7 @@ type ItemStore interface {
 	DeleteItem(ctx context.Context, id uuid.UUID) error
 	AddFavouriteItem(ctx context.Context, userId uuid.UUID, itemId uuid.UUID) error
 	DeleteFavouriteItem(ctx context.Context, userId uuid.UUID, itemId uuid.UUID) error
-	GetFavouriteItems(ctx context.Context, userId uuid.UUID) ([]models.Item, error)
+	GetFavouriteItems(ctx context.Context, userId uuid.UUID) (chan models.Item, error)
 }
 
 type CategoryStore interface {
@@ -50,4 +50,3 @@ type OrderStore interface {
 	GetOrderByID(ctx context.Context, id uuid.UUID) (models.Order, error)
 	GetOrdersForUser(ctx context.Context, user *models.User) (chan models.Order, error)
 }
-

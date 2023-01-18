@@ -271,7 +271,10 @@ func (usecase *ItemUsecase) GetItemsByCategory(ctx context.Context, categoryName
 func (usecase *ItemUsecase) UpdateCash(ctx context.Context, id uuid.UUID, op string) error {
 	usecase.logger.Sugar().Debugf("Enter in itemUsecase UpdateCash() with args: ctx, id: %v, op: %s", id, op)
 
-	if !usecase.itemCash.CheckCash(ctx, itemsListKeyNameAsc) && !usecase.itemCash.CheckCash(ctx, itemsListKeyNameDesc) && !usecase.itemCash.CheckCash(ctx, itemsListKeyPriceAsc) && !usecase.itemCash.CheckCash(ctx, itemsListKeyPriceDesc) {
+	if !usecase.itemCash.CheckCash(ctx, itemsListKeyNameAsc) &&
+		!usecase.itemCash.CheckCash(ctx, itemsListKeyNameDesc) &&
+		!usecase.itemCash.CheckCash(ctx, itemsListKeyPriceAsc) &&
+		!usecase.itemCash.CheckCash(ctx, itemsListKeyPriceDesc) {
 		return fmt.Errorf("cash is not exists")
 	}
 	newItem := &models.Item{}
@@ -454,6 +457,7 @@ func (usecase *ItemUsecase) AddFavouriteItem(ctx context.Context, userId uuid.UU
 	if err != nil {
 		return err
 	}
+	usecase.UpdateFavouriteItemsCash(ctx, userId, itemId, "add")
 	return nil
 }
 
@@ -463,14 +467,147 @@ func (usecase *ItemUsecase) DeleteFavouriteItem(ctx context.Context, userId uuid
 	if err != nil {
 		return err
 	}
+	usecase.UpdateFavouriteItemsCash(ctx, userId, itemId, "delete")
 	return nil
 }
 
-func (usecase *ItemUsecase) GetFavouriteItems(ctx context.Context, userId uuid.UUID) ([]models.Item, error) {
+func (usecase *ItemUsecase) GetFavouriteItems(ctx context.Context, userId uuid.UUID, limitOptions map[string]int, sortOptions map[string]string) ([]models.Item, error) {
 	usecase.logger.Sugar().Debugf("Enter in usecase GetFavouriteItems() with args: ctx, userId: %v", userId)
-	items, err := usecase.itemStore.GetFavouriteItems(ctx, userId)
-	if err != nil {
-		return nil, err
+
+	limit, offset := limitOptions["limit"], limitOptions["offset"]
+	sortType, sortOrder := sortOptions["sortType"], sortOptions["sortOrder"]
+	if ok := usecase.itemCash.CheckCash(ctx, userId.String()+sortType+sortOrder); !ok {
+		itemIncomingChan, err := usecase.itemStore.GetFavouriteItems(ctx, userId)
+		if err != nil {
+			return nil, err
+		}
+		items := make([]models.Item, 0, 100)
+		for item := range itemIncomingChan {
+			items = append(items, item)
+		}
+
+		usecase.SortItems(items, sortType, sortOrder)
+
+		err = usecase.itemCash.CreateItemsCash(ctx, items, userId.String()+sortType+sortOrder)
+		if err != nil {
+			return nil, fmt.Errorf("error on create get favourite items cash: %w", err)
+		}
+		err = usecase.itemCash.CreateItemsQuantityCash(ctx, len(items), userId.String()+"Quantity")
+		if err != nil {
+			return nil, fmt.Errorf("error on create items quantity in category cash: %w", err)
+		}
 	}
-	return items, nil
+
+	items, err := usecase.itemCash.GetItemsCash(ctx, userId.String()+sortType+sortOrder)
+	if err != nil {
+		return nil, fmt.Errorf("error on get cash: %w", err)
+	}
+	if offset > len(items) {
+		return nil, fmt.Errorf("error: offset bigger than lenght of items, offset: %d, lenght of items: %d", offset, len(items))
+	}
+	itemsWithLimit := make([]models.Item, 0, limit)
+	var counter = 0
+	for i := offset; i < len(items); i++ {
+		if counter == limit {
+			break
+		}
+		itemsWithLimit = append(itemsWithLimit, items[i])
+		counter++
+	}
+	return itemsWithLimit, nil
+}
+
+func (usecase *ItemUsecase) ItemsQuantityInFavourite(ctx context.Context, userId uuid.UUID) (int, error) {
+	usecase.logger.Sugar().Debugf("Enter in usecase GetFavouriteQuantity() with args: ctx, userId: %v", userId)
+	if ok := usecase.itemCash.CheckCash(ctx, userId.String()+"Quantity"); !ok {
+		if ok := usecase.itemCash.CheckCash(ctx, userId.String()+"nameasc"); !ok {
+			limitOptions := map[string]int{"offset": 0, "limit": 1}
+			sortOptions := map[string]string{"sortType": "name", "sortOrder": "asc"}
+			_, err := usecase.GetFavouriteItems(ctx, userId, limitOptions, sortOptions)
+			if err != nil {
+				return -1, fmt.Errorf("error on create items list: %w", err)
+			}
+		} else {
+			items, err := usecase.itemCash.GetItemsCash(ctx, userId.String()+"nameasc")
+			if err != nil {
+				return -1, fmt.Errorf("error on get items list cash: %w", err)
+			}
+			if items == nil {
+				items = make([]models.Item, 0)
+			}
+			err = usecase.itemCash.CreateItemsQuantityCash(ctx, len(items), userId.String()+"Quantity")
+			if err != nil {
+				return -1, fmt.Errorf("error on create items quantity cash: %w", err)
+			}
+		}
+	}
+	quantity, err := usecase.itemCash.GetItemsQuantityCash(ctx, userId.String()+"Quantity")
+	return quantity, err
+}
+
+func (usecase *ItemUsecase) UpdateFavouriteItemsCash(ctx context.Context, userId uuid.UUID, itemId uuid.UUID, op string) {
+	usecase.logger.Sugar().Debugf("Enter in usecase UpdateFavouriteItemsCash() with args: ctx, userId: %v, itemId: %v, op: %s", userId, itemId, op)
+	favouriteItemsKeyNameAsc := userId.String() + "nameasc"
+	favouriteItemsKeyNameDesc := userId.String() + "namedesc"
+	favouriteItemsKeyPriceAsc := userId.String() + "priceasc"
+	favouriteItemsKeyPriceDesc := userId.String() + "pricedesc"
+	favouriteItemsQuantityKey := userId.String() + "Quantity"
+
+	keys := []string{favouriteItemsKeyNameAsc, favouriteItemsKeyNameDesc, favouriteItemsKeyPriceAsc, favouriteItemsKeyPriceDesc}
+
+	if !usecase.itemCash.CheckCash(ctx, favouriteItemsKeyNameAsc) &&
+		!usecase.itemCash.CheckCash(ctx, favouriteItemsKeyNameDesc) &&
+		!usecase.itemCash.CheckCash(ctx, favouriteItemsKeyPriceAsc) &&
+		!usecase.itemCash.CheckCash(ctx, favouriteItemsKeyPriceDesc) {
+		usecase.logger.Error("cash is not exist")
+	}
+	for _, key := range keys {
+		items, err := usecase.itemCash.GetItemsCash(ctx, key)
+		if err != nil {
+			usecase.logger.Sugar().Errorf("error on get cash: %v", err)
+			return
+		}
+		if op == "add" {
+			item, err := usecase.itemStore.GetItem(ctx, itemId)
+			if err != nil {
+				usecase.logger.Sugar().Errorf("error on get item: %v", err)
+				return
+			}
+			items = append(items, *item)
+			err = usecase.itemCash.CreateItemsQuantityCash(ctx, len(items), favouriteItemsQuantityKey)
+			if err != nil {
+				usecase.logger.Sugar().Errorf("error on create items quantity cash: %w", err)
+				return
+			}
+		}
+		if op == "delete" {
+			for i, item := range items {
+				if item.Id == itemId {
+					items = append(items[:i], items[i+1:]...)
+					err := usecase.itemCash.CreateItemsQuantityCash(ctx, len(items), favouriteItemsQuantityKey)
+					if err != nil {
+						usecase.logger.Sugar().Errorf("error on create items quantity cash: %w", err)
+						return
+					}
+					break
+				}
+			}
+		}
+		switch {
+		case key == favouriteItemsKeyNameAsc:
+			usecase.SortItems(items, "name", "asc")
+		case key == favouriteItemsKeyNameDesc:
+			usecase.SortItems(items, "name", "desc")
+		case key == favouriteItemsKeyPriceAsc:
+			usecase.SortItems(items, "price", "asc")
+		case key == favouriteItemsKeyPriceDesc:
+			usecase.SortItems(items, "price", "desc")
+		}
+		err = usecase.itemCash.CreateItemsCash(ctx, items, key)
+		if err != nil {
+			usecase.logger.Sugar().Errorf("error on create favourite items cash: %v", err)
+			return
+		}
+	}
+	usecase.logger.Info("Update favourite items list cash success")
 }

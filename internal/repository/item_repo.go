@@ -249,7 +249,6 @@ func (repo *itemRepo) GetItemsByCategory(ctx context.Context, categoryName strin
 				repo.logger.Error(err.Error())
 				return
 			}
-			repo.logger.Info(fmt.Sprintf("find item: %v", item))
 			itemChan <- *item
 		}
 	}()
@@ -312,39 +311,42 @@ func (repo *itemRepo) DeleteFavouriteItem(ctx context.Context, userId uuid.UUID,
 	return nil
 }
 
-func (repo *itemRepo) GetFavouriteItems(ctx context.Context, userId uuid.UUID) ([]models.Item, error) {
+func (repo *itemRepo) GetFavouriteItems(ctx context.Context, userId uuid.UUID) (chan models.Item, error) {
 	repo.logger.Debug("Enter in repository GetFavouriteItems() with args: ctx, userId: %v", userId)
-	pool := repo.storage.GetPool()
-	item := models.Item{}
-	rows, err := pool.Query(ctx, `
+	itemChan := make(chan models.Item, 100)
+	go func() {
+		defer close(itemChan)
+		pool := repo.storage.GetPool()
+		item := models.Item{}
+		rows, err := pool.Query(ctx, `
 		SELECT 	i.id, i.name, i.description, i.category, cat.name, cat.description, cat.picture, i.price, i.vendor, i.pictures
 		FROM favourite_items f, items i, categories cat
 		WHERE f.user_id=$1 and i.id = f.item_id and cat.id = i.category`, userId)
-	if err != nil {
-		repo.logger.Errorf("can't select items from favourite_items: %s", err)
-		return nil, fmt.Errorf("can't select items from favourite_items: %w", err)
-	}
-	defer rows.Close()
-	repo.logger.Debug("read info from db in pool.Query success")
-	items := make([]models.Item, 0, 100)
-	for rows.Next() {
-		if err := rows.Scan(
-			&item.Id,
-			&item.Title,
-			&item.Description,
-			&item.Category.Id,
-			&item.Category.Name,
-			&item.Category.Description,
-			&item.Category.Image,
-			&item.Price,
-			&item.Vendor,
-			&item.Images,
-		); err != nil {
-			repo.logger.Error(err.Error())
-			return nil, err
+		if err != nil {
+			repo.logger.Errorf("can't select items from favourite_items: %s", err)
+			return
 		}
-		items = append(items, item)
-	}
+		defer rows.Close()
+		repo.logger.Debug("read info from db in pool.Query success")
+		for rows.Next() {
+			if err := rows.Scan(
+				&item.Id,
+				&item.Title,
+				&item.Description,
+				&item.Category.Id,
+				&item.Category.Name,
+				&item.Category.Description,
+				&item.Category.Image,
+				&item.Price,
+				&item.Vendor,
+				&item.Images,
+			); err != nil {
+				repo.logger.Error(err.Error())
+				return
+			}
+			itemChan <- item
+		}
+	}()
 	repo.logger.Info("Select items from favourites success")
-	return items, nil
+	return itemChan, nil
 }

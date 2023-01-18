@@ -814,11 +814,28 @@ func (delivery *Delivery) GetFavouriteItems(c *gin.Context) {
 		return
 	}
 	ctx := c.Request.Context()
-	items, err := delivery.itemUsecase.GetFavouriteItems(ctx, userId)
+	list, err := delivery.itemUsecase.GetFavouriteItems(ctx, userId)
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusInternalServerError, err)
 		return
+	}
+	items := make([]item.OutItem, len(list))
+	for idx, modelsItem := range list {
+		items[idx] = item.OutItem{
+			Id:          modelsItem.Id.String(),
+			Title:       modelsItem.Title,
+			Description: modelsItem.Description,
+			Category: category.Category{
+				Id:          modelsItem.Category.Id.String(),
+				Name:        modelsItem.Category.Name,
+				Description: modelsItem.Category.Description,
+				Image:       modelsItem.Category.Image,
+			},
+			Price:  modelsItem.Price,
+			Vendor: modelsItem.Vendor,
+			Images: modelsItem.Images,
+		}
 	}
 	c.JSON(http.StatusOK, items)
 }
