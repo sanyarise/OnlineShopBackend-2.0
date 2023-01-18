@@ -153,7 +153,7 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 			"ItemsQuantity",
 			http.MethodGet,
 			"/items/quantity",
-			delivery.ItemsListQuantity,
+			delivery.ItemsQuantity,
 		},
 		{
 			"ItemsQuantityInCategory",
@@ -200,7 +200,7 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 		{
 			"GetFavouriteItems",
 			http.MethodGet,
-			"/items/favList/:userID", //?param=userIDt&offset=20&limit=10&sort_type=name&sort_order=asc (sort_type == name or price, sort_order == asc or desc)
+			"/items/favList/", //?param=userIDt&offset=20&limit=10&sort_type=name&sort_order=asc (sort_type == name or price, sort_order == asc or desc)
 			delivery.GetFavouriteItems,
 		},
 		{

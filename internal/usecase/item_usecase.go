@@ -560,6 +560,7 @@ func (usecase *ItemUsecase) UpdateFavouriteItemsCash(ctx context.Context, userId
 		!usecase.itemCash.CheckCash(ctx, favouriteItemsKeyPriceAsc) &&
 		!usecase.itemCash.CheckCash(ctx, favouriteItemsKeyPriceDesc) {
 		usecase.logger.Error("cash is not exist")
+		return
 	}
 	for _, key := range keys {
 		items, err := usecase.itemCash.GetItemsCash(ctx, key)

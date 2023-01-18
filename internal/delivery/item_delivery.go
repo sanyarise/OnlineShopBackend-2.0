@@ -277,13 +277,15 @@ func (delivery *Delivery) UpdateItem(c *gin.Context) {
 //	@Tags			items
 //	@Accept			json
 //	@Produce		json
-//	@Param			limit	query		int				false	"Quantity of recordings"		default(10)	minimum(0)
-//	@Param			offset	query		int				false	"Offset when receiving records"	default(0)	mininum(0)
-//	@Success		200		array		item.OutItem	"List of items"
-//	@Failure		400		{object}	ErrorResponse
-//	@Failure		403		"Forbidden"
-//	@Failure		404		{object}	ErrorResponse	"404 Not Found"
-//	@Failure		500		{object}	ErrorResponse
+//	@Param			offset		query		int				false	"Offset when receiving records"	default(0)	mininum(0)
+//	@Param			limit		query		int				false	"Quantity of recordings"		default(10)	minimum(0)
+//	@Param			sortType	query		string			false	"Sort type (name or price)"		default("name")
+//	@Param			sortOrder	query		string			false	"Sort order (asc or desc)"		default("asc")
+//	@Success		200			array		item.OutItem	"List of items"
+//	@Failure		400			{object}	ErrorResponse
+//	@Failure		403			"Forbidden"
+//	@Failure		404			{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500			{object}	ErrorResponse
 //	@Router			/items/list [get]
 func (delivery *Delivery) ItemsList(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery ItemsList()")
@@ -360,7 +362,7 @@ func (delivery *Delivery) ItemsList(c *gin.Context) {
 //	@Failure		404	{object}	ErrorResponse	"404 Not Found"
 //	@Failure		500	{object}	ErrorResponse
 //	@Router			/items/quantity [get]
-func (delivery *Delivery) ItemsListQuantity(c *gin.Context) {
+func (delivery *Delivery) ItemsQuantity(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery ItemsListQuantity()")
 	ctx := c.Request.Context()
 	quantity, err := delivery.itemUsecase.ItemsQuantity(ctx)
@@ -380,11 +382,11 @@ func (delivery *Delivery) ItemsListQuantity(c *gin.Context) {
 //	@Tags			items
 //	@Accept			json
 //	@Produce		json
-//	@Param			categoryName	path		string			true	"Name of category"
-//	@Success		200	{object}	item.ItemsQuantity	"Quantity of items"
-//	@Failure		403	"Forbidden"
-//	@Failure		404	{object}	ErrorResponse	"404 Not Found"
-//	@Failure		500	{object}	ErrorResponse
+//	@Param			categoryName	path		string				true	"Name of category"
+//	@Success		200				{object}	item.ItemsQuantity	"Quantity of items"
+//	@Failure		403				"Forbidden"
+//	@Failure		404				{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500				{object}	ErrorResponse
 //	@Router			/items/quantityCat/{categoryName} [get]
 func (delivery *Delivery) ItemsQuantityInCategory(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery ItemsQuantityInCategory()")
@@ -413,11 +415,11 @@ func (delivery *Delivery) ItemsQuantityInCategory(c *gin.Context) {
 //	@Tags			items
 //	@Accept			json
 //	@Produce		json
-//	@Param			userID	path		string			true	"id of user"
-//	@Success		200	{object}	item.ItemsQuantity	"Quantity of items"
-//	@Failure		403	"Forbidden"
-//	@Failure		404	{object}	ErrorResponse	"404 Not Found"
-//	@Failure		500	{object}	ErrorResponse
+//	@Param			userID	path		string				true	"id of user"
+//	@Success		200		{object}	item.ItemsQuantity	"Quantity of items"
+//	@Failure		403		"Forbidden"
+//	@Failure		404		{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500		{object}	ErrorResponse
 //	@Router			/items/quantityFav/{userID} [get]
 func (delivery *Delivery) ItemsQuantityInFavourite(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery ItemsQuantityInFavourite()")
@@ -445,14 +447,16 @@ func (delivery *Delivery) ItemsQuantityInFavourite(c *gin.Context) {
 //	@Tags			items
 //	@Accept			json
 //	@Produce		json
-//	@Param			param	query		string			false	"Search param"
-//	@Param			limit	query		int				false	"Quantity of recordings"		default(10)	minimum(0)
-//	@Param			offset	query		int				false	"Offset when receiving records"	default(0)	mininum(0)
-//	@Success		200		array		item.OutItem	"List of items"
-//	@Failure		400		{object}	ErrorResponse
-//	@Failure		403		"Forbidden"
-//	@Failure		404		{object}	ErrorResponse	"404 Not Found"
-//	@Failure		500		{object}	ErrorResponse
+//	@Param			param		query		string			false	"Search param"
+//	@Param			offset		query		int				false	"Offset when receiving records"	default(0)	mininum(0)
+//	@Param			limit		query		int				false	"Quantity of recordings"		default(10)	minimum(0)
+//	@Param			sortType	query		string			false	"Sort type (name or price)"		default("name")
+//	@Param			sortOrder	query		string			false	"Sort order (asc or desc)"		default("asc")
+//	@Success		200			array		item.OutItem	"List of items"
+//	@Failure		400			{object}	ErrorResponse
+//	@Failure		403			"Forbidden"
+//	@Failure		404			{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500			{object}	ErrorResponse
 //	@Router			/items/search [get]
 func (delivery *Delivery) SearchLine(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery SearchLine()")
@@ -517,14 +521,16 @@ func (delivery *Delivery) SearchLine(c *gin.Context) {
 //	@Tags			items
 //	@Accept			json
 //	@Produce		json
-//	@Param			param	query		string			false	"Category name"
-//	@Param			limit	query		int				false	"Quantity of recordings"		default(10)	minimum(0)
-//	@Param			offset	query		int				false	"Offset when receiving records"	default(0)	mininum(0)
-//	@Success		200		array		item.OutItem	"List of items"
-//	@Failure		400		{object}	ErrorResponse
-//	@Failure		403		"Forbidden"
-//	@Failure		404		{object}	ErrorResponse	"404 Not Found"
-//	@Failure		500		{object}	ErrorResponse
+//	@Param			param		query		string			false	"Category name"
+//	@Param			offset		query		int				false	"Offset when receiving records"	default(0)	mininum(0)
+//	@Param			limit		query		int				false	"Quantity of recordings"		default(10)	minimum(0)
+//	@Param			sortType	query		string			false	"Sort type (name or price)"		default("name")
+//	@Param			sortOrder	query		string			false	"Sort order (asc or desc)"		default("asc")
+//	@Success		200			array		item.OutItem	"List of items"
+//	@Failure		400			{object}	ErrorResponse
+//	@Failure		403			"Forbidden"
+//	@Failure		404			{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500			{object}	ErrorResponse
 //	@Router			/items [get]
 func (delivery *Delivery) GetItemsByCategory(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery GetItemsByCategory()")
@@ -796,6 +802,21 @@ func (delivery *Delivery) DeleteItem(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{})
 }
 
+// AddFavouriteItem add item in fauvorites
+//
+//	@Summary		Method provides add item in favourites
+//	@Description	Method provides add item in favourites.
+//	@Tags			items
+//	@Accept			json
+//	@Produce		json
+//	@Param			userID	path	string	true	"id of user"
+//	@Param			itemID	path	string	true	"id of item"
+//	@Success		200
+//	@Failure		400	{object}	ErrorResponse
+//	@Failure		403	"Forbidden"
+//	@Failure		404	{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500	{object}	ErrorResponse
+//	@Router			/items/addFav/{userID}/{itemID} [post]
 func (delivery *Delivery) AddFavouriteItem(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery AddFavouriteItem()")
 	userId, err := uuid.Parse(c.Param("userID"))
@@ -820,6 +841,21 @@ func (delivery *Delivery) AddFavouriteItem(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{})
 }
 
+// DelteFavouriteItem delete item from fauvorites
+//
+//	@Summary		Method provides delete item from favourites
+//	@Description	Method provides delete item from favourites.
+//	@Tags			items
+//	@Accept			json
+//	@Produce		json
+//	@Param			userID	path	string	true	"id of user"
+//	@Param			itemID	path	string	true	"id of item"
+//	@Success		200
+//	@Failure		400	{object}	ErrorResponse
+//	@Failure		403	"Forbidden"
+//	@Failure		404	{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500	{object}	ErrorResponse
+//	@Router			/items/deleteFav/{userID}/{itemID} [delete]
 func (delivery *Delivery) DeleteFavouriteItem(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery DeleteFavouriteItem()")
 	userId, err := uuid.Parse(c.Param("userID"))
@@ -844,6 +880,24 @@ func (delivery *Delivery) DeleteFavouriteItem(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{})
 }
 
+// GetFavouriteItems - returns list of all favourite items
+//
+//	@Summary		Get list of favourite items
+//	@Description	Method provides to get list of favourite items
+//	@Tags			items
+//	@Accept			json
+//	@Produce		json
+//	@Param			param		query		string			false	"ID of user"
+//	@Param			limit		query		int				false	"Quantity of recordings"		default(10)	minimum(0)
+//	@Param			offset		query		int				false	"Offset when receiving records"	default(0)	mininum(0)
+//	@Param			sortType	query		string			false	"Sort type (name or price)"
+//	@Param			sortOrder	query		string			false	"Sort order (asc or desc)"
+//	@Success		200			array		item.OutItem	"List of items"
+//	@Failure		400			{object}	ErrorResponse
+//	@Failure		403			"Forbidden"
+//	@Failure		404			{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500			{object}	ErrorResponse
+//	@Router			/items/favList [get]
 func (delivery *Delivery) GetFavouriteItems(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery GetFavouriteItems()")
 	var options SearchOptions
