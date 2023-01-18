@@ -40,15 +40,39 @@ services:
     depends_on:
       - postgres
 
-  frontend:
-    image: front:latest
-    container_name: frontend
-    hostname: frontend
-    restart: always
+#  frontend:
+#    image: front:latest
+#    container_name: frontend
+#    hostname: frontend
+#    restart: always
+#    ports:
+#      - 3000:3000
+#    depends_on:
+#      - shop
+
+#  Observability
+  prometheus:
+    image: prom/prometheus:v2.41.0
+    volumes:
+      - ./deployment/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - /etc/localtime:/etc/localtime:ro
     ports:
-      - 3000:3000
-    depends_on:
-      - shop
+      - 9090:9090
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:9.3.2
+    ports:
+      - 3001:3000
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./deployment/grafana/dashboard.yaml:/etc/grafana/provisioning/dashboards/main.yaml
+      - ./deployment/grafana/datasource.yaml:/etc/grafana/provisioning/datasources/main.yaml
+      - ./deployment/grafana/dashboard.json:/var/lib/grafana/dashboards/dashboard.json
+    restart: unless-stopped
+
 
 networks:
   default:
@@ -70,3 +94,5 @@ networks:
 #    -p 5432:5432 \
 #    -v $(init_dir):/docker-entrypoint-initdb.d \
 #    bitnami/postgresql:latest
+
+

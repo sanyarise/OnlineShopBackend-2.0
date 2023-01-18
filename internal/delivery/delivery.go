@@ -3,6 +3,7 @@ package delivery
 import (
 	"OnlineShopBackend/internal/delivery/file"
 	"OnlineShopBackend/internal/filestorage"
+	"OnlineShopBackend/internal/metrics"
 	"OnlineShopBackend/internal/usecase"
 	"net/http"
 
@@ -35,6 +36,8 @@ func NewDelivery(
 	logger *zap.Logger, fs filestorage.FileStorager,
 ) *Delivery {
 	logger.Debug("Enter in NewDelivery()")
+	metrics.DeliveryMetrics.NewDeliveryTotal.Inc()
+
 	return &Delivery{
 		itemUsecase:     itemUsecase,
 		categoryUsecase: categoryUsecase,
