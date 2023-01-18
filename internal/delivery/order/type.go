@@ -1,0 +1,38 @@
+package order
+
+import (
+	"OnlineShopBackend/internal/delivery/cart"
+	"time"
+)
+
+type Order struct {
+	Id           string          `json:"id" binding:"required,uuid"  example:"00000000-0000-0000-0000-000000000000" format:"uuid"`
+	Items        []cart.CartItem `json:"items,omitempty" binding:"min=0" minimum:"0"`
+	UserId       string          `json:"user_id,omitempty"  example:"00000000-0000-0000-0000-000000000000" format:"uuid"`
+	ShipmentTime time.Time       `json:"shipment_time" binding:"required" time_format:"2006-01-02"`
+	Address      OrderAddress    `json:"address" binding:"required"`
+	Status       string          `json:"status,omitempty"`
+}
+
+type OrderAddress struct {
+	Zipcode string `json:"zipcode" binding:"required,iso3166_1_alpha2"`
+	Country string `json:"country,omitempty"`
+	City    string `json:"city" binding:"required"`
+	Street  string `json:"street"  binding:"required"`
+}
+
+type UserForCart struct {
+	Id    string `json:"id" binding:"required,uuid"  example:"00000000-0000-0000-0000-000000000000" format:"uuid"`
+	Email string `json:"email" binding:"required,email"`
+	Role  string `json:"role,omitempty"`
+}
+
+type CartAdressUser struct {
+	Cart    cart.Cart    `json:"cart"`
+	User    UserForCart  `json:"user"`
+	Address OrderAddress `json:"address"`
+}
+
+type OrderId struct {
+	Value string `json:"value" binding:"required,uuid"  example:"00000000-0000-0000-0000-000000000000" format:"uuid"`
+}

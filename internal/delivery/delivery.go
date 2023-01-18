@@ -25,6 +25,7 @@ type Delivery struct {
 	cartUsecase     usecase.ICartUsecase
 	logger          *zap.Logger
 	filestorage     filestorage.FileStorager
+	orderUsecase    usecase.IOrderUsecase
 }
 
 // NewDelivery initialize delivery layer
