@@ -15,7 +15,7 @@ type Order struct {
 }
 
 type OrderAddress struct {
-	Zipcode string `json:"zipcode" binding:"required,iso3166_1_alpha2"`
+	Zipcode string `json:"zipcode" binding:"required"`
 	Country string `json:"country,omitempty"`
 	City    string `json:"city" binding:"required"`
 	Street  string `json:"street"  binding:"required"`
