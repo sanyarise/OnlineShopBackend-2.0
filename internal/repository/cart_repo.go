@@ -220,7 +220,7 @@ func (c *cart) GetCartByUserId(ctx context.Context, userId uuid.UUID) (*models.C
 		c.logger.Debug("read cart id success: %v", userId)
 		item := models.ItemWithQuantity{}
 		rows, err := pool.Query(ctx, `
-		SELECT i.name, i.description, i.category, cat.name, cat.description, cat.picture, i.price, i.vendor, i.pictures, c.item_quantity
+		SELECT i.id, i.name, i.description, i.category, cat.name, cat.description, cat.picture, i.price, i.vendor, i.pictures, c.item_quantity
 		FROM cart_items c, items i, categories cat
 		WHERE c.cart_id=$1 and i.id = c.item_id and cat.id = i.category`, cartId)
 		if err != nil {
