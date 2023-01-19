@@ -430,3 +430,18 @@ func (mr *MockICartUsecaseMockRecorder) GetCart(ctx, cartId interface{}) *gomock
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCart", reflect.TypeOf((*MockICartUsecase)(nil).GetCart), ctx, cartId)
 }
+
+// GetCartByUserId mocks base method.
+func (m *MockICartUsecase) GetCartByUserId(ctx context.Context, userId uuid.UUID) (*models.Cart, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCartByUserId", ctx, userId)
+	ret0, _ := ret[0].(*models.Cart)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetCartByUserId indicates an expected call of GetCartByUserId.
+func (mr *MockICartUsecaseMockRecorder) GetCartByUserId(ctx, userId interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCartByUserId", reflect.TypeOf((*MockICartUsecase)(nil).GetCartByUserId), ctx, userId)
+}
