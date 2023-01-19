@@ -37,6 +37,7 @@ type CartStore interface {
 	DeleteCart(ctx context.Context, cartId uuid.UUID) error
 	DeleteItemFromCart(ctx context.Context, cartId uuid.UUID, itemId uuid.UUID) error
 	GetCart(ctx context.Context, cartId uuid.UUID) (*models.Cart, error)
+	GetCartByUserId(ctx context.Context, userId uuid.UUID) (*models.Cart, error)
 }
 
 type OrderStore interface {

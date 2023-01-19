@@ -323,6 +323,41 @@ paths:
       summary: Method provides to add item to cart
       tags:
       - carts
+  /cart/byUser/{userID}:
+    get:
+      consumes:
+      - application/json
+      description: The method allows you to get the cart by user id.
+      parameters:
+      - description: Id of user
+        in: path
+        name: userID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Cart structure
+          schema:
+            $ref: '#/definitions/cart.Cart'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Get cart by user id
+      tags:
+      - carts
   /cart/create/{userID}:
     post:
       consumes:

@@ -202,3 +202,60 @@ func (c *cart) GetCart(ctx context.Context, cartId uuid.UUID) (*models.Cart, err
 		}, nil
 	}
 }
+
+func (c *cart) GetCartByUserId(ctx context.Context, userId uuid.UUID) (*models.Cart, error) {
+	c.logger.Debug("Enter in repository cart SelectItemsFromCart() with args: ctx, userId: %v", userId)
+	select {
+	case <-ctx.Done():
+		return nil, fmt.Errorf("context closed")
+	default:
+		pool := c.storage.GetPool()
+		var cartId uuid.UUID
+		row := pool.QueryRow(ctx, `SELECT id FROM carts WHERE user_id = $1`, userId)
+		err := row.Scan(&cartId)
+		if err != nil {
+			c.logger.Error(err)
+			return nil, fmt.Errorf("can't read cart id: %w", err)
+		}
+		c.logger.Debug("read cart id success: %v", userId)
+		item := models.ItemWithQuantity{}
+		rows, err := pool.Query(ctx, `
+		SELECT i.id, i.name, i.description, i.category, cat.name, cat.description, cat.picture, i.price, i.vendor, i.pictures, c.item_quantity
+		FROM cart_items c, items i, categories cat
+		WHERE c.cart_id=$1 and i.id = c.item_id and cat.id = i.category`, cartId)
+		if err != nil {
+			c.logger.Errorf("can't select items from cart: %s", err)
+			return nil, fmt.Errorf("can't select items from cart: %w", err)
+		}
+		defer rows.Close()
+		c.logger.Debug("read info from db in pool.Query success")
+		items := make([]models.ItemWithQuantity, 0, 100)
+		for rows.Next() {
+			if err := rows.Scan(
+				&item.Id,
+				&item.Title,
+				&item.Description,
+				&item.Category.Id,
+				&item.Category.Name,
+				&item.Category.Description,
+				&item.Category.Image,
+				&item.Price,
+				&item.Vendor,
+				&item.Images,
+				&item.Quantity,
+			); err != nil {
+				c.logger.Error(err.Error())
+				return nil, err
+			}
+
+			items = append(items, item)
+		}
+		c.logger.Info("Select items from cart success")
+		c.logger.Info("Get cart success")
+		return &models.Cart{
+			Id:     cartId,
+			UserId: userId,
+			Items:  items,
+		}, nil
+	}
+}

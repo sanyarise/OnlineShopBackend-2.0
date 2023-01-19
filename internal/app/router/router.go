@@ -180,6 +180,12 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 			delivery.GetCart,
 		},
 		{
+			"GetCartByUserId",
+			http.MethodGet,
+			"/cart/byUser/:userID",
+			delivery.GetCartByUserId,
+		},
+		{
 			"CreateCart",
 			http.MethodPost,
 			"/cart/create/:userID",

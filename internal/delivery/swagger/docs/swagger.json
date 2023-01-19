@@ -65,6 +65,59 @@
                 }
             }
         },
+        "/cart/byUser/{userID}": {
+            "get": {
+                "description": "The method allows you to get the cart by user id.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "carts"
+                ],
+                "summary": "Get cart by user id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Id of user",
+                        "name": "userID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Cart structure",
+                        "schema": {
+                            "$ref": "#/definitions/cart.Cart"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "404 Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/cart/create/{userID}": {
             "post": {
                 "description": "Method provides to create cart with items.",
