@@ -36,6 +36,20 @@ func (m *MockItemStore) EXPECT() *MockItemStoreMockRecorder {
 	return m.recorder
 }
 
+// AddFavouriteItem mocks base method.
+func (m *MockItemStore) AddFavouriteItem(ctx context.Context, userId, itemId uuid.UUID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddFavouriteItem", ctx, userId, itemId)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AddFavouriteItem indicates an expected call of AddFavouriteItem.
+func (mr *MockItemStoreMockRecorder) AddFavouriteItem(ctx, userId, itemId interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddFavouriteItem", reflect.TypeOf((*MockItemStore)(nil).AddFavouriteItem), ctx, userId, itemId)
+}
+
 // CreateItem mocks base method.
 func (m *MockItemStore) CreateItem(ctx context.Context, item *models.Item) (uuid.UUID, error) {
 	m.ctrl.T.Helper()
@@ -51,6 +65,20 @@ func (mr *MockItemStoreMockRecorder) CreateItem(ctx, item interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateItem", reflect.TypeOf((*MockItemStore)(nil).CreateItem), ctx, item)
 }
 
+// DeleteFavouriteItem mocks base method.
+func (m *MockItemStore) DeleteFavouriteItem(ctx context.Context, userId, itemId uuid.UUID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteFavouriteItem", ctx, userId, itemId)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteFavouriteItem indicates an expected call of DeleteFavouriteItem.
+func (mr *MockItemStoreMockRecorder) DeleteFavouriteItem(ctx, userId, itemId interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFavouriteItem", reflect.TypeOf((*MockItemStore)(nil).DeleteFavouriteItem), ctx, userId, itemId)
+}
+
 // DeleteItem mocks base method.
 func (m *MockItemStore) DeleteItem(ctx context.Context, id uuid.UUID) error {
 	m.ctrl.T.Helper()
@@ -63,6 +91,21 @@ func (m *MockItemStore) DeleteItem(ctx context.Context, id uuid.UUID) error {
 func (mr *MockItemStoreMockRecorder) DeleteItem(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteItem", reflect.TypeOf((*MockItemStore)(nil).DeleteItem), ctx, id)
+}
+
+// GetFavouriteItems mocks base method.
+func (m *MockItemStore) GetFavouriteItems(ctx context.Context, userId uuid.UUID) (chan models.Item, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetFavouriteItems", ctx, userId)
+	ret0, _ := ret[0].(chan models.Item)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetFavouriteItems indicates an expected call of GetFavouriteItems.
+func (mr *MockItemStoreMockRecorder) GetFavouriteItems(ctx, userId interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFavouriteItems", reflect.TypeOf((*MockItemStore)(nil).GetFavouriteItems), ctx, userId)
 }
 
 // GetItem mocks base method.

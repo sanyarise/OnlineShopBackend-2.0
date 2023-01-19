@@ -761,17 +761,27 @@ paths:
         in: query
         name: param
         type: string
+      - default: 0
+        description: Offset when receiving records
+        in: query
+        name: offset
+        type: integer
       - default: 10
         description: Quantity of recordings
         in: query
         minimum: 0
         name: limit
         type: integer
-      - default: 0
-        description: Offset when receiving records
+      - default: '"name"'
+        description: Sort type (name or price)
         in: query
-        name: offset
-        type: integer
+        name: sortType
+        type: string
+      - default: '"asc"'
+        description: Sort order (asc or desc)
+        in: query
+        name: sortOrder
+        type: string
       produces:
       - application/json
       responses:
@@ -831,6 +841,44 @@ paths:
           schema:
             $ref: '#/definitions/delivery.ErrorResponse'
       summary: Get item by id
+      tags:
+      - items
+  /items/addFav/{userID}/{itemID}:
+    post:
+      consumes:
+      - application/json
+      description: Method provides add item in favourites.
+      parameters:
+      - description: id of user
+        in: path
+        name: userID
+        required: true
+        type: string
+      - description: id of item
+        in: path
+        name: itemID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Method provides add item in favourites
       tags:
       - items
   /items/create/:
@@ -900,6 +948,99 @@ paths:
           schema:
             $ref: '#/definitions/delivery.ErrorResponse'
       summary: Method provides to delete item
+      tags:
+      - items
+  /items/deleteFav/{userID}/{itemID}:
+    delete:
+      consumes:
+      - application/json
+      description: Method provides delete item from favourites.
+      parameters:
+      - description: id of user
+        in: path
+        name: userID
+        required: true
+        type: string
+      - description: id of item
+        in: path
+        name: itemID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Method provides delete item from favourites
+      tags:
+      - items
+  /items/favList:
+    get:
+      consumes:
+      - application/json
+      description: Method provides to get list of favourite items
+      parameters:
+      - description: ID of user
+        in: query
+        name: param
+        type: string
+      - default: 10
+        description: Quantity of recordings
+        in: query
+        minimum: 0
+        name: limit
+        type: integer
+      - default: 0
+        description: Offset when receiving records
+        in: query
+        name: offset
+        type: integer
+      - description: Sort type (name or price)
+        in: query
+        name: sortType
+        type: string
+      - description: Sort order (asc or desc)
+        in: query
+        name: sortOrder
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of items
+          schema:
+            items:
+              $ref: '#/definitions/item.OutItem'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Get list of favourite items
       tags:
       - items
   /items/image/delete:
@@ -992,17 +1133,27 @@ paths:
       - application/json
       description: Method provides to get list of items
       parameters:
+      - default: 0
+        description: Offset when receiving records
+        in: query
+        name: offset
+        type: integer
       - default: 10
         description: Quantity of recordings
         in: query
         minimum: 0
         name: limit
         type: integer
-      - default: 0
-        description: Offset when receiving records
+      - default: '"name"'
+        description: Sort type (name or price)
         in: query
-        name: offset
-        type: integer
+        name: sortType
+        type: string
+      - default: '"asc"'
+        description: Sort order (asc or desc)
+        in: query
+        name: sortOrder
+        type: string
       produces:
       - application/json
       responses:
@@ -1054,6 +1205,68 @@ paths:
       summary: Get quantity of items
       tags:
       - items
+  /items/quantityCat/{categoryName}:
+    get:
+      consumes:
+      - application/json
+      description: Method provides to get quantity of items in category
+      parameters:
+      - description: Name of category
+        in: path
+        name: categoryName
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Quantity of items
+          schema:
+            $ref: '#/definitions/item.ItemsQuantity'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Get quantity of items in category
+      tags:
+      - items
+  /items/quantityFav/{userID}:
+    get:
+      consumes:
+      - application/json
+      description: Method provides to get quantity favourite items
+      parameters:
+      - description: id of user
+        in: path
+        name: userID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Quantity of items
+          schema:
+            $ref: '#/definitions/item.ItemsQuantity'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Get quantity of favourite items
+      tags:
+      - items
   /items/search:
     get:
       consumes:
@@ -1064,17 +1277,27 @@ paths:
         in: query
         name: param
         type: string
+      - default: 0
+        description: Offset when receiving records
+        in: query
+        name: offset
+        type: integer
       - default: 10
         description: Quantity of recordings
         in: query
         minimum: 0
         name: limit
         type: integer
-      - default: 0
-        description: Offset when receiving records
+      - default: '"name"'
+        description: Sort type (name or price)
         in: query
-        name: offset
-        type: integer
+        name: sortType
+        type: string
+      - default: '"asc"'
+        description: Sort order (asc or desc)
+        in: query
+        name: sortOrder
+        type: string
       produces:
       - application/json
       responses:

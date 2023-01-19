@@ -63,6 +63,16 @@ CREATE TABLE cart_items (
         FOREIGN KEY(item_id) REFERENCES items(id)    
 );
 
+CREATE TABLE favourite_items (
+    user_id UUID,
+    item_id UUID,
+    PRIMARY KEY(user_id, item_id),
+    CONSTRAINT fk_user_id
+        FOREIGN KEY(user_id) REFERENCES users(id),
+    CONSTRAINT fk_item_id
+        FOREIGN KEY(item_id) REFERENCES items(id)
+);
+
 CREATE TABLE orders (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     shipment_time timestamp not NULL,
