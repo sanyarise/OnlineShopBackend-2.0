@@ -38,4 +38,5 @@ type ICartUsecase interface {
 	Create(ctx context.Context, userId uuid.UUID) (uuid.UUID, error)
 	AddItemToCart(ctx context.Context, cartId uuid.UUID, itemId uuid.UUID) error
 	DeleteCart(ctx context.Context, cartId uuid.UUID) error
+	GetCartByUserId(ctx context.Context, userId uuid.UUID) (*models.Cart, error)
 }
