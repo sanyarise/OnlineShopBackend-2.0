@@ -173,6 +173,64 @@ func TestGetCart(t *testing.T) {
 	require.Equal(t, 200, w.Code)
 }
 
+func TestGetCartByUserId(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	ctx := context.Background()
+	logger := zap.L()
+	itemUsecase := mocks.NewMockIItemUsecase(ctrl)
+	categoryUsecase := mocks.NewMockICategoryUsecase(ctrl)
+	cartUsecase := mocks.NewMockICartUsecase(ctrl)
+	filestorage := fs.NewMockFileStorager(ctrl)
+	delivery := NewDelivery(itemUsecase, categoryUsecase, cartUsecase, logger, filestorage)
+
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Params = []gin.Param{
+		{
+			Key:   "categoryID",
+			Value: testId.String() + "n",
+		},
+	}
+	delivery.GetCartByUserId(c)
+	require.Equal(t, 400, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Params = []gin.Param{
+		{
+			Key:   "userID",
+			Value: testId.String(),
+		},
+	}
+	cartUsecase.EXPECT().GetCartByUserId(ctx, testId).Return(nil, err)
+	delivery.GetCartByUserId(c)
+	require.Equal(t, 500, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Params = []gin.Param{
+		{
+			Key:   "userID",
+			Value: testId.String(),
+		},
+	}
+	cartUsecase.EXPECT().GetCartByUserId(ctx, testId).Return(&testModelCart, nil)
+	delivery.GetCartByUserId(c)
+	require.Equal(t, 200, w.Code)
+}
 func TestCreateCart(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
