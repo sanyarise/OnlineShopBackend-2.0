@@ -34,6 +34,7 @@ func NewDelivery(
 	categoryUsecase usecase.ICategoryUsecase,
 	cartUsecase usecase.ICartUsecase,
 	logger *zap.Logger, fs filestorage.FileStorager,
+	orderUsecase usecase.IOrderUsecase,
 ) *Delivery {
 	logger.Debug("Enter in NewDelivery()")
 	return &Delivery{
@@ -41,6 +42,7 @@ func NewDelivery(
 		categoryUsecase: categoryUsecase,
 		cartUsecase:     cartUsecase,
 		logger:          logger, filestorage: fs,
+		orderUsecase: orderUsecase,
 	}
 }
 

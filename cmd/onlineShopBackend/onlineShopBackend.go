@@ -43,6 +43,8 @@ func main() {
 
 	cartStore := repository.NewCartStore(pgstore, lsug)
 
+	orderStore := repository.NewOrderRepo(pgstore, lsug)
+
 	redis, err := cash.NewRedisCash(cfg.CashHost, cfg.CashPort, time.Duration(cfg.CashTTL), l)
 	if err != nil {
 		log.Fatalf("can't initialize cash: %v", err)
@@ -56,7 +58,8 @@ func main() {
 	cartUsecase := usecase.NewCartUseCase(cartStore, l)
 
 	filestorage := filestorage.NewOnDiskLocalStorage(cfg.ServerURL, cfg.FsPath, l)
-	delivery := delivery.NewDelivery(itemUsecase, categoryUsecase, cartUsecase, l, filestorage)
+	orderUsecase := usecase.NewOrderUsecase(orderStore, lsug)
+	delivery := delivery.NewDelivery(itemUsecase, categoryUsecase, cartUsecase, l, filestorage, orderUsecase)
 
 	router := router.NewRouter(delivery, l)
 	serverOptions := map[string]int{
