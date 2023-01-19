@@ -1,6 +1,7 @@
 package delivery
 
 import (
+	"OnlineShopBackend/internal/delivery/cart"
 	"OnlineShopBackend/internal/delivery/order"
 	"OnlineShopBackend/internal/models"
 	"net/http"
@@ -83,4 +84,62 @@ func (d *Delivery) CreateOrder(c *gin.Context) {
 		d.SetError(c, http.StatusInternalServerError, err)
 	}
 	c.JSON(http.StatusCreated, order.OrderId{Value: ordr.ID.String()})
+}
+
+// GetOrder - get a specific order by id
+//
+//	@Summary		Get order by id
+//	@Description	The method allows you to get the order by id.
+//	@Tags			order
+//	@Accept			json
+//	@Produce		json
+//	@Param			orderID	path		string		true	"Id of order"
+//	@Success		200		{object}	cart.Cart	"Order structure"
+//	@Failure		400		{object}	ErrorResponse
+//	@Failure		403		"Forbidden"
+//	@Failure		404		{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500		{object}	ErrorResponse
+//	@Router			/order/{orderID} [get]
+func (d *Delivery) GetOrder(c *gin.Context) {
+	d.logger.Sugar().Debug("Enter the delivery GetOrder()")
+	ctx := c.Request.Context()
+	orderId, err := uuid.Parse(c.Param(("orderID")))
+	if err != nil {
+		d.logger.Sugar().Errorf("can't parse order id: %s", err)
+		d.SetError(c, http.StatusBadRequest, err)
+		return
+	}
+	modelOrder, err := d.orderUsecase.GetOrder(ctx, orderId)
+	if err != nil {
+		d.logger.Sugar().Errorf("can't get order: %s", err)
+		d.SetError(c, http.StatusInternalServerError, err)
+		return
+	}
+	order := order.Order{
+		Id:           modelOrder.ID.String(),
+		UserId:       modelOrder.User.ID.String(),
+		ShipmentTime: modelOrder.ShipmentTime,
+		Address:      order.OrderAddress(modelOrder.Address),
+		Items:        make([]cart.CartItem, 0, len(modelOrder.Items)),
+	}
+	for _, item := range modelOrder.Items {
+		cartItem := cart.CartItem{
+			Id:       item.Id.String(),
+			Title:    item.Title,
+			Price:    item.Price,
+			Image:    firstNotEmpty(item.Images),
+			Quantity: item.Quantity,
+		}
+		order.Items = append(order.Items, cartItem)
+	}
+	c.JSON(http.StatusOK, order)
+}
+
+func firstNotEmpty(arr []string) string {
+	for _, item := range arr {
+		if item != "" {
+			return item
+		}
+	}
+	return ""
 }
