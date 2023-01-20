@@ -46,3 +46,10 @@ type ICartUsecase interface {
 	DeleteCart(ctx context.Context, cartId uuid.UUID) error
 	GetCartByUserId(ctx context.Context, userId uuid.UUID) (*models.Cart, error)
 }
+
+type IUserUsecase interface {
+	CreateUser(ctx context.Context, user *models.User) (*models.User, error)
+	GetUserByEmail(ctx context.Context, email string) (*models.User, error)
+	GetRightsId(ctx context.Context, name string) (*models.Rights, error)
+	UpdateUserData(ctx context.Context, id uuid.UUID, user *models.User) (*models.User, error)
+}

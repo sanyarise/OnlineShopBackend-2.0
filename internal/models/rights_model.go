@@ -8,14 +8,13 @@ import "github.com/google/uuid"
 
 // TODO: create type
 const (
-	Admin    = "admin"
-	Customer = "customer"
-	Seller   = "seller"
-	Vendor   = "vendor"
+	Admin    = "Admin"
+	Customer = "Customer"
+	Seller   = "Seller"
 )
 
 type Rights struct {
-	ID    uuid.UUID
-	Name  string
-	Rules []string
+	ID    uuid.UUID `json:"id"`
+	Name  string    `json:"name"`
+	Rules []string  `json:"rules"`
 }

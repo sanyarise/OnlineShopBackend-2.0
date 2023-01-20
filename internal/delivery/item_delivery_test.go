@@ -17,11 +17,16 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
+
 	"github.com/golang-module/carbon/v2"
+
 	"github.com/golang/mock/gomock"
+
 	"github.com/google/uuid"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
 	"go.uber.org/zap"
 )
 
@@ -275,7 +280,7 @@ func TestCreateItem(t *testing.T) {
 
 	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
-	delivery := NewDelivery(itemUsecase, categoryUsecase, cartUsecase, logger, filestorage)
+	delivery := NewDelivery(itemUsecase, nil, categoryUsecase, cartUsecase, logger, filestorage)
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -356,7 +361,7 @@ func TestGetItem(t *testing.T) {
 
 	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
-	delivery := NewDelivery(itemUsecase, categoryUsecase, cartUsecase, logger, filestorage)
+	delivery := NewDelivery(itemUsecase, nil, categoryUsecase, cartUsecase, logger, filestorage)
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -412,7 +417,7 @@ func TestUpdateItem(t *testing.T) {
 
 	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
-	delivery := NewDelivery(itemUsecase, categoryUsecase, cartUsecase, logger, filestorage)
+	delivery := NewDelivery(itemUsecase, nil, categoryUsecase, cartUsecase, logger, filestorage)
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -490,7 +495,7 @@ func TestUpdateItem2(t *testing.T) {
 
 	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
-	delivery := NewDelivery(itemUsecase, categoryUsecase, cartUsecase, logger, filestorage)
+	delivery := NewDelivery(itemUsecase, nil, categoryUsecase, cartUsecase, logger, filestorage)
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -560,7 +565,7 @@ func TestItemsList(t *testing.T) {
 
 	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
-	delivery := NewDelivery(itemUsecase, categoryUsecase, cartUsecase, logger, filestorage)
+	delivery := NewDelivery(itemUsecase, nil, categoryUsecase, cartUsecase, logger, filestorage)
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -651,7 +656,7 @@ func TestItemsQuantity(t *testing.T) {
 
 	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
-	delivery := NewDelivery(itemUsecase, categoryUsecase, cartUsecase, logger, filestorage)
+	delivery := NewDelivery(itemUsecase, nil, categoryUsecase, cartUsecase, logger, filestorage)
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -690,7 +695,7 @@ func TestSearchLine(t *testing.T) {
 
 	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
-	delivery := NewDelivery(itemUsecase, categoryUsecase, cartUsecase, logger, filestorage)
+	delivery := NewDelivery(itemUsecase, nil, categoryUsecase, cartUsecase, logger, filestorage)
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -766,7 +771,7 @@ func TestGetItemsByCategory(t *testing.T) {
 
 	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
-	delivery := NewDelivery(itemUsecase, categoryUsecase, cartUsecase, logger, filestorage)
+	delivery := NewDelivery(itemUsecase, nil, categoryUsecase, cartUsecase, logger, filestorage)
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -842,7 +847,7 @@ func TestUploadItemImage(t *testing.T) {
 
 	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
-	delivery := NewDelivery(itemUsecase, categoryUsecase, cartUsecase, logger, filestorage)
+	delivery := NewDelivery(itemUsecase, nil, categoryUsecase, cartUsecase, logger, filestorage)
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -969,7 +974,7 @@ func TestDeleteItemImage(t *testing.T) {
 
 	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
-	delivery := NewDelivery(itemUsecase, categoryUsecase, cartUsecase, logger, filestorage)
+	delivery := NewDelivery(itemUsecase, nil, categoryUsecase, cartUsecase, logger, filestorage)
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -1042,7 +1047,7 @@ func TestDeleteItem(t *testing.T) {
 
 	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
-	delivery := NewDelivery(itemUsecase, categoryUsecase, cartUsecase, logger, filestorage)
+	delivery := NewDelivery(itemUsecase, nil, categoryUsecase, cartUsecase, logger, filestorage)
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -1131,7 +1136,7 @@ func TestItemsQuantityInCategory(t *testing.T) {
 
 	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
-	delivery := NewDelivery(itemUsecase, categoryUsecase, cartUsecase, logger, filestorage)
+	delivery := NewDelivery(itemUsecase, nil, categoryUsecase, cartUsecase, logger, filestorage)
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -1193,7 +1198,7 @@ func TestItemsQuantityInFavourite(t *testing.T) {
 
 	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
-	delivery := NewDelivery(itemUsecase, categoryUsecase, cartUsecase, logger, filestorage)
+	delivery := NewDelivery(itemUsecase, nil, categoryUsecase, cartUsecase, logger, filestorage)
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -1255,7 +1260,7 @@ func TestAddFavouriteItem(t *testing.T) {
 
 	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
-	delivery := NewDelivery(itemUsecase, categoryUsecase, cartUsecase, logger, filestorage)
+	delivery := NewDelivery(itemUsecase, nil, categoryUsecase, cartUsecase, logger, filestorage)
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -1342,7 +1347,7 @@ func TestDeleteFavouriteItem(t *testing.T) {
 
 	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
-	delivery := NewDelivery(itemUsecase, categoryUsecase, cartUsecase, logger, filestorage)
+	delivery := NewDelivery(itemUsecase, nil, categoryUsecase, cartUsecase, logger, filestorage)
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -1429,7 +1434,7 @@ func TestGetFavouriteItems(t *testing.T) {
 
 	cartUsecase := mocks.NewMockICartUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
-	delivery := NewDelivery(itemUsecase, categoryUsecase, cartUsecase, logger, filestorage)
+	delivery := NewDelivery(itemUsecase, nil, categoryUsecase, cartUsecase, logger, filestorage)
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)

@@ -245,6 +245,25 @@ definitions:
     - price
     - title
     type: object
+  jwtauth.Token:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
+    type: object
+  password.Credentials:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  password.User:
+    type: object
 info:
   contact:
     url: https://github.com/GBteammates/OnlineShopBackend
@@ -1358,4 +1377,137 @@ paths:
       summary: Method provides to update store item
       tags:
       - items
+  /user/callbackGoogle:
+    get:
+      consumes:
+      - application/json
+      description: Method provides to log in with Google
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "500":
+          description: Internal Server Error
+      summary: Callback Google provides logic for oauth google login
+      tags:
+      - user
+  /user/create:
+    post:
+      consumes:
+      - application/json
+      description: Method provides to create a user
+      parameters:
+      - description: User data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/password.User'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/jwtauth.Token'
+        "400":
+          description: Bad Request
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Create a new user
+      tags:
+      - user
+  /user/login:
+    post:
+      consumes:
+      - application/json
+      description: Method provides to login a user
+      parameters:
+      - description: Login
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/password.Credentials'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/jwtauth.Token'
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Login user
+      tags:
+      - user
+  /user/login/google:
+    get:
+      consumes:
+      - application/json
+      description: Method provides to log in with Google
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "500":
+          description: Internal Server Error
+      summary: Login with Google oauth2
+      tags:
+      - user
+  /user/logout:
+    get:
+      consumes:
+      - application/json
+      description: Method provides to log out
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: Bad Request
+      summary: Logout
+      tags:
+      - user
+  /user/profile:
+    get:
+      consumes:
+      - application/json
+      description: Method provides to get profile info
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/password.User'
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+        firebase: []
+      summary: User profile
+      tags:
+      - user
 swagger: "2.0"

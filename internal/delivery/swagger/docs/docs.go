@@ -1682,6 +1682,211 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/user/callbackGoogle": {
+            "get": {
+                "description": "Method provides to log in with Google",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Callback Google provides logic for oauth google login",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/user/create": {
+            "post": {
+                "description": "Method provides to create a user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Create a new user",
+                "parameters": [
+                    {
+                        "description": "User data",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/password.User"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/jwtauth.Token"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "404": {
+                        "description": "404 Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/login": {
+            "post": {
+                "description": "Method provides to login a user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Login user",
+                "parameters": [
+                    {
+                        "description": "Login",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/password.Credentials"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/jwtauth.Token"
+                        }
+                    },
+                    "404": {
+                        "description": "404 Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/login/google": {
+            "get": {
+                "description": "Method provides to log in with Google",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Login with Google oauth2",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/user/logout": {
+            "get": {
+                "description": "Method provides to log out",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Logout",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "404": {
+                        "description": "Bad Request"
+                    }
+                }
+            }
+        },
+        "/user/profile": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": [],
+                        "firebase": []
+                    }
+                ],
+                "description": "Method provides to get profile info",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "User profile",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/password.User"
+                        }
+                    },
+                    "404": {
+                        "description": "404 Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -2022,6 +2227,35 @@ const docTemplate = `{
                     "example": "Витязь"
                 }
             }
+        },
+        "jwtauth.Token": {
+            "type": "object",
+            "properties": {
+                "access_token": {
+                    "type": "string"
+                },
+                "refresh_token": {
+                    "type": "string"
+                }
+            }
+        },
+        "password.Credentials": {
+            "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "password.User": {
+            "type": "object"
         }
     }
 }`
