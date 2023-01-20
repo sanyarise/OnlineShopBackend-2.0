@@ -301,5 +301,40 @@ func (d *Delivery) ChangeAddress(c *gin.Context) {
 //		@Failure		500		{object}	ErrorResponse
 //		@Router			/order/changestatus/ [patch]
 func (d *Delivery) ChangeStatus(c *gin.Context) {
-
+	d.logger.Sugar().Debug("Enter the delivery ChangeStatus()")
+	ctx := c.Request.Context()
+	var status order.StatusWithUserAndId
+	if err := c.ShouldBindJSON(&status); err != nil {
+		d.logger.Sugar().Errorf("can't bind json from request: %s", err)
+		d.SetError(c, http.StatusBadRequest, err)
+		return
+	}
+	orderID, err := uuid.Parse(status.OrderId)
+	if err != nil {
+		d.logger.Sugar().Errorf("can't parse order id: %s", err)
+		d.SetError(c, http.StatusBadRequest, err)
+		return
+	}
+	if strings.ToLower(status.User.Role) == "user" {
+		d.logger.Sugar().Errorf("the action not allowed: %s", err)
+		d.SetError(c, http.StatusForbidden, err)
+		return
+	}
+	userID, err := uuid.Parse(status.User.Id)
+	if err != nil {
+		d.logger.Sugar().Errorf("can't parse order id: %s", err)
+		d.SetError(c, http.StatusBadRequest, err)
+		return
+	}
+	err = d.orderUsecase.ChangeStatus(ctx, &models.Order{
+		ID: orderID,
+		User: models.User{
+			ID: userID,
+		},
+	}, models.Status(status.Status))
+	if err != nil {
+		d.logger.Sugar().Errorf("can't change address for order with id: %s %s", orderID, err)
+		d.SetError(c, http.StatusInternalServerError, err)
+		return
+	}
 }
