@@ -36,3 +36,15 @@ type CartAdressUser struct {
 type OrderId struct {
 	Value string `json:"value" binding:"required,uuid"  example:"00000000-0000-0000-0000-000000000000" format:"uuid"`
 }
+
+type AddressWithUserAndId struct {
+	User    UserForCart  `json:"user"`
+	Address OrderAddress `json:"address"`
+	OrderId string       `json:"order_id" binding:"required,uuid" example:"00000000-0000-0000-0000-000000000000" format:"uuid"`
+}
+
+type StatusWithUserAndId struct {
+	User    UserForCart `json:"user"`
+	Status  string      `json:"status"`
+	OrderId string      `json:"order_id" binding:"required,uuid" example:"00000000-0000-0000-0000-000000000000" format:"uuid"`
+}
