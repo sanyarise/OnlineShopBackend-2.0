@@ -73,6 +73,59 @@ const docTemplate = `{
                 }
             }
         },
+        "/cart/byUser/{userID}": {
+            "get": {
+                "description": "The method allows you to get the cart by user id.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "carts"
+                ],
+                "summary": "Get cart by user id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Id of user",
+                        "name": "userID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Cart structure",
+                        "schema": {
+                            "$ref": "#/definitions/cart.Cart"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "404 Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/cart/create/{userID}": {
             "post": {
                 "description": "Method provides to create cart with items.",
@@ -741,6 +794,13 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Offset when receiving records",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
                         "minimum": 0,
                         "type": "integer",
                         "default": 10,
@@ -749,10 +809,17 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
-                        "type": "integer",
-                        "default": 0,
-                        "description": "Offset when receiving records",
-                        "name": "offset",
+                        "type": "string",
+                        "default": "\"name\"",
+                        "description": "Sort type (name or price)",
+                        "name": "sortType",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "\"asc\"",
+                        "description": "Sort order (asc or desc)",
+                        "name": "sortOrder",
                         "in": "query"
                     }
                 ],
@@ -765,6 +832,63 @@ const docTemplate = `{
                                 "$ref": "#/definitions/item.OutItem"
                             }
                         }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "404 Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/items/addFav/{userID}/{itemID}": {
+            "post": {
+                "description": "Method provides add item in favourites.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "items"
+                ],
+                "summary": "Method provides add item in favourites",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id of user",
+                        "name": "userID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "id of item",
+                        "name": "itemID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
                     },
                     "400": {
                         "description": "Bad Request",
@@ -870,6 +994,145 @@ const docTemplate = `{
                 "responses": {
                     "200": {
                         "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "404 Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/items/deleteFav/{userID}/{itemID}": {
+            "delete": {
+                "description": "Method provides delete item from favourites.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "items"
+                ],
+                "summary": "Method provides delete item from favourites",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id of user",
+                        "name": "userID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "id of item",
+                        "name": "itemID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "404 Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/items/favList": {
+            "get": {
+                "description": "Method provides to get list of favourite items",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "items"
+                ],
+                "summary": "Get list of favourite items",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID of user",
+                        "name": "param",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 0,
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Quantity of recordings",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Offset when receiving records",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sort type (name or price)",
+                        "name": "sortType",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sort order (asc or desc)",
+                        "name": "sortOrder",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of items",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/item.OutItem"
+                            }
+                        }
                     },
                     "400": {
                         "description": "Bad Request",
@@ -1036,6 +1299,13 @@ const docTemplate = `{
                 "summary": "Get list of items",
                 "parameters": [
                     {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Offset when receiving records",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
                         "minimum": 0,
                         "type": "integer",
                         "default": 10,
@@ -1044,10 +1314,17 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
-                        "type": "integer",
-                        "default": 0,
-                        "description": "Offset when receiving records",
-                        "name": "offset",
+                        "type": "string",
+                        "default": "\"name\"",
+                        "description": "Sort type (name or price)",
+                        "name": "sortType",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "\"asc\"",
+                        "description": "Sort order (asc or desc)",
+                        "name": "sortOrder",
                         "in": "query"
                     }
                 ],
@@ -1123,6 +1400,100 @@ const docTemplate = `{
                 }
             }
         },
+        "/items/quantityCat/{categoryName}": {
+            "get": {
+                "description": "Method provides to get quantity of items in category",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "items"
+                ],
+                "summary": "Get quantity of items in category",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Name of category",
+                        "name": "categoryName",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Quantity of items",
+                        "schema": {
+                            "$ref": "#/definitions/item.ItemsQuantity"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "404 Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/items/quantityFav/{userID}": {
+            "get": {
+                "description": "Method provides to get quantity favourite items",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "items"
+                ],
+                "summary": "Get quantity of favourite items",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id of user",
+                        "name": "userID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Quantity of items",
+                        "schema": {
+                            "$ref": "#/definitions/item.ItemsQuantity"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "404 Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/items/search": {
             "get": {
                 "description": "Method provides to get list of items by search parameters",
@@ -1144,6 +1515,13 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Offset when receiving records",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
                         "minimum": 0,
                         "type": "integer",
                         "default": 10,
@@ -1152,10 +1530,17 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
-                        "type": "integer",
-                        "default": 0,
-                        "description": "Offset when receiving records",
-                        "name": "offset",
+                        "type": "string",
+                        "default": "\"name\"",
+                        "description": "Sort type (name or price)",
+                        "name": "sortType",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "\"asc\"",
+                        "description": "Sort order (asc or desc)",
+                        "name": "sortOrder",
                         "in": "query"
                     }
                 ],
@@ -1298,6 +1683,29 @@ const docTemplate = `{
                 }
             }
         },
+        "/user/callbackGoogle": {
+            "get": {
+                "description": "Method provides to log in with Google",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Callback Google provides logic for oauth google login",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
         "/user/create": {
             "post": {
                 "description": "Method provides to create a user",
@@ -1318,15 +1726,15 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/user.Credentials"
+                            "$ref": "#/definitions/password.User"
                         }
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "201": {
+                        "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/user.Token"
+                            "$ref": "#/definitions/jwtauth.Token"
                         }
                     },
                     "400": {
@@ -1362,12 +1770,12 @@ const docTemplate = `{
                 "summary": "Login user",
                 "parameters": [
                     {
-                        "description": "User data",
+                        "description": "Login",
                         "name": "user",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/user.Credentials"
+                            "$ref": "#/definitions/password.Credentials"
                         }
                     }
                 ],
@@ -1375,7 +1783,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/user.Token"
+                            "$ref": "#/definitions/jwtauth.Token"
                         }
                     },
                     "404": {
@@ -1389,6 +1797,29 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/delivery.ErrorResponse"
                         }
+                    }
+                }
+            }
+        },
+        "/user/login/google": {
+            "get": {
+                "description": "Method provides to log in with Google",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Login with Google oauth2",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
                     }
                 }
             }
@@ -1439,7 +1870,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/user.Profile"
+                            "$ref": "#/definitions/password.User"
                         }
                     },
                     "404": {
@@ -1499,78 +1930,13 @@ const docTemplate = `{
         },
         "cart.CartItem": {
             "type": "object",
-            "properties": {
-                "item": {
-                    "$ref": "#/definitions/cart.Item"
-                },
-                "quantity": {
-                    "$ref": "#/definitions/cart.Quantity"
-                }
-            }
-        },
-        "cart.Category": {
-            "type": "object",
-            "required": [
-                "description",
-                "id",
-                "name"
-            ],
-            "properties": {
-                "description": {
-                    "type": "string",
-                    "example": "Электротехнические товары для дома"
-                },
-                "id": {
-                    "type": "string",
-                    "format": "uuid",
-                    "example": "00000000-0000-0000-0000-000000000000"
-                },
-                "image": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string",
-                    "example": "Электротехника"
-                }
-            }
-        },
-        "cart.Item": {
-            "type": "object",
-            "required": [
-                "itemId",
-                "price",
-                "title"
-            ],
-            "properties": {
-                "category": {
-                    "$ref": "#/definitions/cart.Category"
-                },
-                "image": {
-                    "type": "string"
-                },
-                "itemId": {
-                    "type": "string",
-                    "format": "uuid",
-                    "example": "00000000-0000-0000-0000-000000000000"
-                },
-                "price": {
-                    "type": "integer",
-                    "default": 10,
-                    "minimum": 0,
-                    "example": 1990
-                },
-                "title": {
-                    "type": "string",
-                    "example": "Пылесос"
-                }
-            }
-        },
-        "cart.Quantity": {
-            "type": "object",
             "required": [
                 "quantity"
             ],
             "properties": {
+                "item": {
+                    "$ref": "#/definitions/item.OutItem"
+                },
                 "quantity": {
                     "type": "integer",
                     "default": 1,
@@ -1862,72 +2228,7 @@ const docTemplate = `{
                 }
             }
         },
-        "user.Address": {
-            "type": "object",
-            "properties": {
-                "city": {
-                    "type": "string"
-                },
-                "country": {
-                    "type": "string"
-                },
-                "street": {
-                    "type": "string"
-                },
-                "zipcode": {
-                    "type": "string"
-                }
-            }
-        },
-        "user.Credentials": {
-            "type": "object",
-            "properties": {
-                "email": {
-                    "type": "string"
-                },
-                "password": {
-                    "type": "string"
-                }
-            }
-        },
-        "user.Profile": {
-            "type": "object",
-            "properties": {
-                "address": {
-                    "$ref": "#/definitions/user.Address"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "first_name": {
-                    "type": "string"
-                },
-                "last_name": {
-                    "type": "string"
-                },
-                "rights": {
-                    "$ref": "#/definitions/user.Rights"
-                }
-            }
-        },
-        "user.Rights": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "rules": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
-        "user.Token": {
+        "jwtauth.Token": {
             "type": "object",
             "properties": {
                 "access_token": {
@@ -1937,6 +2238,24 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "password.Credentials": {
+            "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "password.User": {
+            "type": "object"
         }
     }
 }`

@@ -5,8 +5,8 @@
 package mocks
 
 import (
+	"OnlineShopBackend/internal/delivery/user/jwtauth"
 	models "OnlineShopBackend/internal/models"
-	usecase "OnlineShopBackend/internal/usecase"
 	context "context"
 	reflect "reflect"
 
@@ -37,6 +37,20 @@ func (m *MockIItemUsecase) EXPECT() *MockIItemUsecaseMockRecorder {
 	return m.recorder
 }
 
+// AddFavouriteItem mocks base method.
+func (m *MockIItemUsecase) AddFavouriteItem(ctx context.Context, userId, itemId uuid.UUID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddFavouriteItem", ctx, userId, itemId)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AddFavouriteItem indicates an expected call of AddFavouriteItem.
+func (mr *MockIItemUsecaseMockRecorder) AddFavouriteItem(ctx, userId, itemId interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddFavouriteItem", reflect.TypeOf((*MockIItemUsecase)(nil).AddFavouriteItem), ctx, userId, itemId)
+}
+
 // CreateItem mocks base method.
 func (m *MockIItemUsecase) CreateItem(ctx context.Context, item *models.Item) (uuid.UUID, error) {
 	m.ctrl.T.Helper()
@@ -52,6 +66,20 @@ func (mr *MockIItemUsecaseMockRecorder) CreateItem(ctx, item interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateItem", reflect.TypeOf((*MockIItemUsecase)(nil).CreateItem), ctx, item)
 }
 
+// DeleteFavouriteItem mocks base method.
+func (m *MockIItemUsecase) DeleteFavouriteItem(ctx context.Context, userId, itemId uuid.UUID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteFavouriteItem", ctx, userId, itemId)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteFavouriteItem indicates an expected call of DeleteFavouriteItem.
+func (mr *MockIItemUsecaseMockRecorder) DeleteFavouriteItem(ctx, userId, itemId interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFavouriteItem", reflect.TypeOf((*MockIItemUsecase)(nil).DeleteFavouriteItem), ctx, userId, itemId)
+}
+
 // DeleteItem mocks base method.
 func (m *MockIItemUsecase) DeleteItem(ctx context.Context, id uuid.UUID) error {
 	m.ctrl.T.Helper()
@@ -64,6 +92,21 @@ func (m *MockIItemUsecase) DeleteItem(ctx context.Context, id uuid.UUID) error {
 func (mr *MockIItemUsecaseMockRecorder) DeleteItem(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteItem", reflect.TypeOf((*MockIItemUsecase)(nil).DeleteItem), ctx, id)
+}
+
+// GetFavouriteItems mocks base method.
+func (m *MockIItemUsecase) GetFavouriteItems(ctx context.Context, userId uuid.UUID, limitOptions map[string]int, sortOptions map[string]string) ([]models.Item, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetFavouriteItems", ctx, userId, limitOptions, sortOptions)
+	ret0, _ := ret[0].([]models.Item)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetFavouriteItems indicates an expected call of GetFavouriteItems.
+func (mr *MockIItemUsecaseMockRecorder) GetFavouriteItems(ctx, userId, limitOptions, sortOptions interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFavouriteItems", reflect.TypeOf((*MockIItemUsecase)(nil).GetFavouriteItems), ctx, userId, limitOptions, sortOptions)
 }
 
 // GetItem mocks base method.
@@ -141,6 +184,21 @@ func (mr *MockIItemUsecaseMockRecorder) ItemsQuantityInCategory(ctx, categoryNam
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ItemsQuantityInCategory", reflect.TypeOf((*MockIItemUsecase)(nil).ItemsQuantityInCategory), ctx, categoryName)
 }
 
+// ItemsQuantityInFavourite mocks base method.
+func (m *MockIItemUsecase) ItemsQuantityInFavourite(ctx context.Context, userId uuid.UUID) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ItemsQuantityInFavourite", ctx, userId)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ItemsQuantityInFavourite indicates an expected call of ItemsQuantityInFavourite.
+func (mr *MockIItemUsecaseMockRecorder) ItemsQuantityInFavourite(ctx, userId interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ItemsQuantityInFavourite", reflect.TypeOf((*MockIItemUsecase)(nil).ItemsQuantityInFavourite), ctx, userId)
+}
+
 // SearchLine mocks base method.
 func (m *MockIItemUsecase) SearchLine(ctx context.Context, param string, limitOptions map[string]int, sortOptions map[string]string) ([]models.Item, error) {
 	m.ctrl.T.Helper()
@@ -156,6 +214,18 @@ func (mr *MockIItemUsecaseMockRecorder) SearchLine(ctx, param, limitOptions, sor
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchLine", reflect.TypeOf((*MockIItemUsecase)(nil).SearchLine), ctx, param, limitOptions, sortOptions)
 }
 
+// SortItems mocks base method.
+func (m *MockIItemUsecase) SortItems(items []models.Item, sortType, sortOrder string) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SortItems", items, sortType, sortOrder)
+}
+
+// SortItems indicates an expected call of SortItems.
+func (mr *MockIItemUsecaseMockRecorder) SortItems(items, sortType, sortOrder interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SortItems", reflect.TypeOf((*MockIItemUsecase)(nil).SortItems), items, sortType, sortOrder)
+}
+
 // UpdateCash mocks base method.
 func (m *MockIItemUsecase) UpdateCash(ctx context.Context, id uuid.UUID, op string) error {
 	m.ctrl.T.Helper()
@@ -168,6 +238,18 @@ func (m *MockIItemUsecase) UpdateCash(ctx context.Context, id uuid.UUID, op stri
 func (mr *MockIItemUsecaseMockRecorder) UpdateCash(ctx, id, op interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateCash", reflect.TypeOf((*MockIItemUsecase)(nil).UpdateCash), ctx, id, op)
+}
+
+// UpdateFavouriteItemsCash mocks base method.
+func (m *MockIItemUsecase) UpdateFavouriteItemsCash(ctx context.Context, userId, itemId uuid.UUID, op string) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "UpdateFavouriteItemsCash", ctx, userId, itemId, op)
+}
+
+// UpdateFavouriteItemsCash indicates an expected call of UpdateFavouriteItemsCash.
+func (mr *MockIItemUsecaseMockRecorder) UpdateFavouriteItemsCash(ctx, userId, itemId, op interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateFavouriteItemsCash", reflect.TypeOf((*MockIItemUsecase)(nil).UpdateFavouriteItemsCash), ctx, userId, itemId, op)
 }
 
 // UpdateItem mocks base method.
@@ -432,6 +514,21 @@ func (mr *MockICartUsecaseMockRecorder) GetCart(ctx, cartId interface{}) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCart", reflect.TypeOf((*MockICartUsecase)(nil).GetCart), ctx, cartId)
 }
 
+// GetCartByUserId mocks base method.
+func (m *MockICartUsecase) GetCartByUserId(ctx context.Context, userId uuid.UUID) (*models.Cart, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCartByUserId", ctx, userId)
+	ret0, _ := ret[0].(*models.Cart)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetCartByUserId indicates an expected call of GetCartByUserId.
+func (mr *MockICartUsecaseMockRecorder) GetCartByUserId(ctx, userId interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCartByUserId", reflect.TypeOf((*MockICartUsecase)(nil).GetCartByUserId), ctx, userId)
+}
+
 // MockIUserUsecase is a mock of IUserUsecase interface.
 type MockIUserUsecase struct {
 	ctrl     *gomock.Controller
@@ -456,10 +553,10 @@ func (m *MockIUserUsecase) EXPECT() *MockIUserUsecaseMockRecorder {
 }
 
 // CreateSessionJWT mocks base method.
-func (m *MockIUserUsecase) CreateSessionJWT(ctx context.Context, user *models.User) (usecase.Token, error) {
+func (m *MockIUserUsecase) CreateSessionJWT(ctx context.Context, user *models.User) (jwtauth.Token, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateSessionJWT", ctx, user)
-	ret0, _ := ret[0].(usecase.Token)
+	ret0, _ := ret[0].(jwtauth.Token)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -516,7 +613,7 @@ func (mr *MockIUserUsecaseMockRecorder) GetUserByEmail(ctx, email interface{}) *
 }
 
 // NewJWT mocks base method.
-func (m *MockIUserUsecase) NewJWT(payload usecase.Payload) (string, error) {
+func (m *MockIUserUsecase) NewJWT(payload jwtauth.Payload) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "NewJWT", payload)
 	ret0, _ := ret[0].(string)
@@ -531,10 +628,10 @@ func (mr *MockIUserUsecaseMockRecorder) NewJWT(payload interface{}) *gomock.Call
 }
 
 // ParseAuthHeader mocks base method.
-func (m *MockIUserUsecase) ParseAuthHeader(header string) (*usecase.Payload, error) {
+func (m *MockIUserUsecase) ParseAuthHeader(header string) (*jwtauth.Payload, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ParseAuthHeader", header)
-	ret0, _ := ret[0].(*usecase.Payload)
+	ret0, _ := ret[0].(*jwtauth.Payload)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -561,10 +658,10 @@ func (mr *MockIUserUsecaseMockRecorder) UpdateUserData(ctx, user interface{}) *g
 }
 
 // UserIdentity mocks base method.
-func (m *MockIUserUsecase) UserIdentity(header string) (*usecase.Payload, error) {
+func (m *MockIUserUsecase) UserIdentity(header string) (*jwtauth.Payload, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UserIdentity", header)
-	ret0, _ := ret[0].(*usecase.Payload)
+	ret0, _ := ret[0].(*jwtauth.Payload)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

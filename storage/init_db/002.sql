@@ -72,6 +72,16 @@ CREATE TABLE cart_items (
         FOREIGN KEY(item_id) REFERENCES items(id)    
 );
 
+CREATE TABLE favourite_items (
+    user_id UUID,
+    item_id UUID,
+    PRIMARY KEY(user_id, item_id),
+    CONSTRAINT fk_user_id
+        FOREIGN KEY(user_id) REFERENCES users(id),
+    CONSTRAINT fk_item_id
+        FOREIGN KEY(item_id) REFERENCES items(id)
+);
+
 CREATE TABLE orders (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     shipment_time timestamp not NULL,
@@ -105,9 +115,9 @@ INSERT INTO items(id, name, category, description, price, vendor, pictures) VALU
 INSERT INTO items(id, name, category, description, price, vendor, pictures) VALUES ('223ba075-8c96-4760-8620-f0adbe3f2e7e', 'smartphone bq', 'd0d3df2d-f6c8-4956-9d76-998ee1ec8a39', 'best smartphone', 6990, 'samsung', '{"http://localhost:8000/files/items/223ba075-8c96-4760-8620-f0adbe3f2e7e/20221213132809.jpeg"}');
 INSERT INTO items(id, name, category, description, price, vendor, pictures) VALUES ('3f05a859-1806-4851-a457-c9cb69b22846', 'smartphone techno', 'd0d3df2d-f6c8-4956-9d76-998ee1ec8a39', 'best smartphone', 9990, 'samsung', '{"http://localhost:8000/files/items/3f05a859-1806-4851-a457-c9cb69b22846/20221213132821.jpeg"}');
 INSERT INTO items(id, name, category, description, price, vendor, pictures) VALUES ('7eb10fc6-20e8-4b3b-95a3-0f55cf0145d6', 'smartphone techno', 'd0d3df2d-f6c8-4956-9d76-998ee1ec8a39', 'best smartphone', 8990, 'samsung', '{"http://localhost:8000/files/items/7eb10fc6-20e8-4b3b-95a3-0f55cf0145d6/20221213132833.jpeg"}');
-INSERT INTO rights(name, rules) VALUES ('Customer', '{}');
+INSERT INTO rights(name, rules) VALUES ('Customer', '{profile}, {cart}');
 INSERT INTO rights(id, name, rules) VALUES ('fa9c4027-b2d4-4468-8cf5-beae213ab46d', 'Admin', '{change categories}, {change items} ');
-INSERT INTO users(name, password, email, rights) VALUES ('admin', 'qwerty12345', 'admin@gmail.com', 'fa9c4027-b2d4-4468-8cf5-beae213ab46d');
+INSERT INTO users(name, password, email, rights) VALUES ('admin', '736a64686b61736864737738323372676665674e17a448e043206801b95de317e07c839770c8b8', 'admin@gmail.com', 'fa9c4027-b2d4-4468-8cf5-beae213ab46d');
 
 
 

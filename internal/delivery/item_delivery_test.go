@@ -1125,3 +1125,377 @@ func TestDeleteItem(t *testing.T) {
 	delivery.DeleteItem(c)
 	require.Equal(t, 200, w.Code)
 }
+
+func TestItemsQuantityInCategory(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	ctx := context.Background()
+	logger := zap.L()
+	itemUsecase := mocks.NewMockIItemUsecase(ctrl)
+	categoryUsecase := mocks.NewMockICategoryUsecase(ctrl)
+
+	cartUsecase := mocks.NewMockICartUsecase(ctrl)
+	filestorage := fs.NewMockFileStorager(ctrl)
+	delivery := NewDelivery(itemUsecase, nil, categoryUsecase, cartUsecase, logger, filestorage)
+
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Params = []gin.Param{
+		{
+			Key:   "ctegoryName",
+			Value: "test",
+		},
+	}
+	delivery.ItemsQuantityInCategory(c)
+	require.Equal(t, 400, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Params = []gin.Param{
+		{
+			Key:   "categoryName",
+			Value: "test",
+		},
+	}
+
+	itemUsecase.EXPECT().ItemsQuantityInCategory(ctx, "test").Return(-1, err)
+	delivery.ItemsQuantityInCategory(c)
+	require.Equal(t, 500, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Params = []gin.Param{
+		{
+			Key:   "categoryName",
+			Value: "test",
+		},
+	}
+
+	itemUsecase.EXPECT().ItemsQuantityInCategory(ctx, "test").Return(1, nil)
+	delivery.ItemsQuantityInCategory(c)
+	require.Equal(t, 200, w.Code)
+}
+
+func TestItemsQuantityInFavourite(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	ctx := context.Background()
+	logger := zap.L()
+	itemUsecase := mocks.NewMockIItemUsecase(ctrl)
+	categoryUsecase := mocks.NewMockICategoryUsecase(ctrl)
+
+	cartUsecase := mocks.NewMockICartUsecase(ctrl)
+	filestorage := fs.NewMockFileStorager(ctrl)
+	delivery := NewDelivery(itemUsecase, nil, categoryUsecase, cartUsecase, logger, filestorage)
+
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Params = []gin.Param{
+		{
+			Key:   "ctegoryName",
+			Value: "test",
+		},
+	}
+	delivery.ItemsQuantityInFavourite(c)
+	require.Equal(t, 400, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Params = []gin.Param{
+		{
+			Key:   "userID",
+			Value: testId.String(),
+		},
+	}
+
+	itemUsecase.EXPECT().ItemsQuantityInFavourite(ctx, testId).Return(-1, err)
+	delivery.ItemsQuantityInFavourite(c)
+	require.Equal(t, 500, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Params = []gin.Param{
+		{
+			Key:   "userID",
+			Value: testId.String(),
+		},
+	}
+
+	itemUsecase.EXPECT().ItemsQuantityInFavourite(ctx, testId).Return(1, nil)
+	delivery.ItemsQuantityInFavourite(c)
+	require.Equal(t, 200, w.Code)
+}
+
+func TestAddFavouriteItem(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	ctx := context.Background()
+	logger := zap.L()
+	itemUsecase := mocks.NewMockIItemUsecase(ctrl)
+	categoryUsecase := mocks.NewMockICategoryUsecase(ctrl)
+
+	cartUsecase := mocks.NewMockICartUsecase(ctrl)
+	filestorage := fs.NewMockFileStorager(ctrl)
+	delivery := NewDelivery(itemUsecase, nil, categoryUsecase, cartUsecase, logger, filestorage)
+
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Params = []gin.Param{
+		{
+			Key:   "userID",
+			Value: "test",
+		},
+	}
+	delivery.AddFavouriteItem(c)
+	require.Equal(t, 400, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Params = []gin.Param{
+		{
+			Key:   "userID",
+			Value: testId.String(),
+		},
+		{
+			Key: "itemID",
+			Value: "test",
+		},
+	}
+	delivery.AddFavouriteItem(c)
+	require.Equal(t, 400, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Params = []gin.Param{
+		{
+			Key:   "userID",
+			Value: testId.String(),
+		},
+		{
+			Key: "itemID",
+			Value: testId2.String(),
+		},
+	}
+	itemUsecase.EXPECT().AddFavouriteItem(ctx, testId, testId2).Return(err)
+	delivery.AddFavouriteItem(c)
+	require.Equal(t, 500, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Params = []gin.Param{
+		{
+			Key:   "userID",
+			Value: testId.String(),
+		},
+		{
+			Key: "itemID",
+			Value: testId2.String(),
+		},
+	}
+	itemUsecase.EXPECT().AddFavouriteItem(ctx, testId, testId2).Return(nil)
+	delivery.AddFavouriteItem(c)
+	require.Equal(t, 200, w.Code)
+}
+
+func TestDeleteFavouriteItem(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	ctx := context.Background()
+	logger := zap.L()
+	itemUsecase := mocks.NewMockIItemUsecase(ctrl)
+	categoryUsecase := mocks.NewMockICategoryUsecase(ctrl)
+
+	cartUsecase := mocks.NewMockICartUsecase(ctrl)
+	filestorage := fs.NewMockFileStorager(ctrl)
+	delivery := NewDelivery(itemUsecase, nil, categoryUsecase, cartUsecase, logger, filestorage)
+
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Params = []gin.Param{
+		{
+			Key:   "userID",
+			Value: "test",
+		},
+	}
+	delivery.DeleteFavouriteItem(c)
+	require.Equal(t, 400, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Params = []gin.Param{
+		{
+			Key:   "userID",
+			Value: testId.String(),
+		},
+		{
+			Key: "itemID",
+			Value: "test",
+		},
+	}
+	delivery.DeleteFavouriteItem(c)
+	require.Equal(t, 400, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Params = []gin.Param{
+		{
+			Key:   "userID",
+			Value: testId.String(),
+		},
+		{
+			Key: "itemID",
+			Value: testId2.String(),
+		},
+	}
+	itemUsecase.EXPECT().DeleteFavouriteItem(ctx, testId, testId2).Return(err)
+	delivery.DeleteFavouriteItem(c)
+	require.Equal(t, 500, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Params = []gin.Param{
+		{
+			Key:   "userID",
+			Value: testId.String(),
+		},
+		{
+			Key: "itemID",
+			Value: testId2.String(),
+		},
+	}
+	itemUsecase.EXPECT().DeleteFavouriteItem(ctx, testId, testId2).Return(nil)
+	delivery.DeleteFavouriteItem(c)
+	require.Equal(t, 200, w.Code)
+}
+
+func TestGetFavouriteItems(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	ctx := context.Background()
+	logger := zap.L()
+	itemUsecase := mocks.NewMockIItemUsecase(ctrl)
+	categoryUsecase := mocks.NewMockICategoryUsecase(ctrl)
+
+	cartUsecase := mocks.NewMockICartUsecase(ctrl)
+	filestorage := fs.NewMockFileStorager(ctrl)
+	delivery := NewDelivery(itemUsecase, nil, categoryUsecase, cartUsecase, logger, filestorage)
+
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Request.URL, _ = url.Parse(fmt.Sprintf("?param=%s&offset=0&limit=1", testId.String()))
+	testLimitOptions := map[string]int{"offset": 0, "limit": 1}
+	testSortOptions := map[string]string{"sortType": "name", "sortOrder": "asc"}
+
+	bytesRes, _ := json.Marshal(&testOutItems.List)
+	itemUsecase.EXPECT().GetFavouriteItems(ctx, testId, testLimitOptions, testSortOptions).Return(testItems, nil)
+	delivery.GetFavouriteItems(c)
+	require.Equal(t, 200, w.Code)
+	require.Equal(t, bytesRes, w.Body.Bytes())
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Request.URL, _ = url.Parse(fmt.Sprintf("?param=%s&offset=0&limit=1", testId.String()))
+
+	itemUsecase.EXPECT().GetFavouriteItems(ctx, testId, testLimitOptions, testSortOptions).Return([]models.Item{}, fmt.Errorf("error"))
+	delivery.GetFavouriteItems(c)
+	require.Equal(t, 500, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Request.URL, _ = url.Parse("?param=test&offset=0&limit=k")
+
+	delivery.GetFavouriteItems(c)
+	require.Equal(t, 400, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Request.URL, _ = url.Parse("?offset=0&limit=1")
+
+	delivery.GetFavouriteItems(c)
+	require.Equal(t, 400, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Request.URL, _ = url.Parse(fmt.Sprintf("?param=%s&offset=0&limit=0", testId.String()))
+
+	itemUsecase.EXPECT().GetFavouriteItems(ctx, testId, map[string]int{"offset": 0, "limit": 10}, testSortOptions).Return(testItems, nil)
+	delivery.GetFavouriteItems(c)
+	require.Equal(t, 200, w.Code)
+	require.Equal(t, bytesRes, w.Body.Bytes())
+}

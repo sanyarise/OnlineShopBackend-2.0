@@ -7,12 +7,12 @@ import (
 )
 
 type UserConfig struct {
-	ClientID string `json:"client_id"`
+	ClientID     string `json:"client_id"`
 	ClientSecret string `json:"client_secret"`
-	RedirectURL string `json:"redirect_uri"`
+	RedirectURL  string `json:"redirect_uri"`
 }
 
-func NewUserConfig() (*UserConfig, error)  {
+func NewUserConfig() (*UserConfig, error) {
 	var configPathGoogle = "./internal/delivery/user/googleOauth2/clientSecretGoogle.json"
 
 	var cfg = UserConfig{}

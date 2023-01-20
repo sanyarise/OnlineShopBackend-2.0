@@ -30,54 +30,7 @@ definitions:
   cart.CartItem:
     properties:
       item:
-        $ref: '#/definitions/cart.Item'
-      quantity:
-        $ref: '#/definitions/cart.Quantity'
-    type: object
-  cart.Category:
-    properties:
-      description:
-        example: Электротехнические товары для дома
-        type: string
-      id:
-        example: 00000000-0000-0000-0000-000000000000
-        format: uuid
-        type: string
-      image:
-        type: string
-      name:
-        example: Электротехника
-        type: string
-    required:
-    - description
-    - id
-    - name
-    type: object
-  cart.Item:
-    properties:
-      category:
-        $ref: '#/definitions/cart.Category'
-      image:
-        type: string
-      itemId:
-        example: 00000000-0000-0000-0000-000000000000
-        format: uuid
-        type: string
-      price:
-        default: 10
-        example: 1990
-        minimum: 0
-        type: integer
-      title:
-        example: Пылесос
-        type: string
-    required:
-    - itemId
-    - price
-    - title
-    type: object
-  cart.Quantity:
-    properties:
+        $ref: '#/definitions/item.OutItem'
       quantity:
         default: 1
         example: 3
@@ -292,54 +245,24 @@ definitions:
     - price
     - title
     type: object
-  user.Address:
-    properties:
-      city:
-        type: string
-      country:
-        type: string
-      street:
-        type: string
-      zipcode:
-        type: string
-    type: object
-  user.Credentials:
-    properties:
-      email:
-        type: string
-      password:
-        type: string
-    type: object
-  user.Profile:
-    properties:
-      address:
-        $ref: '#/definitions/user.Address'
-      email:
-        type: string
-      first_name:
-        type: string
-      last_name:
-        type: string
-      rights:
-        $ref: '#/definitions/user.Rights'
-    type: object
-  user.Rights:
-    properties:
-      id:
-        type: string
-      name:
-        type: string
-      rules:
-        items:
-          type: string
-        type: array
-    type: object
-  user.Token:
+  jwtauth.Token:
     properties:
       access_token:
         type: string
       refresh_token:
         type: string
+    type: object
+  password.Credentials:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  password.User:
     type: object
 info:
   contact:
@@ -417,6 +340,41 @@ paths:
           schema:
             $ref: '#/definitions/delivery.ErrorResponse'
       summary: Method provides to add item to cart
+      tags:
+      - carts
+  /cart/byUser/{userID}:
+    get:
+      consumes:
+      - application/json
+      description: The method allows you to get the cart by user id.
+      parameters:
+      - description: Id of user
+        in: path
+        name: userID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Cart structure
+          schema:
+            $ref: '#/definitions/cart.Cart'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Get cart by user id
       tags:
       - carts
   /cart/create/{userID}:
@@ -822,17 +780,27 @@ paths:
         in: query
         name: param
         type: string
+      - default: 0
+        description: Offset when receiving records
+        in: query
+        name: offset
+        type: integer
       - default: 10
         description: Quantity of recordings
         in: query
         minimum: 0
         name: limit
         type: integer
-      - default: 0
-        description: Offset when receiving records
+      - default: '"name"'
+        description: Sort type (name or price)
         in: query
-        name: offset
-        type: integer
+        name: sortType
+        type: string
+      - default: '"asc"'
+        description: Sort order (asc or desc)
+        in: query
+        name: sortOrder
+        type: string
       produces:
       - application/json
       responses:
@@ -892,6 +860,44 @@ paths:
           schema:
             $ref: '#/definitions/delivery.ErrorResponse'
       summary: Get item by id
+      tags:
+      - items
+  /items/addFav/{userID}/{itemID}:
+    post:
+      consumes:
+      - application/json
+      description: Method provides add item in favourites.
+      parameters:
+      - description: id of user
+        in: path
+        name: userID
+        required: true
+        type: string
+      - description: id of item
+        in: path
+        name: itemID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Method provides add item in favourites
       tags:
       - items
   /items/create/:
@@ -961,6 +967,99 @@ paths:
           schema:
             $ref: '#/definitions/delivery.ErrorResponse'
       summary: Method provides to delete item
+      tags:
+      - items
+  /items/deleteFav/{userID}/{itemID}:
+    delete:
+      consumes:
+      - application/json
+      description: Method provides delete item from favourites.
+      parameters:
+      - description: id of user
+        in: path
+        name: userID
+        required: true
+        type: string
+      - description: id of item
+        in: path
+        name: itemID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Method provides delete item from favourites
+      tags:
+      - items
+  /items/favList:
+    get:
+      consumes:
+      - application/json
+      description: Method provides to get list of favourite items
+      parameters:
+      - description: ID of user
+        in: query
+        name: param
+        type: string
+      - default: 10
+        description: Quantity of recordings
+        in: query
+        minimum: 0
+        name: limit
+        type: integer
+      - default: 0
+        description: Offset when receiving records
+        in: query
+        name: offset
+        type: integer
+      - description: Sort type (name or price)
+        in: query
+        name: sortType
+        type: string
+      - description: Sort order (asc or desc)
+        in: query
+        name: sortOrder
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of items
+          schema:
+            items:
+              $ref: '#/definitions/item.OutItem'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Get list of favourite items
       tags:
       - items
   /items/image/delete:
@@ -1053,17 +1152,27 @@ paths:
       - application/json
       description: Method provides to get list of items
       parameters:
+      - default: 0
+        description: Offset when receiving records
+        in: query
+        name: offset
+        type: integer
       - default: 10
         description: Quantity of recordings
         in: query
         minimum: 0
         name: limit
         type: integer
-      - default: 0
-        description: Offset when receiving records
+      - default: '"name"'
+        description: Sort type (name or price)
         in: query
-        name: offset
-        type: integer
+        name: sortType
+        type: string
+      - default: '"asc"'
+        description: Sort order (asc or desc)
+        in: query
+        name: sortOrder
+        type: string
       produces:
       - application/json
       responses:
@@ -1115,6 +1224,68 @@ paths:
       summary: Get quantity of items
       tags:
       - items
+  /items/quantityCat/{categoryName}:
+    get:
+      consumes:
+      - application/json
+      description: Method provides to get quantity of items in category
+      parameters:
+      - description: Name of category
+        in: path
+        name: categoryName
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Quantity of items
+          schema:
+            $ref: '#/definitions/item.ItemsQuantity'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Get quantity of items in category
+      tags:
+      - items
+  /items/quantityFav/{userID}:
+    get:
+      consumes:
+      - application/json
+      description: Method provides to get quantity favourite items
+      parameters:
+      - description: id of user
+        in: path
+        name: userID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Quantity of items
+          schema:
+            $ref: '#/definitions/item.ItemsQuantity'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Get quantity of favourite items
+      tags:
+      - items
   /items/search:
     get:
       consumes:
@@ -1125,17 +1296,27 @@ paths:
         in: query
         name: param
         type: string
+      - default: 0
+        description: Offset when receiving records
+        in: query
+        name: offset
+        type: integer
       - default: 10
         description: Quantity of recordings
         in: query
         minimum: 0
         name: limit
         type: integer
-      - default: 0
-        description: Offset when receiving records
+      - default: '"name"'
+        description: Sort type (name or price)
         in: query
-        name: offset
-        type: integer
+        name: sortType
+        type: string
+      - default: '"asc"'
+        description: Sort order (asc or desc)
+        in: query
+        name: sortOrder
+        type: string
       produces:
       - application/json
       responses:
@@ -1196,6 +1377,21 @@ paths:
       summary: Method provides to update store item
       tags:
       - items
+  /user/callbackGoogle:
+    get:
+      consumes:
+      - application/json
+      description: Method provides to log in with Google
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "500":
+          description: Internal Server Error
+      summary: Callback Google provides logic for oauth google login
+      tags:
+      - user
   /user/create:
     post:
       consumes:
@@ -1207,14 +1403,14 @@ paths:
         name: user
         required: true
         schema:
-          $ref: '#/definitions/user.Credentials'
+          $ref: '#/definitions/password.User'
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
           schema:
-            $ref: '#/definitions/user.Token'
+            $ref: '#/definitions/jwtauth.Token'
         "400":
           description: Bad Request
         "404":
@@ -1234,19 +1430,19 @@ paths:
       - application/json
       description: Method provides to login a user
       parameters:
-      - description: User data
+      - description: Login
         in: body
         name: user
         required: true
         schema:
-          $ref: '#/definitions/user.Credentials'
+          $ref: '#/definitions/password.Credentials'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/user.Token'
+            $ref: '#/definitions/jwtauth.Token'
         "404":
           description: 404 Not Found
           schema:
@@ -1256,6 +1452,21 @@ paths:
           schema:
             $ref: '#/definitions/delivery.ErrorResponse'
       summary: Login user
+      tags:
+      - user
+  /user/login/google:
+    get:
+      consumes:
+      - application/json
+      description: Method provides to log in with Google
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "500":
+          description: Internal Server Error
+      summary: Login with Google oauth2
       tags:
       - user
   /user/logout:
@@ -1284,7 +1495,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/user.Profile'
+            $ref: '#/definitions/password.User'
         "404":
           description: 404 Not Found
           schema:

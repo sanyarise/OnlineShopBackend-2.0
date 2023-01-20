@@ -48,6 +48,26 @@ func TestGetCart(t *testing.T) {
 	require.Equal(t, res, testModelsCart)
 }
 
+func TestGetCartByUserId(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	logger := zap.L()
+	cartRepo := mocks.NewMockCartStore(ctrl)
+	usecase := NewCartUseCase(cartRepo, logger)
+	ctx := context.Background()
+
+	cartRepo.EXPECT().GetCartByUserId(ctx, testId).Return(nil, err)
+	res, err := usecase.GetCartByUserId(ctx, testId)
+	require.Error(t, err)
+	require.Nil(t, res)
+
+	cartRepo.EXPECT().GetCartByUserId(ctx, testId).Return(testModelsCart, nil)
+	res, err = usecase.GetCartByUserId(ctx, testId)
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	require.Equal(t, res, testModelsCart)
+}
+
 func TestDeleteItemFromCart(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()

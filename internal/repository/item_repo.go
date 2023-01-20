@@ -249,7 +249,6 @@ func (repo *itemRepo) GetItemsByCategory(ctx context.Context, categoryName strin
 				repo.logger.Error(err.Error())
 				return
 			}
-			repo.logger.Info(fmt.Sprintf("find item: %v", item))
 			itemChan <- *item
 		}
 	}()
@@ -287,4 +286,67 @@ func (repo *itemRepo) DeleteItem(ctx context.Context, id uuid.UUID) error {
 	}
 	repo.logger.Infof("Item with id: %s successfully deleted from database", id)
 	return nil
+}
+
+func (repo *itemRepo) AddFavouriteItem(ctx context.Context, userId uuid.UUID, itemId uuid.UUID) error {
+	repo.logger.Debug("Enter in repository AddFavouriteItem() with args: ctx, userid: %v, itemId: %v", userId, itemId)
+	pool := repo.storage.GetPool()
+	_, err := pool.Exec(ctx, `INSERT INTO favourite_items (user_id, item_id) VALUES ($1, $2)`, userId, itemId)
+	if err != nil {
+		repo.logger.Errorf("can't add item to favourite_items: %s", err)
+		return fmt.Errorf("can't add item to favourite_items: %w", err)
+	}
+	return nil
+}
+
+func (repo *itemRepo) DeleteFavouriteItem(ctx context.Context, userId uuid.UUID, itemId uuid.UUID) error {
+	repo.logger.Debug("Enter in repository DeleteFavouriteItem() with args: ctx, userid: %v, itemId: %v", userId, itemId)
+	pool := repo.storage.GetPool()
+	_, err := pool.Exec(ctx, `DELETE FROM favourite_items WHERE user_id=$1 AND item_id=$2`, userId, itemId)
+	if err != nil {
+		repo.logger.Errorf("can't delete item from favourite: %s", err)
+		return fmt.Errorf("can't delete item from favourite: %w", err)
+	}
+	repo.logger.Info("Delete item from cart success")
+	return nil
+}
+
+func (repo *itemRepo) GetFavouriteItems(ctx context.Context, userId uuid.UUID) (chan models.Item, error) {
+	repo.logger.Debug("Enter in repository GetFavouriteItems() with args: ctx, userId: %v", userId)
+	itemChan := make(chan models.Item, 100)
+	go func() {
+		defer close(itemChan)
+		pool := repo.storage.GetPool()
+		item := models.Item{}
+		rows, err := pool.Query(ctx, `
+		SELECT 	i.id, i.name, i.description, i.category, cat.name, cat.description, cat.picture, i.price, i.vendor, i.pictures
+		FROM favourite_items f, items i, categories cat
+		WHERE f.user_id=$1 and i.id = f.item_id and cat.id = i.category`, userId)
+		if err != nil {
+			repo.logger.Errorf("can't select items from favourite_items: %s", err)
+			return
+		}
+		defer rows.Close()
+		repo.logger.Debug("read info from db in pool.Query success")
+		for rows.Next() {
+			if err := rows.Scan(
+				&item.Id,
+				&item.Title,
+				&item.Description,
+				&item.Category.Id,
+				&item.Category.Name,
+				&item.Category.Description,
+				&item.Category.Image,
+				&item.Price,
+				&item.Vendor,
+				&item.Images,
+			); err != nil {
+				repo.logger.Error(err.Error())
+				return
+			}
+			itemChan <- item
+		}
+	}()
+	repo.logger.Info("Select items from favourites success")
+	return itemChan, nil
 }

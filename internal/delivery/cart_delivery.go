@@ -74,6 +74,62 @@ func (delivery *Delivery) GetCart(c *gin.Context) {
 	c.JSON(http.StatusOK, cart)
 }
 
+// GetCartByUserId - get a specific cart by user id
+//
+//	@Summary		Get cart by user id
+//	@Description	The method allows you to get the cart by user id.
+//	@Tags			carts
+//	@Accept			json
+//	@Produce		json
+//	@Param			userID	path		string		true	"Id of user"
+//	@Success		200		{object}	cart.Cart	"Cart structure"
+//	@Failure		400		{object}	ErrorResponse
+//	@Failure		403		"Forbidden"
+//	@Failure		404		{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500		{object}	ErrorResponse
+//	@Router			/cart/byUser/{userID} [get]
+func (delivery *Delivery) GetCartByUserId(c *gin.Context) {
+	delivery.logger.Debug("Enter in delivery GetCartByUserId()")
+	ctx := c.Request.Context()
+
+	userId, err := uuid.Parse(c.Param("userID"))
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
+		return
+	}
+
+	modelCart, err := delivery.cartUsecase.GetCartByUserId(ctx, userId)
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusInternalServerError, err)
+		return
+	}
+
+	cartItems := make([]cart.CartItem, len(modelCart.Items))
+	for idx, item := range modelCart.Items {
+		cartItems[idx].Item.Id = item.Id.String()
+		cartItems[idx].Item.Title = item.Title
+		cartItems[idx].Item.Description = item.Description
+		cartItems[idx].Item.Category.Id = item.Category.Id.String()
+		cartItems[idx].Item.Category.Name = item.Category.Name
+		cartItems[idx].Item.Category.Description = item.Category.Description
+		cartItems[idx].Item.Category.Image = item.Category.Image
+		cartItems[idx].Item.Price = item.Price
+		cartItems[idx].Item.Vendor = item.Vendor
+		cartItems[idx].Item.Images = item.Images
+		cartItems[idx].Quantity.Quantity = item.Quantity
+	}
+
+	cart := cart.Cart{
+		Id:     modelCart.Id.String(),
+		UserId: modelCart.UserId.String(),
+		Items:  cartItems,
+	}
+
+	c.JSON(http.StatusOK, cart)
+}
+
 // CreateCart - create a new cart
 //
 //	@Summary		Method provides to create cart with items

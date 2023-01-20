@@ -4,13 +4,14 @@ import (
 	"OnlineShopBackend/internal/models"
 	"context"
 	"fmt"
+	"math/rand"
+	"strings"
+	"time"
+
 	"github.com/goccy/go-json"
 	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
-	"math/rand"
-	"strings"
-	"time"
 )
 
 type Token struct {
@@ -20,14 +21,14 @@ type Token struct {
 
 type Payload struct {
 	jwt.StandardClaims
-	Email    string
-	Role     string
-	UserId   uuid.UUID
+	Email  string
+	Role   string
+	UserId uuid.UUID
 }
 
 func NewJWT(payload Payload) (string, error) {
-	key := []byte("dsf498uh324seyu2837912sd7*7897")              //TODO
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &payload) //jwtauth.SigningMethodHS256
+	key := []byte("dsf498uh324seyu2837912sd7*7897") //TODO
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &payload)
 	return token.SignedString(key)
 }
 
@@ -72,9 +73,9 @@ func ParseAuthHeader(header string) (*Payload, error) {
 		return &Payload{}, errors.New("unable to unmarshall")
 	}
 	payload := &Payload{
-		Email:    cr.Email,
-		Role:     cr.Role,
-		UserId:   cr.UserId,
+		Email:  cr.Email,
+		Role:   cr.Role,
+		UserId: cr.UserId,
 	}
 	return payload, nil
 }
@@ -92,9 +93,9 @@ func CreateSessionJWT(ctx context.Context, user *models.User) (Token, error) {
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Hour * 72).Unix(),
 		},
-		Email:    user.Email,
-		Role:     user.Rights.Name,
-		UserId:   user.ID,
+		Email:  user.Email,
+		Role:   user.Rights.Name,
+		UserId: user.ID,
 	}
 
 	accessToken, err := NewJWT(payload)
@@ -118,4 +119,3 @@ func CreateSessionJWT(ctx context.Context, user *models.User) (Token, error) {
 
 	return token, nil
 }
-

@@ -15,21 +15,19 @@ import (
 	"OnlineShopBackend/internal/delivery/user/password"
 	"OnlineShopBackend/internal/models"
 	"OnlineShopBackend/internal/usecase"
-	"github.com/dghubble/gologin/v2"
-	gg "github.com/dghubble/gologin/v2/google"
-	"golang.org/x/oauth2/yandex"
 	"net/http"
 
+	"github.com/dghubble/gologin/v2"
+	gg "github.com/dghubble/gologin/v2/google"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
 	"golang.org/x/oauth2"
 	og2 "golang.org/x/oauth2/google"
-	//"golang.org/x/oauth2/yandex"
 )
 
 const (
-	userCtx = "userID"
+	userCtx             = "userID"
 	authorizationHeader = "Authorization"
 )
 
@@ -40,8 +38,8 @@ const (
 //	@Tags			user
 //	@Accept			json
 //	@Produce		json
-//	@Param			user	body		user.Credentials	true	"User data"	//TODO
-//	@Success		201		{object}	user.Token
+//	@Param			user	body		password.User	true	"User data"
+//	@Success		201		{object}	jwtauth.Token
 //	@Failure		400		"Bad Request"
 //	@Failure		404		{object}	ErrorResponse	"404 Not Found"
 //	@Failure		500		{object}	ErrorResponse
@@ -49,6 +47,7 @@ const (
 func (delivery *Delivery) CreateUser(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery CreateUser()")
 	ctx := c.Request.Context()
+	//var newUser *models.User
 	var newUser *models.User
 	if err := c.ShouldBindJSON(&newUser); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -94,15 +93,15 @@ func (delivery *Delivery) CreateUser(c *gin.Context) {
 //	@Tags			user
 //	@Accept			json
 //	@Produce		json
-//	@Param			user	body		user.Credentials	true	"User data"
-//	@Success		200		{object}	user.Token			//TODO
+//	@Param			user	body		password.Credentials	true	"Login"
+//	@Success		200		{object}	jwtauth.Token
 //	@Failure		404		"Bad Request"
 //	@Failure		404		{object}	ErrorResponse	"404 Not Found"
 //	@Failure		500		{object}	ErrorResponse
 //	@Router			/user/login [post]
 func (delivery *Delivery) LoginUser(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery LoginUser()")
-	var userCredentials usecase.Credentials
+	var userCredentials *usecase.Credentials
 	if err := c.ShouldBindJSON(&userCredentials); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -136,7 +135,7 @@ func (delivery *Delivery) LoginUser(c *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Security		ApiKeyAuth || firebase
-//	@Success		200	{object}	user.Profile	//TODO
+//	@Success		200	{object}	password.User	//TODO
 //	@Failure		404	"Bad Request"
 //	@Failure		404	{object}	ErrorResponse	"404 Not Found"
 //	@Failure		500	{object}	ErrorResponse
@@ -154,22 +153,7 @@ func (delivery *Delivery) UserProfile(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 	}
-	//userProfile := usecase.Profile{
-	//	Email:     userData.Email,
-	//	FirstName: userData.Firstname,
-	//	LastName:  userData.Lastname,
-	//	Address: usecase.Address{
-	//		Zipcode: userData.Address.Zipcode,
-	//		Country: userData.Address.Country,
-	//		City:    userData.Address.City,
-	//		Street:  userData.Address.Street,
-	//	},
-	//	Rights: usecase.Rights{
-	//		ID:    userData.Rights.ID,
-	//		Name:  userData.Rights.Name,
-	//		Rules: userData.Rights.Rules,
-	//	},
-	//}
+
 	password.SanitizePassword(userData)
 	c.JSON(http.StatusCreated, userData)
 }
@@ -187,18 +171,6 @@ func (delivery *Delivery) UserProfileUpdate(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
-	//updatedUser := models.User{
-	//	ID:        userCr.UserId,
-	//	Firstname: newInfoUser.Firstname,
-	//	Lastname:  newInfoUser.Lastname,
-	//	Address: models.UserAddress{
-	//		Zipcode: newInfoUser.Address.Zipcode,
-	//		Country: newInfoUser.Address.Country,
-	//		City:    newInfoUser.Address.City,
-	//		Street:  newInfoUser.Address.Street,
-	//	},
-	//}
 
 	userUpdated, err := delivery.userUsecase.UpdateUserData(c.Request.Context(), userCr.UserId, newInfoUser)
 	if err != nil {
@@ -343,34 +315,3 @@ func (delivery *Delivery) LogoutUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"you have been successfully logged out": nil})
 
 }
-
-// LoginUserYandex -
-func (delivery *Delivery) LoginUserYandex(c *gin.Context) {
-	delivery.logger.Debug("Enter in delivery LoginUserYandex()")
-	oauth2ConfigYandex := &oauth2.Config{
-		ClientID:     "c0ba17e8f61d47fdb0a978131d1c2d48",
-		ClientSecret: "2e41418551724d918919ac09d4f6a1eb",
-		Endpoint:     yandex.Endpoint,
-		RedirectURL:  "http://localhost:8000/user/callbackYandex",
-		Scopes:       []string{"email"},
-	}
-	c.Redirect(http.StatusTemporaryRedirect, oauth2ConfigYandex.AuthCodeURL("random")) //
-
-	delivery.logger.Debug(yandex.Endpoint.TokenURL)
-	c.JSON(http.StatusOK, yandex.Endpoint)
-}
-
-// CallbackYandex -
-func (delivery *Delivery) CallbackYandex(c *gin.Context) {
-	delivery.logger.Debug("Enter in delivery CallbackYandex()")
-	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-	//c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-	//c.Writer.Header().Set("Access-Control-Allow-Credentials", "false")
-	//c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
-	//c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
-	//stateConfig := gologin.DefaultCookieConfig
-	//gologinoauth2.StateHandler(stateConfig, )
-	//c.JSON(http.StatusOK, gin.H{})
-
-}
-

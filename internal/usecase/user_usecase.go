@@ -5,6 +5,7 @@ import (
 	"OnlineShopBackend/internal/repository"
 	"context"
 	"fmt"
+
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
@@ -30,8 +31,6 @@ type Credentials struct {
 	Email    string `json:"email" binding:"required"`
 	Password string `json:"password" binding:"required"`
 }
-
-
 
 type Profile struct {
 	Email     string  `json:"email,omitempty"`

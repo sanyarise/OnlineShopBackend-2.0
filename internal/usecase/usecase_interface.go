@@ -19,6 +19,12 @@ type IItemUsecase interface {
 	UpdateCash(ctx context.Context, id uuid.UUID, op string) error
 	UpdateItemsInCategoryCash(ctx context.Context, newItem *models.Item, op string) error
 	DeleteItem(ctx context.Context, id uuid.UUID) error
+	AddFavouriteItem(ctx context.Context, userId uuid.UUID, itemId uuid.UUID) error
+	DeleteFavouriteItem(ctx context.Context, userId uuid.UUID, itemId uuid.UUID) error
+	GetFavouriteItems(ctx context.Context, userId uuid.UUID, limitOptions map[string]int, sortOptions map[string]string) ([]models.Item, error)
+	ItemsQuantityInFavourite(ctx context.Context, userId uuid.UUID) (int, error)
+	UpdateFavouriteItemsCash(ctx context.Context, userId uuid.UUID, itemId uuid.UUID, op string)
+	SortItems(items []models.Item, sortType string, sortOrder string)
 }
 
 type ICategoryUsecase interface {
@@ -38,6 +44,7 @@ type ICartUsecase interface {
 	Create(ctx context.Context, userId uuid.UUID) (uuid.UUID, error)
 	AddItemToCart(ctx context.Context, cartId uuid.UUID, itemId uuid.UUID) error
 	DeleteCart(ctx context.Context, cartId uuid.UUID) error
+	GetCartByUserId(ctx context.Context, userId uuid.UUID) (*models.Cart, error)
 }
 
 type IUserUsecase interface {

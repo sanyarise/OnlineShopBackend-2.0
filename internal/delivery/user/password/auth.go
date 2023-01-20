@@ -4,17 +4,36 @@ import (
 	"OnlineShopBackend/internal/models"
 	"crypto/sha1"
 	"fmt"
-	"github.com/caarlos0/env/v6"
 	"log"
+	"os"
 	"unicode"
+
+	"github.com/caarlos0/env/v6"
+	"github.com/goccy/go-json"
+	"github.com/google/uuid"
 )
 
 type SaltSHA struct {
-	Salt string `json:"salt" env:"SALT" envDefault:"sjdhkashdsw823rgfeg"`
+	Salt string `json:"salt"`
+}
+
+type User struct {
+	ID        uuid.UUID          `json:"id"`
+	Firstname string             `json:"firstname,omitempty"`
+	Lastname  string             `json:"lastname,omitempty"`
+	Password  string             `json:"password,omitempty"`
+	Email     string             `json:"email,omitempty"`
+	Address   models.UserAddress `json:"address,omitempty"`
+	Rights    models.Rights      `json:"rights"`
+}
+
+type Credentials struct {
+	Email    string `json:"email" binding:"required"`
+	Password string `json:"password" binding:"required"`
 }
 
 func NewPasswordConfig() (*SaltSHA, error) {
-	//var configPathHash = "./internal/delivery/user/password/hash.json"
+	var configPathHash = "./internal/delivery/user/password/hash.json"
 
 	var cfg = SaltSHA{}
 
@@ -22,14 +41,14 @@ func NewPasswordConfig() (*SaltSHA, error) {
 		log.Fatalf("can't load environment variables: %s", err)
 	}
 
-	//data, err := os.ReadFile(configPathHash)
-	//if err != nil {
-	//	log.Fatalf("cannot read the file: %s", err)
-	//}
-	//
-	//if err = json.Unmarshal(data, &cfg); err != nil {
-	//	log.Fatalf("cannot unmarshal: %s", err)
-	//}
+	data, err := os.ReadFile(configPathHash)
+	if err != nil {
+		log.Fatalf("cannot read the file: %s", err)
+	}
+
+	if err = json.Unmarshal(data, &cfg); err != nil {
+		log.Fatalf("cannot unmarshal: %s", err)
+	}
 
 	return &cfg, nil
 }
@@ -51,7 +70,7 @@ func ValidationCheck(user models.User) error {
 
 func GeneratePasswordHash(password string) string {
 	cfg, err := NewPasswordConfig()
-	if err != nil{
+	if err != nil {
 		return ""
 	}
 
@@ -64,4 +83,3 @@ func GeneratePasswordHash(password string) string {
 func SanitizePassword(user *models.User) {
 	user.Password = ""
 }
-

@@ -167,8 +167,20 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 		{
 			"ItemsQuantity",
 			http.MethodGet,
-			"/items/quantity", //?categoryName={categoryName} - if category name is empty returns quantity of all items
+			"/items/quantity",
 			delivery.ItemsQuantity,
+		},
+		{
+			"ItemsQuantityInCategory",
+			http.MethodGet,
+			"/items/quantityCat/:categoryName",
+			delivery.ItemsQuantityInCategory,
+		},
+		{
+			"ItemsQuantityInFavourite",
+			http.MethodGet,
+			"/items/quantityFav/:userID",
+			delivery.ItemsQuantityInFavourite,
 		},
 		{
 			"ItemsList",
@@ -189,10 +201,34 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 			delivery.DeleteItem,
 		},
 		{
+			"AddFavouriteItem",
+			http.MethodPost,
+			"/items/addFav/:userID/:itemID",
+			delivery.AddFavouriteItem,
+		},
+		{
+			"DeleteFavouriteItem",
+			http.MethodDelete,
+			"/items/deleteFav/:userID/:itemID",
+			delivery.DeleteFavouriteItem,
+		},
+		{
+			"GetFavouriteItems",
+			http.MethodGet,
+			"/items/favList/", //?param=userIDt&offset=20&limit=10&sort_type=name&sort_order=asc (sort_type == name or price, sort_order == asc or desc)
+			delivery.GetFavouriteItems,
+		},
+		{
 			"GetCart",
 			http.MethodGet,
 			"/cart/:cartID",
 			delivery.GetCart,
+		},
+		{
+			"GetCartByUserId",
+			http.MethodGet,
+			"/cart/byUser/:userID",
+			delivery.GetCartByUserId,
 		},
 		{
 			"CreateCart",
@@ -246,25 +282,12 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 		},
 
 		{
-			"LoginUserYandex",
-			http.MethodGet,
-			"/user/login/yandex",
-			delivery.LoginUserYandex,
-		},
-
-		{
 			"callbackGoogle",
 			http.MethodGet,
 			"/user/callbackGoogle",
 			delivery.CallbackGoogle,
 		},
 
-		{
-			"callbackYandex",
-			http.MethodPost,
-			"/user/callbackYandex",
-			delivery.CallbackYandex,
-		},
 		{
 			"userProfile",
 			http.MethodGet,

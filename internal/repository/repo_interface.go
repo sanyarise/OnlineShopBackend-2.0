@@ -15,6 +15,9 @@ type ItemStore interface {
 	SearchLine(ctx context.Context, param string) (chan models.Item, error)
 	GetItemsByCategory(ctx context.Context, categoryName string) (chan models.Item, error)
 	DeleteItem(ctx context.Context, id uuid.UUID) error
+	AddFavouriteItem(ctx context.Context, userId uuid.UUID, itemId uuid.UUID) error
+	DeleteFavouriteItem(ctx context.Context, userId uuid.UUID, itemId uuid.UUID) error
+	GetFavouriteItems(ctx context.Context, userId uuid.UUID) (chan models.Item, error)
 }
 
 type CategoryStore interface {
@@ -40,6 +43,7 @@ type CartStore interface {
 	DeleteCart(ctx context.Context, cartId uuid.UUID) error
 	DeleteItemFromCart(ctx context.Context, cartId uuid.UUID, itemId uuid.UUID) error
 	GetCart(ctx context.Context, cartId uuid.UUID) (*models.Cart, error)
+	GetCartByUserId(ctx context.Context, userId uuid.UUID) (*models.Cart, error)
 }
 
 type OrderStore interface {
