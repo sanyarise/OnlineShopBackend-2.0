@@ -33,8 +33,13 @@ type UserStore interface {
 	Create(ctx context.Context, user *models.User) (*models.User, error)
 	GetUserByEmail(ctx context.Context, email string) (*models.User, error)
 	GetRightsId(ctx context.Context, name string) (models.Rights, error)
-	UpdateUserData(ctx context.Context, id uuid.UUID, user *models.User) (*models.User, error)
+	UpdateUserData(ctx context.Context, user *models.User) (*models.User, error)
 	SaveSession(ctx context.Context, token string, t int64) error
+	GetUsersList(ctx context.Context) ([]models.User, error)
+	GetUserById(ctx context.Context, id uuid.UUID) (*models.User, error)
+	ChangeUserRole(ctx context.Context, userId uuid.UUID, rightsId uuid.UUID) error
+	ChangeUserPassword(ctx context.Context, userId uuid.UUID, newPassword string) error
+	DeleteUser(ctx context.Context, userId uuid.UUID) error
 }
 
 type CartStore interface {
@@ -53,4 +58,13 @@ type OrderStore interface {
 	ChangeStatus(ctx context.Context, order *models.Order, status models.Status) error
 	GetOrderByID(ctx context.Context, id uuid.UUID) (models.Order, error)
 	GetOrdersForUser(ctx context.Context, user *models.User) (chan models.Order, error)
+}
+
+type RightsStore interface {
+	CreateRights(ctx context.Context, rights *models.Rights) (uuid.UUID, error)
+	UpdateRights(ctx context.Context, rights *models.Rights) error
+	DeleteRights(ctx context.Context, id uuid.UUID) error
+	GetRights(ctx context.Context, id uuid.UUID) (*models.Rights, error)
+	RightsList(ctx context.Context) ([]models.Rights, error)
+	GetRightsByName(ctx context.Context, name string) (*models.Rights, error)
 }
