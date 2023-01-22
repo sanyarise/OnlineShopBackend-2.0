@@ -21,13 +21,7 @@ func NewUserUsecase(userStore repository.UserStore, logger *zap.Logger) IUserUse
 	return &UserUsecase{userStore: userStore, logger: logger}
 }
 
-//type JwtRealisation struct {
-//	ttl int64
-//}
-
-
-
-type Credentials struct {
+/*type Credentials struct {
 	Email    string `json:"email" binding:"required"`
 	Password string `json:"password" binding:"required"`
 }
@@ -51,12 +45,12 @@ type Rights struct {
 	ID    uuid.UUID `json:"id,omitempty"`
 	Name  string    `json:"name,omitempty"`
 	Rules []string  `json:"rules,omitempty"`
-}
+}*/
 
 func (usecase *UserUsecase) CreateUser(ctx context.Context, user *models.User) (*models.User, error) {
-	usecase.logger.Debug("Enter in usecase CreateUser()")
+	usecase.logger.Sugar().Debugf("Enter in usecase CreateUser() with args: ctx, user: %v", user)
 
-	rights, err := usecase.userStore.GetRightsId(ctx, "Customer")
+	rights, err := usecase.userStore.GetRightsId(ctx, "customer")
 	if err != nil {
 		return &models.User{}, err
 	}
@@ -87,33 +81,76 @@ func (usecase *UserUsecase) CreateUser(ctx context.Context, user *models.User) (
 }
 
 func (usecase *UserUsecase) GetUserByEmail(ctx context.Context, email string) (*models.User, error) {
-	var user *models.User
+	usecase.logger.Sugar().Debugf("Enter in usecase GetUserByEmail() with args: ctx, email: %s", email)
 
+	var user *models.User
 	user, err := usecase.userStore.GetUserByEmail(ctx, email)
 	if err != nil {
-		return &models.User{}, err
+		return nil, err
 	}
-
-	//user.Password = ""
-
 	return user, nil
 }
 
 func (usecase *UserUsecase) GetRightsId(ctx context.Context, name string) (*models.Rights, error) {
-	//var rights models.Rights
-
+	usecase.logger.Sugar().Debugf("Enter in usecase user GetRightsId() with args: ctx, name: %s", name)
 	rights, err := usecase.userStore.GetRightsId(ctx, name)
 	if err != nil {
 		return nil, err
 	}
-
 	return &rights, nil
 }
 
-func (usecase *UserUsecase) UpdateUserData(ctx context.Context, id uuid.UUID, user *models.User) (*models.User, error) {
-	user, err := usecase.userStore.UpdateUserData(ctx, id, user)
+func (usecase *UserUsecase) UpdateUserData(ctx context.Context, user *models.User) (*models.User, error) {
+	usecase.logger.Sugar().Debugf("Enter in usecase UpdateUserData() with args: ctx, user: %v", user)
+	user, err := usecase.userStore.UpdateUserData(ctx, user)
 	if err != nil {
 		return nil, err
 	}
 	return user, nil
+}
+
+func (usecase *UserUsecase) GetUserById(ctx context.Context, id uuid.UUID) (*models.User, error) {
+	usecase.logger.Sugar().Debugf("Enter in usecase GetuserById() with args: ctx, id: %v", id)
+
+	user, err := usecase.userStore.GetUserById(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+
+func (usecase *UserUsecase) GetUsersList(ctx context.Context) ([]models.User, error) {
+	usecase.logger.Debug("Enter in usecase GetUsersList()")
+	users, err := usecase.userStore.GetUsersList(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return users, nil
+}
+
+func (usecase *UserUsecase) ChangeUserRole(ctx context.Context, userId uuid.UUID, rightsId uuid.UUID) error {
+	usecase.logger.Sugar().Debugf("Enter in usecase ChangeUserRole() with args: ctx, userId: %v, rightsId: %v", userId, rightsId)
+	err := usecase.userStore.ChangeUserRole(ctx, userId, rightsId)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (usecase *UserUsecase) ChangeUserPassword(ctx context.Context, userId uuid.UUID, newPassword string) error {
+	usecase.logger.Sugar().Debugf("Enter in usecase ChangeUserPassword() with args: ctx, userId: %v, newPassword: %s", userId, newPassword)
+	err := usecase.userStore.ChangeUserPassword(ctx, userId, newPassword)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (usecase *UserUsecase) DeleteUser(ctx context.Context, userId uuid.UUID) error {
+	usecase.logger.Sugar().Debugf("Enter in usecase DeleteUser() with args: ctx, userId: %v", userId)
+	err := usecase.userStore.DeleteUser(ctx, userId)
+	if err != nil {
+		return err
+	}
+	return nil
 }
