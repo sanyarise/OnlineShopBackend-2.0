@@ -1,6 +1,7 @@
 package delivery
 
 import (
+	auth "OnlineShopBackend/internal/delivery/mocks"
 	fs "OnlineShopBackend/internal/filestorage/mocks"
 	"OnlineShopBackend/internal/models"
 	"OnlineShopBackend/internal/usecase/mocks"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
+
 	//"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -38,8 +40,10 @@ func TestCreateUser(t *testing.T) {
 	categoryUsecase := mocks.NewMockICategoryUsecase(ctrl)
 	userUsecase := mocks.NewMockIUserUsecase(ctrl)
 	cartUsecase := mocks.NewMockICartUsecase(ctrl)
+	rightsUsecase := mocks.NewMockIRightsUsecase(ctrl)
 	filestorage := fs.NewMockFileStorager(ctrl)
-	delivery := NewDelivery(itemUsecase, nil, categoryUsecase, cartUsecase, logger, filestorage)
+	authorization := auth.NewMockPolicyGateway(ctrl)
+	delivery := NewDelivery(itemUsecase, nil, categoryUsecase, cartUsecase, rightsUsecase, logger, filestorage, authorization, "")
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -53,5 +57,3 @@ func TestCreateUser(t *testing.T) {
 	require.Equal(t, 201, w.Code)
 
 }
-
-
