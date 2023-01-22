@@ -23,10 +23,13 @@ import (
 type Delivery struct {
 	itemUsecase     usecase.IItemUsecase
 	categoryUsecase usecase.ICategoryUsecase
-	userUsecase usecase.IUserUsecase
+	userUsecase     usecase.IUserUsecase
 	cartUsecase     usecase.ICartUsecase
+	rightsUsecase   usecase.IRightsUsecase
 	logger          *zap.Logger
 	filestorage     filestorage.FileStorager
+	policyOpaGateway PolicyGateway
+	secretKey       string
 }
 
 // NewDelivery initialize delivery layer
@@ -35,7 +38,10 @@ func NewDelivery(
 	userUsecase usecase.IUserUsecase,
 	categoryUsecase usecase.ICategoryUsecase,
 	cartUsecase usecase.ICartUsecase,
+	rightsUsecase usecase.IRightsUsecase,
 	logger *zap.Logger, fs filestorage.FileStorager,
+	policyOpaGateway PolicyGateway,
+	secretKey string,
 ) *Delivery {
 	logger.Debug("Enter in NewDelivery()")
 	metrics.DeliveryMetrics.NewDeliveryTotal.Inc()
@@ -44,8 +50,12 @@ func NewDelivery(
 		itemUsecase:     itemUsecase,
 		categoryUsecase: categoryUsecase,
 		cartUsecase:     cartUsecase,
-		userUsecase: userUsecase,
-		logger:          logger, filestorage: fs,
+		userUsecase:     userUsecase,
+		rightsUsecase:   rightsUsecase,
+		logger:          logger,
+		filestorage:     fs,
+		policyOpaGateway: policyOpaGateway,
+		secretKey:       secretKey,
 	}
 }
 
