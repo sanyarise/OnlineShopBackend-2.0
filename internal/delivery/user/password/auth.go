@@ -14,7 +14,7 @@ import (
 )
 
 type SaltSHA struct {
-	Salt string `json:"salt"`
+	Salt string `json:"salt" env:"SALT"`
 }
 
 type User struct {

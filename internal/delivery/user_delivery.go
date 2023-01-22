@@ -27,7 +27,6 @@ import (
 )
 
 const (
-	userCtx             = "userID"
 	authorizationHeader = "Authorization"
 )
 
@@ -75,13 +74,6 @@ func (delivery *Delivery) CreateUser(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
 	delivery.logger.Info("success: user was created")
-
-	//token, err := jwtauth.CreateSessionJWT(c.Request.Context(), createdUser)
-	//if err != nil {
-	//	c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-	//}
-	//
-	//c.JSON(http.StatusOK, token)
 
 	c.JSON(http.StatusCreated, gin.H{"userId": createdUser.ID})
 
@@ -144,15 +136,7 @@ func (delivery *Delivery) LoginUser(c *gin.Context) {
 //	@Router			/user/profile [get]
 func (delivery *Delivery) UserProfile(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery UserProfile()")
-	//header := c.GetHeader(authorizationHeader)
-	//userCr, err := jwtauth.UserIdentity(header)
-	//if err != nil {
-	//	c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
-	//	return
-	//}
-
 	userCr := c.MustGet("claims").(*jwtauth.Payload)
-
 	userData, err := delivery.userUsecase.GetUserByEmail(c.Request.Context(), userCr.Email)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
@@ -277,16 +261,6 @@ func (delivery *Delivery) success(c *gin.Context) http.HandlerFunc {
 			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 			return
 		}
-		//url := "http://localhost:3000" // TODO
-		//
-		//redirectURL := fmt.Sprintf(
-		//	"%s?token=%s&refresh=%s",
-		//	url,
-		//	token.AccessToken,
-		//	token.RefreshToken,
-		//)
-		//
-		//http.Redirect(w, req, redirectURL , http.StatusFound)
 
 		c.JSON(http.StatusOK, token)
 
@@ -339,7 +313,6 @@ func (delivery *Delivery) ChangeRole(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
 	roleId, err := delivery.userUsecase.GetRightsId(c.Request.Context(), newInfoUser.Rights.Name)
 
 	err = delivery.userUsecase.UpdateUserRole(c.Request.Context(), roleId.ID, newInfoUser.Email)

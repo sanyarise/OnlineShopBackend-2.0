@@ -12,12 +12,13 @@ package router
 import (
 	"OnlineShopBackend/internal/delivery"
 	"OnlineShopBackend/internal/delivery/swagger/docs"
+	"net/http"
+
 	ginzap "github.com/gin-contrib/zap"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"go.uber.org/zap"
-	"net/http"
 )
 
 // Route is the information for every URI.

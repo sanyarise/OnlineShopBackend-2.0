@@ -1392,6 +1392,20 @@ paths:
       summary: Callback Google provides logic for oauth google login
       tags:
       - user
+    put:
+      consumes:
+      - application/json
+      description: Method provides to Change User Role
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "500":
+          description: Internal Server Error
+      summary: Change User Role
+      tags:
+      - user
   /user/create:
     post:
       consumes:

@@ -1704,6 +1704,27 @@ const docTemplate = `{
                         "description": "Internal Server Error"
                     }
                 }
+            },
+            "put": {
+                "description": "Method provides to Change User Role",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Change User Role",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
             }
         },
         "/user/create": {
