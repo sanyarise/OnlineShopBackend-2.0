@@ -12,7 +12,6 @@ package router
 import (
 	"OnlineShopBackend/internal/delivery"
 	"OnlineShopBackend/internal/delivery/swagger/docs"
-	"net/http"
 
 	ginzap "github.com/gin-contrib/zap"
 	"github.com/gin-gonic/gin"
@@ -20,21 +19,6 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"go.uber.org/zap"
 )
-
-// Route is the information for every URI.
-type Route struct {
-	// Name is the name of this Route.
-	Name string
-	// Method is the string for the HTTP method. ex) GET, POST etc..
-	Method string
-	// Pattern is the pattern of the URI.
-	Pattern string
-	// HandlerFunc is the handler function of this route.
-	HandlerFunc gin.HandlerFunc
-}
-
-// Routes is the list of the generated Route.
-type Routes []Route
 
 type Router struct {
 	*gin.Engine
@@ -54,7 +38,6 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 	//config.AllowHeaders = []string{"Authorization"}
 	//gin.Use(cors.New(config))
 
-
 	//gin.Use(cors.New(cors.Config{
 	//	AllowOrigins: []string{"https://accounts.google.com", "https://accounts.google.com/o/oauth2/auth?", "http://localhost:8000", "http://localhost:3000", "http://localhost:8000/user/login/google", "*"}, //,
 	//	AllowMethods:     []string{"PUT", "PATCH", "GET", "POST", "OPTIONS", "*"},
@@ -62,7 +45,6 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 	//	ExposeHeaders:    []string{"Content-Length", "*"},
 	//	AllowCredentials: true,
 	//}))
-
 
 	gin.Use(ginzap.RecoveryWithZap(logger, true))
 	gin.Static("/files", "./static/files")
@@ -72,260 +54,82 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 		delivery: delivery,
 		logger:   logger,
 	}
+	// Endpoints that do not require authorization
 
-	routes := Routes{
-		{
-			"Index",
-			http.MethodGet,
-			"/",
-			delivery.Index,
-		},
-		{
-			"GetFileList",
-			http.MethodGet,
-			"/images/list",
-			delivery.GetFileList,
-		},
-		{
-			"CreateCategory",
-			http.MethodPost,
-			"/categories/create",
-			delivery.CreateCategory,
-		},
-		{
-			"GetCategory",
-			http.MethodGet,
-			"/categories/:categoryID",
-			delivery.GetCategory,
-		},
-		{
-			"GetCategoryList",
-			http.MethodGet,
-			"/categories/list",
-			delivery.GetCategoryList,
-		},
-		{
-			"UpdateCategory",
-			http.MethodPut,
-			"/categories/:categoryID",
-			delivery.UpdateCategory,
-		},
-		{
-			"UploadCategoryImage",
-			http.MethodPost,
-			"/categories/image/upload/:categoryID",
-			delivery.UploadCategoryImage,
-		},
-		{
-			"DeleteCategoryImage",
-			http.MethodDelete,
-			"/categories/image/delete", //?id=25f32441-587a-452d-af8c-b3876ae29d45&name=20221209194557.jpeg
-			delivery.DeleteCategoryImage,
-		},
-		{
-			"DeleteCategory",
-			http.MethodDelete,
-			"/categories/delete/:categoryID",
-			delivery.DeleteCategory,
-		},
-		{
-			"CreateItem",
-			http.MethodPost,
-			"/items/create",
-			delivery.CreateItem,
-		},
-		{
-			"GetItem",
-			http.MethodGet,
-			"/items/:itemID",
-			delivery.GetItem,
-		},
-		{
-			"GetItemsByCategory",
-			http.MethodGet,
-			"/items/", //?param=categoryName&offset=20&limit=10&sort_type=name&sort_order=asc (sort_type == name or price, sort_order == asc or desc)
-			delivery.GetItemsByCategory,
-		},
-		{
-			"UpdateItem",
-			http.MethodPut,
-			"/items/update",
-			delivery.UpdateItem,
-		},
-		{
-			"UploadItemImage",
-			http.MethodPost,
-			"/items/image/upload/:itemID",
-			delivery.UploadItemImage,
-		},
-		{
-			"DeleteItemImage",
-			http.MethodDelete,
-			"/items/image/delete", //?id=25f32441-587a-452d-af8c-b3876ae29d45&name=20221209194557.jpeg
-			delivery.DeleteItemImage,
-		},
-		{
-			"ItemsQuantity",
-			http.MethodGet,
-			"/items/quantity",
-			delivery.ItemsQuantity,
-		},
-		{
-			"ItemsQuantityInCategory",
-			http.MethodGet,
-			"/items/quantityCat/:categoryName",
-			delivery.ItemsQuantityInCategory,
-		},
-		{
-			"ItemsQuantityInFavourite",
-			http.MethodGet,
-			"/items/quantityFav/:userID",
-			delivery.ItemsQuantityInFavourite,
-		},
-		{
-			"ItemsList",
-			http.MethodGet,
-			"/items/list", //?offset=20&limit=10&sort_type=name&sort_order=asc (sort_type == name or price, sort_order == asc or desc)
-			delivery.ItemsList,
-		},
-		{
-			"SearchLine",
-			http.MethodGet,
-			"/items/search/", //?param=searchRequest&offset=20&limit=10&sort_type=name&sort_order=asc (sort_type == name or price, sort_order == asc or desc)
-			delivery.SearchLine,
-		},
-		{
-			"DeleteItem",
-			http.MethodDelete,
-			"/items/delete/:itemID",
-			delivery.DeleteItem,
-		},
-		{
-			"AddFavouriteItem",
-			http.MethodPost,
-			"/items/addFav/:userID/:itemID",
-			delivery.AddFavouriteItem,
-		},
-		{
-			"DeleteFavouriteItem",
-			http.MethodDelete,
-			"/items/deleteFav/:userID/:itemID",
-			delivery.DeleteFavouriteItem,
-		},
-		{
-			"GetFavouriteItems",
-			http.MethodGet,
-			"/items/favList/", //?param=userIDt&offset=20&limit=10&sort_type=name&sort_order=asc (sort_type == name or price, sort_order == asc or desc)
-			delivery.GetFavouriteItems,
-		},
-		{
-			"GetCart",
-			http.MethodGet,
-			"/cart/:cartID",
-			delivery.GetCart,
-		},
-		{
-			"GetCartByUserId",
-			http.MethodGet,
-			"/cart/byUser/:userID",
-			delivery.GetCartByUserId,
-		},
-		{
-			"CreateCart",
-			http.MethodPost,
-			"/cart/create/:userID",
-			delivery.CreateCart,
-		},
-		{
-			"AddItemToCart",
-			http.MethodPut,
-			"/cart/addItem",
-			delivery.AddItemToCart,
-		},
-		{
-			"DeleteItemFromCart",
-			http.MethodDelete,
-			"/cart/delete/:cartID/:itemID",
-			delivery.DeleteItemFromCart,
-		},
-		{
-			"DeleteCart",
-			http.MethodDelete,
-			"/cart/delete/:cartID",
-			delivery.DeleteCart,
-		},
-		{
-			"CreateUser",
-			http.MethodPost,
-			"/user/create",
-			delivery.CreateUser,
-		},
+	// Categories
+	gin.GET("/categories/:categoryID", delivery.GetCategory)
+	gin.GET("/categories/list", delivery.GetCategoryList)
 
-		{
-			"LoginUser",
-			http.MethodPost,
-			"/user/login",
-			delivery.LoginUser,
-		},
+	// Items
+	gin.GET("/items/:itemID", delivery.GetItem)
+	gin.GET("/items/quantityFav/:userID", delivery.ItemsQuantityInFavourite)
+	gin.GET("/items/quantityCat/:categoryName", delivery.ItemsQuantityInCategory)
+	gin.GET("/items/quantity", delivery.ItemsQuantity)
+	gin.GET("/items/", delivery.GetItemsByCategory) //?param=categoryName&offset=20&limit=10&sort_type=name&sort_order=asc (sort_type == name or price, sort_order == asc or desc)
+	gin.GET("/items/list", delivery.ItemsList)      //?offset=20&limit=10&sort_type=name&sort_order=asc (sort_type == name or price, sort_order == asc or desc)
+	gin.GET("/items/search/", delivery.SearchLine)  //?param=searchRequest&offset=20&limit=10&sort_type=name&sort_order=asc (sort_type == name or price, sort_order == asc or desc)
 
-		{
-			"LogoutUser",
-			http.MethodGet,
-			"/user/logout",
-			delivery.LogoutUser,
-		},
-		{
-			"LoginUserGoogle",
-			http.MethodGet,
-			"/user/login/google",
-			delivery.LoginUserGoogle,
-		},
+	// Cart
+	gin.GET("/cart/:cartID", delivery.GetCart)
+	gin.GET("/cart/byUser/:userID", delivery.GetCartByUserId)
+	gin.POST("/cart/create/:userID", delivery.CreateCart)
+	gin.PUT("/cart/addItem", delivery.AddItemToCart)
+	gin.DELETE("/cart/delete/:cartID/:itemID", delivery.DeleteItemFromCart)
+	gin.DELETE("/cart/delete/:cartID", delivery.DeleteCart)
 
-		{
-			"callbackGoogle",
-			http.MethodGet,
-			"/user/callbackGoogle",
-			delivery.CallbackGoogle,
-		},
+	// Rights
+	gin.GET("/rights/:rightsID", delivery.GetRights)
 
-		{
-			"userProfile",
-			http.MethodGet,
-			"/user/profile",
-			delivery.UserProfile,
-		},
-		{
-			"userProfileUpdate",
-			http.MethodPut,
-			"/user/profile/edit",
-			delivery.UserProfileUpdate,
-		},
-		{
-			"tokenUpdate",
-			http.MethodPost,
-			"/user/token/update",
-			delivery.TokenUpdate,
-		},
-	}
+	// User
+	gin.POST("/user/create", delivery.CreateUser)
+	gin.POST("/user/login", delivery.LoginUser)
+	gin.GET("/user/logout", delivery.LogoutUser)
+	gin.GET("/user/login/google", delivery.LoginUserGoogle)
+	gin.GET("/user/callbackGoogle", delivery.CallbackGoogle)
+	gin.POST("/user/token/update", delivery.TokenUpdate)
 
-	for _, route := range routes {
-		switch route.Method {
-		case http.MethodGet:
-			gin.GET(route.Pattern, route.HandlerFunc)
-		case http.MethodPost:
-			gin.POST(route.Pattern, route.HandlerFunc)
-		case http.MethodPut:
-			gin.PUT(route.Pattern, route.HandlerFunc)
-		case http.MethodPatch:
-			gin.PATCH(route.Pattern, route.HandlerFunc)
-		case http.MethodDelete:
-			gin.DELETE(route.Pattern, route.HandlerFunc)
-		}
-	}
+	
+	// Endpoints that require authentification and authoruzation
+	gin.GET("/", delivery.Authentificate, delivery.Authorize, delivery.Index)
+
+	// Images
+	gin.GET("/images/list", delivery.Authentificate, delivery.Authorize, delivery.GetFileList)
+
+	// Categories
+	gin.POST("/categories/create", delivery.Authentificate, delivery.Authorize, delivery.CreateCategory)
+	gin.PUT("/categories/:categoryID", delivery.Authentificate, delivery.Authorize, delivery.UpdateCategory)
+	gin.POST("/categories/image/upload/:categoryID", delivery.Authentificate, delivery.Authorize, delivery.UploadCategoryImage)
+	gin.DELETE("/categories/image/delete", delivery.Authentificate, delivery.Authorize, delivery.DeleteCategoryImage) //?id=25f32441-587a-452d-af8c-b3876ae29d45&name=20221209194557.jpeg
+	gin.DELETE("/categories/delete/:categoryID", delivery.Authentificate, delivery.Authorize, delivery.DeleteCategory)
+
+	// Items
+	gin.POST("/items/create", delivery.Authentificate, delivery.Authorize, delivery.CreateItem)
+	gin.PUT("/items/update", delivery.Authentificate, delivery.Authorize, delivery.UpdateItem)
+	gin.POST("/items/image/upload/:itemID", delivery.Authentificate, delivery.Authorize, delivery.UploadItemImage)
+	gin.DELETE("/items/image/delete", delivery.Authentificate, delivery.Authorize, delivery.DeleteItemImage) //?id=25f32441-587a-452d-af8c-b3876ae29d45&name=20221209194557.jpeg
+	gin.DELETE("/items/delete/:itemID", delivery.Authentificate, delivery.Authorize, delivery.DeleteItem)
+	gin.POST("/items/addFav/:userID/:itemID", delivery.Authentificate, delivery.Authorize, delivery.AddFavouriteItem)
+	gin.GET("items/favList", delivery.Authentificate, delivery.Authorize, delivery.GetFavouriteItems)
+	gin.DELETE("/items/deleteFav/:userID/:itemID", delivery.Authentificate, delivery.Authorize, delivery.DeleteFavouriteItem)
+
+	// Rights
+	gin.POST("/rights/create", delivery.Authentificate, delivery.Authorize, delivery.CreateRights)
+	gin.PUT("/rights/update", delivery.Authentificate, delivery.Authorize, delivery.UpdateRights)
+	gin.DELETE("/rights/delete/:rightsID", delivery.Authentificate, delivery.Authorize, delivery.DeleteRights)
+	gin.GET("/list/rights", delivery.Authentificate, delivery.Authorize, delivery.RightsList)
+
+	// User
+	gin.GET("/user/profile", delivery.Authentificate, delivery.Authorize, delivery.UserProfile)
+	gin.PUT("/user/profile/edit", delivery.Authentificate, delivery.Authorize, delivery.UserProfileUpdate)
+	gin.GET("/user/:userID", delivery.Authentificate, delivery.Authorize, delivery.GetUserById)
+	gin.GET("/user/list", delivery.Authentificate, delivery.Authorize, delivery.GetUsersList)
+	gin.PUT("/user/update/rights", delivery.Authentificate, delivery.Authorize, delivery.ChangeUserRole)
+	gin.PUT("/user/update/password", delivery.Authentificate, delivery.Authorize, delivery.ChangeUserPassword)
+	gin.DELETE("/user/delete/:userID", delivery.Authentificate, delivery.Authorize, delivery.DeleteItem)
+
 	router.Engine = gin
 	return router
 }
-
 
 func CORSMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
