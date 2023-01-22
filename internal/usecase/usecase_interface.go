@@ -52,4 +52,5 @@ type IUserUsecase interface {
 	GetUserByEmail(ctx context.Context, email string) (*models.User, error)
 	GetRightsId(ctx context.Context, name string) (*models.Rights, error)
 	UpdateUserData(ctx context.Context, id uuid.UUID, user *models.User) (*models.User, error)
+	UpdateUserRole(ctx context.Context, roleId uuid.UUID, email string) error
 }

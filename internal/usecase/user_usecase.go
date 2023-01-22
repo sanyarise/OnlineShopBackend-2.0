@@ -21,12 +21,6 @@ func NewUserUsecase(userStore repository.UserStore, logger *zap.Logger) IUserUse
 	return &UserUsecase{userStore: userStore, logger: logger}
 }
 
-//type JwtRealisation struct {
-//	ttl int64
-//}
-
-
-
 type Credentials struct {
 	Email    string `json:"email" binding:"required"`
 	Password string `json:"password" binding:"required"`
@@ -94,8 +88,6 @@ func (usecase *UserUsecase) GetUserByEmail(ctx context.Context, email string) (*
 		return &models.User{}, err
 	}
 
-	//user.Password = ""
-
 	return user, nil
 }
 
@@ -116,4 +108,12 @@ func (usecase *UserUsecase) UpdateUserData(ctx context.Context, id uuid.UUID, us
 		return nil, err
 	}
 	return user, nil
+}
+
+func (usecase *UserUsecase) UpdateUserRole(ctx context.Context, roleId uuid.UUID, email string) error {
+	err := usecase.userStore.UpdateUserRole(ctx, roleId, email)
+	if err != nil {
+		return err
+	}
+	return nil
 }

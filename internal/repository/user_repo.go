@@ -110,6 +110,46 @@ func (u *user) UpdateUserData(ctx context.Context, id uuid.UUID, user *models.Us
 	}
 }
 
+func (u *user) UpdateUserRole(ctx context.Context, roleId uuid.UUID, email string) error {
+	u.logger.Debug("Enter in repository UpdateUserRole()")
+	select {
+	case <-ctx.Done():
+		return fmt.Errorf("context is closed")
+	default:
+		pool := u.storage.GetPool()
+		tx, err := pool.BeginTx(ctx, pgx.TxOptions{})
+		if err != nil {
+			u.logger.Errorf("can't create transaction: %s", err)
+			return fmt.Errorf("can't create transaction: %w", err)
+		}
+		u.logger.Debug("transaction begin success")
+		defer func() {
+			if err != nil {
+				u.logger.Errorf("transaction rolled back")
+				if err = tx.Rollback(ctx); err != nil {
+					u.logger.Errorf("can't rollback %s", err)
+				}
+
+			} else {
+				u.logger.Info("transaction commited")
+				if err != tx.Commit(ctx) {
+					u.logger.Errorf("can't commit %s", err)
+				}
+			}
+		}()
+
+		_, err = tx.Exec(ctx, `UPDATE users SET rights=$1 WHERE email=$2`,
+			roleId,
+			email)
+		if err != nil {
+			u.logger.Errorf("error on update user %s: %s", email, err)
+			return fmt.Errorf("error on update user %s: %w", email, err)
+		}
+		u.logger.Infof("user role was successfully updated %s", email)
+		return nil
+	}
+}
+
 func (u *user) GetRightsId(ctx context.Context, name string) (models.Rights, error) {
 	select {
 	case <-ctx.Done():
