@@ -57,6 +57,8 @@ type IUserUsecase interface {
 	ChangeUserRole(ctx context.Context, userId uuid.UUID, rightsId uuid.UUID) error
 	ChangeUserPassword(ctx context.Context, userId uuid.UUID, newPassword string) error
 	DeleteUser(ctx context.Context, userId uuid.UUID) error
+	NewJWT(payload Payload, key string) (string, error)
+	CreateSessionJWT(ctx context.Context, user *models.User, key string) (Token, error)
 }
 
 type IRightsUsecase interface {
