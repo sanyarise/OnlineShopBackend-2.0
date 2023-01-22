@@ -51,5 +51,19 @@ type IUserUsecase interface {
 	CreateUser(ctx context.Context, user *models.User) (*models.User, error)
 	GetUserByEmail(ctx context.Context, email string) (*models.User, error)
 	GetRightsId(ctx context.Context, name string) (*models.Rights, error)
-	UpdateUserData(ctx context.Context, id uuid.UUID, user *models.User) (*models.User, error)
+	UpdateUserData(ctx context.Context, user *models.User) (*models.User, error)
+	GetUserById(ctx context.Context, id uuid.UUID) (*models.User, error)
+	GetUsersList(ctx context.Context) ([]models.User, error)
+	ChangeUserRole(ctx context.Context, userId uuid.UUID, rightsId uuid.UUID) error
+	ChangeUserPassword(ctx context.Context, userId uuid.UUID, newPassword string) error
+	DeleteUser(ctx context.Context, userId uuid.UUID) error
+}
+
+type IRightsUsecase interface {
+	CreateRights(ctx context.Context, rights *models.Rights) (uuid.UUID, error)
+	UpdateRights(ctx context.Context, rights *models.Rights) error
+	DeleteRights(ctx context.Context, id uuid.UUID) error
+	GetRights(ctx context.Context, id uuid.UUID) (*models.Rights, error)
+	RightsList(ctx context.Context) ([]models.Rights, error)
+	GetRightsByName(ctx context.Context, name string) (*models.Rights, error)
 }
