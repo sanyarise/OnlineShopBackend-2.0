@@ -245,24 +245,201 @@ definitions:
     - price
     - title
     type: object
-  jwtauth.Token:
+  rights.OutRights:
     properties:
-      access_token:
+      id:
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
         type: string
-      refresh_token:
+      name:
+        example: admin
+        type: string
+      rules:
+        items:
+          type: string
+        type: array
+    required:
+    - id
+    - name
+    type: object
+  rights.RightsId:
+    properties:
+      id:
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        type: string
+    required:
+    - id
+    type: object
+  rights.ShortRights:
+    properties:
+      name:
+        example: admin
+        type: string
+      rules:
+        items:
+          type: string
+        type: array
+    required:
+    - name
+    type: object
+  user.Address:
+    properties:
+      city:
+        example: Moscow
+        type: string
+      country:
+        example: Russia
+        type: string
+      street:
+        example: Pushkina
+        type: string
+      zipcode:
+        example: "000000"
         type: string
     type: object
-  password.Credentials:
+  user.ChangePass:
+    properties:
+      newPassword:
+        example: newPassword
+        type: string
+      oldPassword:
+        example: password
+        type: string
+    required:
+    - newPassword
+    - oldPassword
+    type: object
+  user.ChangeRights:
+    properties:
+      id:
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        type: string
+      rightsName:
+        example: customer
+        type: string
+    required:
+    - id
+    - rightsName
+    type: object
+  user.Credentials:
     properties:
       email:
+        example: example@gmail.com
+        format: email
+        maxLength: 250
         type: string
       password:
+        example: password
         type: string
     required:
     - email
     - password
     type: object
-  password.User:
+  user.InUser:
+    properties:
+      address:
+        $ref: '#/definitions/user.Address'
+      email:
+        example: example@gmail.com
+        format: email
+        maxLength: 250
+        type: string
+      firstName:
+        example: Иван
+        type: string
+      lastName:
+        example: Иванов
+        type: string
+      password:
+        example: password
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  user.OutUser:
+    properties:
+      address:
+        $ref: '#/definitions/user.Address'
+      email:
+        example: example@gmail.com
+        format: email
+        maxLength: 250
+        type: string
+      firstName:
+        example: Иван
+        type: string
+      id:
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        type: string
+      lastName:
+        example: Иванов
+        type: string
+      rights:
+        $ref: '#/definitions/user.Rights'
+    required:
+    - email
+    - id
+    type: object
+  user.Rights:
+    properties:
+      id:
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        type: string
+      rightsName:
+        example: customer
+        type: string
+      rules:
+        items:
+          type: string
+        type: array
+    required:
+    - id
+    - rightsName
+    type: object
+  user.UpdateUserProfile:
+    properties:
+      address:
+        $ref: '#/definitions/user.Address'
+      firstName:
+        example: Иван
+        type: string
+      lastName:
+        example: Иванов
+        type: string
+    type: object
+  user.UserId:
+    properties:
+      id:
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        type: string
+    required:
+    - id
+    type: object
+  user.UserProfile:
+    properties:
+      address:
+        $ref: '#/definitions/user.Address'
+      email:
+        example: example@gmail.com
+        format: email
+        maxLength: 250
+        type: string
+      firstName:
+        example: Иван
+        type: string
+      lastName:
+        example: Иванов
+        type: string
+      rights:
+        $ref: '#/definitions/user.Rights'
+    required:
+    - email
     type: object
 info:
   contact:
@@ -1377,42 +1554,66 @@ paths:
       summary: Method provides to update store item
       tags:
       - items
-  /user/callbackGoogle:
+  /rights/{rightsID}:
     get:
       consumes:
       - application/json
-      description: Method provides to log in with Google
+      description: The method allows you to get the rights by id.
+      parameters:
+      - description: id of rights
+        in: path
+        name: rightsID
+        required: true
+        type: string
       produces:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Rights structure
+          schema:
+            $ref: '#/definitions/rights.OutRights'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
         "500":
           description: Internal Server Error
-      summary: Callback Google provides logic for oauth google login
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Get rights by id
       tags:
-      - user
-  /user/create:
+      - rights
+  /rights/create/:
     post:
       consumes:
       - application/json
-      description: Method provides to create a user
+      description: Method provides to create rights.
       parameters:
-      - description: User data
+      - description: Data for creating rights
         in: body
-        name: user
+        name: rights
         required: true
         schema:
-          $ref: '#/definitions/password.User'
+          $ref: '#/definitions/rights.ShortRights'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/jwtauth.Token'
+            $ref: '#/definitions/rights.RightsId'
         "400":
           description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
         "404":
           description: 404 Not Found
           schema:
@@ -1421,28 +1622,204 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/delivery.ErrorResponse'
-      summary: Create a new user
+      summary: Method provides to create rights
       tags:
-      - user
-  /user/login:
+      - rights
+  /rights/delete/{rightsID}:
+    delete:
+      consumes:
+      - application/json
+      description: Method provides to delete rights.
+      parameters:
+      - description: id of rights
+        in: path
+        name: rightsID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Method provides to delete rights
+      tags:
+      - rights
+  /rights/list:
+    get:
+      consumes:
+      - application/json
+      description: Method provides to get list of rights
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of rights
+          schema:
+            items:
+              $ref: '#/definitions/rights.OutRights'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Get list of rights
+      tags:
+      - rights
+  /rights/update:
+    put:
+      consumes:
+      - application/json
+      description: Method provides to update rights
+      parameters:
+      - description: Data for updating rights
+        in: body
+        name: rights
+        required: true
+        schema:
+          $ref: '#/definitions/rights.OutRights'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Method provides to update rights
+      tags:
+      - rights
+  /user/{userID}:
+    get:
+      consumes:
+      - application/json
+      description: The method allows you to get user by id.
+      parameters:
+      - description: id of user
+        in: path
+        name: userID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User structure
+          schema:
+            $ref: '#/definitions/user.OutUser'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Get user by id
+      tags:
+      - users
+  /user/create:
     post:
       consumes:
       - application/json
-      description: Method provides to login a user
+      description: Method provides to create user.
       parameters:
-      - description: Login
+      - description: Data for creating user
         in: body
         name: user
         required: true
         schema:
-          $ref: '#/definitions/password.Credentials'
+          $ref: '#/definitions/user.InUser'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/user.UserId'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Method provides to create user
+      tags:
+      - users
+  /user/delete/{userID}:
+    delete:
+      consumes:
+      - application/json
+      description: Method provides to delete user
+      parameters:
+      - description: id of user (works only when authorize)
+        in: path
+        name: userID
+        required: true
+        type: string
       produces:
       - application/json
       responses:
         "200":
           description: OK
+        "400":
+          description: Bad Request
           schema:
-            $ref: '#/definitions/jwtauth.Token'
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
         "404":
           description: 404 Not Found
           schema:
@@ -1451,51 +1828,90 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/delivery.ErrorResponse'
-      summary: Login user
+      summary: Method provides to delete user
       tags:
-      - user
-  /user/login/google:
+      - users
+  /user/list:
     get:
       consumes:
       - application/json
-      description: Method provides to log in with Google
+      description: Method provides to get list of users
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of users
+          schema:
+            items:
+              $ref: '#/definitions/user.OutUser'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Get list of users
+      tags:
+      - users
+  /user/login:
+    post:
+      consumes:
+      - application/json
+      description: Method provides to login user.
+      parameters:
+      - description: Data for login user
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/user.Credentials'
       produces:
       - application/json
       responses:
         "200":
           description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
         "500":
           description: Internal Server Error
-      summary: Login with Google oauth2
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Method provides to login user
       tags:
-      - user
+      - users
   /user/logout:
     get:
       consumes:
       - application/json
-      description: Method provides to log out
+      description: Method provides to logout user
       produces:
       - application/json
       responses:
         "200":
           description: OK
-        "404":
+        "400":
           description: Bad Request
-      summary: Logout
-      tags:
-      - user
-  /user/profile:
-    get:
-      consumes:
-      - application/json
-      description: Method provides to get profile info
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
           schema:
-            $ref: '#/definitions/password.User'
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
         "404":
           description: 404 Not Found
           schema:
@@ -1504,10 +1920,140 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/delivery.ErrorResponse'
-      security:
-      - ApiKeyAuth: []
-        firebase: []
-      summary: User profile
+      summary: Method provides to logout user
       tags:
-      - user
+      - users
+  /user/profile:
+    get:
+      consumes:
+      - application/json
+      description: Method provides to get profile of user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User profile (works only when authorized)
+          schema:
+            items:
+              $ref: '#/definitions/user.UserProfile'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Get profile of user
+      tags:
+      - users
+  /user/profile/edit:
+    put:
+      consumes:
+      - application/json
+      description: Method provides to update user profile
+      parameters:
+      - description: Data for updating item (works only when authorized)
+        in: body
+        name: item
+        required: true
+        schema:
+          $ref: '#/definitions/user.UpdateUserProfile'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Method provides to update user profile
+      tags:
+      - users
+  /user/update/password:
+    put:
+      consumes:
+      - application/json
+      description: Method provides to change user password
+      parameters:
+      - description: Data for change user password (works only when authorized)
+        in: body
+        name: item
+        required: true
+        schema:
+          $ref: '#/definitions/user.ChangePass'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Method provides to change user password
+      tags:
+      - users
+  /user/update/rights:
+    put:
+      consumes:
+      - application/json
+      description: Method provides to change user role
+      parameters:
+      - description: Data for change user role (works only when authorized)
+        in: body
+        name: item
+        required: true
+        schema:
+          $ref: '#/definitions/user.ChangeRights'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Method provides to change user role
+      tags:
+      - users
 swagger: "2.0"

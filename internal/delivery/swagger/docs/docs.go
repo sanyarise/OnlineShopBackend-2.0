@@ -1683,32 +1683,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/user/callbackGoogle": {
-            "get": {
-                "description": "Method provides to log in with Google",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "user"
-                ],
-                "summary": "Callback Google provides logic for oauth google login",
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    },
-                    "500": {
-                        "description": "Internal Server Error"
-                    }
-                }
-            }
-        },
-        "/user/create": {
+        "/rights/create/": {
             "post": {
-                "description": "Method provides to create a user",
+                "description": "Method provides to create rights.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1716,17 +1693,17 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "user"
+                    "rights"
                 ],
-                "summary": "Create a new user",
+                "summary": "Method provides to create rights",
                 "parameters": [
                     {
-                        "description": "User data",
-                        "name": "user",
+                        "description": "Data for creating rights",
+                        "name": "rights",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/password.User"
+                            "$ref": "#/definitions/rights.ShortRights"
                         }
                     }
                 ],
@@ -1734,11 +1711,377 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/jwtauth.Token"
+                            "$ref": "#/definitions/rights.RightsId"
                         }
                     },
                     "400": {
-                        "description": "Bad Request"
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "404 Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/rights/delete/{rightsID}": {
+            "delete": {
+                "description": "Method provides to delete rights.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "rights"
+                ],
+                "summary": "Method provides to delete rights",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id of rights",
+                        "name": "rightsID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "404 Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/rights/list": {
+            "get": {
+                "description": "Method provides to get list of rights",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "rights"
+                ],
+                "summary": "Get list of rights",
+                "responses": {
+                    "200": {
+                        "description": "List of rights",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/rights.OutRights"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "404 Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/rights/update": {
+            "put": {
+                "description": "Method provides to update rights",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "rights"
+                ],
+                "summary": "Method provides to update rights",
+                "parameters": [
+                    {
+                        "description": "Data for updating rights",
+                        "name": "rights",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/rights.OutRights"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "404 Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/rights/{rightsID}": {
+            "get": {
+                "description": "The method allows you to get the rights by id.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "rights"
+                ],
+                "summary": "Get rights by id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id of rights",
+                        "name": "rightsID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Rights structure",
+                        "schema": {
+                            "$ref": "#/definitions/rights.OutRights"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "404 Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/create": {
+            "post": {
+                "description": "Method provides to create user.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Method provides to create user",
+                "parameters": [
+                    {
+                        "description": "Data for creating user",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/user.InUser"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/user.UserId"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "404 Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/delete/{userID}": {
+            "delete": {
+                "description": "Method provides to delete user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Method provides to delete user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id of user (works only when authorize)",
+                        "name": "userID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "404 Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/list": {
+            "get": {
+                "description": "Method provides to get list of users",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Get list of users",
+                "responses": {
+                    "200": {
+                        "description": "List of users",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/user.OutUser"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
                     },
                     "404": {
                         "description": "404 Not Found",
@@ -1757,7 +2100,7 @@ const docTemplate = `{
         },
         "/user/login": {
             "post": {
-                "description": "Method provides to login a user",
+                "description": "Method provides to login user.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1765,26 +2108,32 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "user"
+                    "users"
                 ],
-                "summary": "Login user",
+                "summary": "Method provides to login user",
                 "parameters": [
                     {
-                        "description": "Login",
+                        "description": "Data for login user",
                         "name": "user",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/password.Credentials"
+                            "$ref": "#/definitions/user.Credentials"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/jwtauth.Token"
+                            "$ref": "#/definitions/delivery.ErrorResponse"
                         }
+                    },
+                    "403": {
+                        "description": "Forbidden"
                     },
                     "404": {
                         "description": "404 Not Found",
@@ -1801,32 +2150,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/user/login/google": {
-            "get": {
-                "description": "Method provides to log in with Google",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "user"
-                ],
-                "summary": "Login with Google oauth2",
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    },
-                    "500": {
-                        "description": "Internal Server Error"
-                    }
-                }
-            }
-        },
         "/user/logout": {
             "get": {
-                "description": "Method provides to log out",
+                "description": "Method provides to logout user",
                 "consumes": [
                     "application/json"
                 ],
@@ -1834,28 +2160,40 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "user"
+                    "users"
                 ],
-                "summary": "Logout",
+                "summary": "Method provides to logout user",
                 "responses": {
                     "200": {
                         "description": "OK"
                     },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
                     "404": {
-                        "description": "Bad Request"
+                        "description": "404 Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
                     }
                 }
             }
         },
         "/user/profile": {
             "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": [],
-                        "firebase": []
-                    }
-                ],
-                "description": "Method provides to get profile info",
+                "description": "Method provides to get profile of user.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1863,15 +2201,236 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "user"
+                    "users"
                 ],
-                "summary": "User profile",
+                "summary": "Get profile of user",
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "User profile (works only when authorized)",
                         "schema": {
-                            "$ref": "#/definitions/password.User"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/user.UserProfile"
+                            }
                         }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "404 Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/profile/edit": {
+            "put": {
+                "description": "Method provides to update user profile",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Method provides to update user profile",
+                "parameters": [
+                    {
+                        "description": "Data for updating item (works only when authorized)",
+                        "name": "item",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/user.UpdateUserProfile"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "404 Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/update/password": {
+            "put": {
+                "description": "Method provides to change user password",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Method provides to change user password",
+                "parameters": [
+                    {
+                        "description": "Data for change user password (works only when authorized)",
+                        "name": "item",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/user.ChangePass"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "404 Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/update/rights": {
+            "put": {
+                "description": "Method provides to change user role",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Method provides to change user role",
+                "parameters": [
+                    {
+                        "description": "Data for change user role (works only when authorized)",
+                        "name": "item",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/user.ChangeRights"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "404 Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/{userID}": {
+            "get": {
+                "description": "The method allows you to get user by id.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Get user by id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id of user",
+                        "name": "userID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User structure",
+                        "schema": {
+                            "$ref": "#/definitions/user.OutUser"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
                     },
                     "404": {
                         "description": "404 Not Found",
@@ -2228,18 +2787,118 @@ const docTemplate = `{
                 }
             }
         },
-        "jwtauth.Token": {
+        "rights.OutRights": {
             "type": "object",
+            "required": [
+                "id",
+                "name"
+            ],
             "properties": {
-                "access_token": {
-                    "type": "string"
+                "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "example": "00000000-0000-0000-0000-000000000000"
                 },
-                "refresh_token": {
-                    "type": "string"
+                "name": {
+                    "type": "string",
+                    "example": "admin"
+                },
+                "rules": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
-        "password.Credentials": {
+        "rights.RightsId": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "example": "00000000-0000-0000-0000-000000000000"
+                }
+            }
+        },
+        "rights.ShortRights": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "example": "admin"
+                },
+                "rules": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "user.Address": {
+            "type": "object",
+            "properties": {
+                "city": {
+                    "type": "string",
+                    "example": "Moscow"
+                },
+                "country": {
+                    "type": "string",
+                    "example": "Russia"
+                },
+                "street": {
+                    "type": "string",
+                    "example": "Pushkina"
+                },
+                "zipcode": {
+                    "type": "string",
+                    "example": "000000"
+                }
+            }
+        },
+        "user.ChangePass": {
+            "type": "object",
+            "required": [
+                "newPassword",
+                "oldPassword"
+            ],
+            "properties": {
+                "newPassword": {
+                    "type": "string",
+                    "example": "newPassword"
+                },
+                "oldPassword": {
+                    "type": "string",
+                    "example": "password"
+                }
+            }
+        },
+        "user.ChangeRights": {
+            "type": "object",
+            "required": [
+                "id",
+                "rightsName"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "example": "00000000-0000-0000-0000-000000000000"
+                },
+                "rightsName": {
+                    "type": "string",
+                    "example": "customer"
+                }
+            }
+        },
+        "user.Credentials": {
             "type": "object",
             "required": [
                 "email",
@@ -2247,15 +2906,161 @@ const docTemplate = `{
             ],
             "properties": {
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "email",
+                    "maxLength": 250,
+                    "example": "example@gmail.com"
                 },
                 "password": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "password"
                 }
             }
         },
-        "password.User": {
-            "type": "object"
+        "user.InUser": {
+            "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
+            "properties": {
+                "address": {
+                    "$ref": "#/definitions/user.Address"
+                },
+                "email": {
+                    "type": "string",
+                    "format": "email",
+                    "maxLength": 250,
+                    "example": "example@gmail.com"
+                },
+                "firstName": {
+                    "type": "string",
+                    "example": "Иван"
+                },
+                "lastName": {
+                    "type": "string",
+                    "example": "Иванов"
+                },
+                "password": {
+                    "type": "string",
+                    "example": "password"
+                }
+            }
+        },
+        "user.OutUser": {
+            "type": "object",
+            "required": [
+                "email",
+                "id"
+            ],
+            "properties": {
+                "address": {
+                    "$ref": "#/definitions/user.Address"
+                },
+                "email": {
+                    "type": "string",
+                    "format": "email",
+                    "maxLength": 250,
+                    "example": "example@gmail.com"
+                },
+                "firstName": {
+                    "type": "string",
+                    "example": "Иван"
+                },
+                "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "example": "00000000-0000-0000-0000-000000000000"
+                },
+                "lastName": {
+                    "type": "string",
+                    "example": "Иванов"
+                },
+                "rights": {
+                    "$ref": "#/definitions/user.Rights"
+                }
+            }
+        },
+        "user.Rights": {
+            "type": "object",
+            "required": [
+                "id",
+                "rightsName"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "example": "00000000-0000-0000-0000-000000000000"
+                },
+                "rightsName": {
+                    "type": "string",
+                    "example": "customer"
+                },
+                "rules": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "user.UpdateUserProfile": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "$ref": "#/definitions/user.Address"
+                },
+                "firstName": {
+                    "type": "string",
+                    "example": "Иван"
+                },
+                "lastName": {
+                    "type": "string",
+                    "example": "Иванов"
+                }
+            }
+        },
+        "user.UserId": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "example": "00000000-0000-0000-0000-000000000000"
+                }
+            }
+        },
+        "user.UserProfile": {
+            "type": "object",
+            "required": [
+                "email"
+            ],
+            "properties": {
+                "address": {
+                    "$ref": "#/definitions/user.Address"
+                },
+                "email": {
+                    "type": "string",
+                    "format": "email",
+                    "maxLength": 250,
+                    "example": "example@gmail.com"
+                },
+                "firstName": {
+                    "type": "string",
+                    "example": "Иван"
+                },
+                "lastName": {
+                    "type": "string",
+                    "example": "Иванов"
+                },
+                "rights": {
+                    "$ref": "#/definitions/user.Rights"
+                }
+            }
         }
     }
 }`
