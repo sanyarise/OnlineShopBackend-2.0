@@ -15,6 +15,8 @@ services:
       PORT: ":8000"
       DSN: "postgres://shopteam:123@postgres:5432/shop?sslmode=disable"
       CASH_HOST: "redis"
+      OPA_ENDPOINT: "http://opa:8181/v1/data/httpapi/authz/allow"
+
 
   postgres:
     image: postgres:14.6-alpine
@@ -49,6 +51,17 @@ services:
 #      - 3000:3000
 #    depends_on:
 #      - shop
+
+  opa:
+    image: openpolicyagent/opa:0.12.0
+    container_name: opa
+    hostname: opa
+    restart: always
+    ports:
+      - 8181:8181
+    volumes:
+      - ./opa:/etc/opt/opa
+    command: ["run", "--server", "/etc/opt/opa/authz.rego"]
 
 #  Observability
   prometheus:
