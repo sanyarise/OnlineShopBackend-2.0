@@ -1524,4 +1524,25 @@ paths:
       summary: User profile
       tags:
       - user
+  /user/rights/list:
+    get:
+      consumes:
+      - application/json
+      description: Method provides to Change User Role
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Change User Role
+      tags:
+      - user
 swagger: "2.0"

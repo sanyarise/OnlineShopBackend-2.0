@@ -12,7 +12,6 @@ package delivery
 import (
 	"OnlineShopBackend/internal/delivery/category"
 	"OnlineShopBackend/internal/delivery/item"
-	"OnlineShopBackend/internal/delivery/user/jwtauth"
 	"OnlineShopBackend/internal/metrics"
 	"OnlineShopBackend/internal/models"
 	"context"
@@ -190,13 +189,6 @@ func (delivery *Delivery) GetItem(c *gin.Context) {
 //	@Router			/items/update [put]
 func (delivery *Delivery) UpdateItem(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery UpdateItem()")
-
-	userPayload := c.MustGet("claims").(*jwtauth.Payload)
-	if userPayload.Role != "Admin" {
-		delivery.SetError(c, http.StatusUnauthorized)
-		return
-	}
-
 	ctx := c.Request.Context()
 	var deliveryItem item.InItem
 	if err := c.ShouldBindJSON(&deliveryItem); err != nil {
@@ -361,7 +353,7 @@ func (delivery *Delivery) ItemsList(c *gin.Context) {
 	c.JSON(http.StatusOK, items)
 }
 
-// ItemsListQuantity returns quantity of all items
+// ItemsQuantity returns quantity of all items
 //
 //	@Summary		Get quantity of items
 //	@Description	Method provides to get quantity of items
