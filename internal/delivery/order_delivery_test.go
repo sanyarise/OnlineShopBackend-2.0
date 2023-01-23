@@ -17,6 +17,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 )
@@ -350,7 +351,8 @@ func TestGetOrderForUser(t *testing.T) {
 	delivery.GetOrdersForUser(c)
 	require.Equal(t, 200, w.Code)
 	var res []order.Order
-	json.NewDecoder(w.Body).Decode(&res)
+	err = json.NewDecoder(w.Body).Decode(&res)
+	assert.NoError(t, err)
 	require.Equal(t, 2, len(res))
 }
 

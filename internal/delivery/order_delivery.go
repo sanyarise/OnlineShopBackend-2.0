@@ -18,12 +18,12 @@ import (
 //	@Tags			order
 //	@Accept			json
 //	@Produce		json
-//	@Param			cartAddressUser	body	order.CartAddressUser	true	"Data for creating order"
-//	@Success		201		{object}	order.OrderId	"Order id"
-//	@Failure		400		{object}	ErrorResponse
-//	@Failure		403		"Forbidden"
-//	@Failure		404		{object}	ErrorResponse	"404 Not Found"
-//	@Failure		500		{object}	ErrorResponse
+//	@Param			cartAddressUser	body		order.CartAdressUser	true	"Data for creating order"
+//	@Success		201				{object}	order.OrderId			"Order id"
+//	@Failure		400				{object}	ErrorResponse
+//	@Failure		403				"Forbidden"
+//	@Failure		404				{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500				{object}	ErrorResponse
 //	@Router			/order/create/ [post]
 func (d *Delivery) CreateOrder(c *gin.Context) {
 	d.logger.Debug("Eneter in delivery CreateOrder")
@@ -154,7 +154,7 @@ func firstNotEmpty(arr []string) string {
 //	@Accept			json
 //	@Produce		json
 //	@Param			userID	path		string		true	"Id of the user"
-//	@Success		200		{array}	order.Order	"List of orders"
+//	@Success		200		{array}		order.Order	"List of orders"
 //	@Failure		400		{object}	ErrorResponse
 //	@Failure		403		"Forbidden"
 //	@Failure		404		{object}	ErrorResponse	"404 Not Found"
@@ -206,12 +206,12 @@ func (d *Delivery) GetOrdersForUser(c *gin.Context) {
 //	@Tags			order
 //	@Accept			json
 //	@Produce		json
-//	@Param			orderID	path		string		true	"Id of the order to delete"
+//	@Param			orderID	path	string	true	"Id of the order to delete"
 //	@Success		200
-//	@Failure		400		{object}	ErrorResponse
-//	@Failure		403		"Forbidden"
-//	@Failure		404		{object}	ErrorResponse	"404 Not Found"
-//	@Failure		500		{object}	ErrorResponse
+//	@Failure		400	{object}	ErrorResponse
+//	@Failure		403	"Forbidden"
+//	@Failure		404	{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500	{object}	ErrorResponse
 //	@Router			/order/delete/{orderID} [delete]
 func (d *Delivery) DeleteOrder(c *gin.Context) {
 	d.logger.Debug("Enter in delivery DeleteOrder()")
@@ -236,18 +236,18 @@ func (d *Delivery) DeleteOrder(c *gin.Context) {
 
 // ChangeAddressOfTheOrder - change address of a specific order by Id
 //
-//		@Summary		Change address of a  specific order by Id
-//		@Description	The method allows you to change address of an order by Id.
-//		@Tags			order
-//		@Accept			json
-//		@Produce		json
-//	 @Param			AddressWithUserAndId body		order.AddressWithUserAndId		true 	"New address with orderID and user structure"
-//		@Success		200		{object}
-//		@Failure		400		{object}	ErrorResponse
-//		@Failure		403		"Forbidden"
-//		@Failure		404		{object}	ErrorResponse	"404 Not Found"
-//		@Failure		500		{object}	ErrorResponse
-//		@Router			/order/changeaddress/ [patch]
+//	@Summary		Change address of a  specific order by Id
+//	@Description	The method allows you to change address of an order by Id.
+//	@Tags			order
+//	@Accept			json
+//	@Produce		json
+//	@Param			AddressWithUserAndId	body	order.AddressWithUserAndId	true	"New address with orderID and user structure"
+//	@Success		200
+//	@Failure		400						{object}	ErrorResponse
+//	@Failure		403						"Forbidden"
+//	@Failure		404						{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500						{object}	ErrorResponse
+//	@Router			/order/changeaddress/ [patch]
 func (d *Delivery) ChangeAddress(c *gin.Context) {
 	d.logger.Sugar().Debug("Enter the delivery ChangeAddress()")
 	ctx := c.Request.Context()
@@ -288,18 +288,18 @@ func (d *Delivery) ChangeAddress(c *gin.Context) {
 
 // ChangeStatusOfTheOrder - change status of a specific order by Id
 //
-//		@Summary		Change status of a specific order by Id
-//		@Description	The method allows you to change status of an order by Id.
-//		@Tags			order
-//		@Accept			json
-//		@Produce		json
-//	 @Param			statusWithUserAndId body		order.StatusWithUserAndId 		true 	"New status with orderID and User structure"
-//		@Success		200		{object}
-//		@Failure		400		{object}	ErrorResponse
-//		@Failure		403		"Forbidden"
-//		@Failure		404		{object}	ErrorResponse	"404 Not Found"
-//		@Failure		500		{object}	ErrorResponse
-//		@Router			/order/changestatus/ [patch]
+//	@Summary		Change status of a specific order by Id
+//	@Description	The method allows you to change status of an order by Id.
+//	@Tags			order
+//	@Accept			json
+//	@Produce		json
+//	@Param			statusWithUserAndId	body	order.StatusWithUserAndId	true	"New status with orderID and User structure"
+//	@Success		200
+//	@Failure		400					{object}	ErrorResponse
+//	@Failure		403					"Forbidden"
+//	@Failure		404					{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500					{object}	ErrorResponse
+//	@Router			/order/changestatus/ [patch]
 func (d *Delivery) ChangeStatus(c *gin.Context) {
 	d.logger.Sugar().Debug("Enter the delivery ChangeStatus()")
 	ctx := c.Request.Context()

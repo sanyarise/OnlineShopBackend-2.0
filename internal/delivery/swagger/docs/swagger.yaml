@@ -40,12 +40,18 @@ definitions:
         example: 1990
         minimum: 0
         type: integer
+      quantity:
+        default: 1
+        example: 3
+        minimum: 1
+        type: integer
       title:
         example: Пылесос
         type: string
     required:
     - item_id
     - price
+    - quantity
     - title
     type: object
   cart.ShortCart:
@@ -253,6 +259,105 @@ definitions:
     - description
     - price
     - title
+    type: object
+  order.AddressWithUserAndId:
+    properties:
+      address:
+        $ref: '#/definitions/order.OrderAddress'
+      order_id:
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        type: string
+      user:
+        $ref: '#/definitions/order.UserForCart'
+    required:
+    - order_id
+    type: object
+  order.CartAdressUser:
+    properties:
+      address:
+        $ref: '#/definitions/order.OrderAddress'
+      cart:
+        $ref: '#/definitions/cart.Cart'
+      user:
+        $ref: '#/definitions/order.UserForCart'
+    type: object
+  order.Order:
+    properties:
+      address:
+        $ref: '#/definitions/order.OrderAddress'
+      id:
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/cart.CartItem'
+        minItems: 0
+        type: array
+      shipment_time:
+        type: string
+      status:
+        type: string
+      user_id:
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        type: string
+    required:
+    - address
+    - id
+    - shipment_time
+    type: object
+  order.OrderAddress:
+    properties:
+      city:
+        type: string
+      country:
+        type: string
+      street:
+        type: string
+      zipcode:
+        type: string
+    required:
+    - city
+    - street
+    - zipcode
+    type: object
+  order.OrderId:
+    properties:
+      value:
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        type: string
+    required:
+    - value
+    type: object
+  order.StatusWithUserAndId:
+    properties:
+      order_id:
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        type: string
+      status:
+        type: string
+      user:
+        $ref: '#/definitions/order.UserForCart'
+    required:
+    - order_id
+    type: object
+  order.UserForCart:
+    properties:
+      email:
+        type: string
+      id:
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        type: string
+      role:
+        type: string
+    required:
+    - email
+    - id
     type: object
 info:
   contact:
@@ -1105,4 +1210,213 @@ paths:
       summary: Method provides to update store item
       tags:
       - items
+  /order/{orderID}:
+    get:
+      consumes:
+      - application/json
+      description: The method allows you to get the order by id.
+      parameters:
+      - description: Id of order
+        in: path
+        name: orderID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Order structure
+          schema:
+            $ref: '#/definitions/order.Order'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Get order by id
+      tags:
+      - order
+  /order/{userID}:
+    get:
+      consumes:
+      - application/json
+      description: The method allows you to get all orders by UserId.
+      parameters:
+      - description: Id of the user
+        in: path
+        name: userID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of orders
+          schema:
+            items:
+              $ref: '#/definitions/order.Order'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Get all orders by UserId
+      tags:
+      - order
+  /order/changeaddress/:
+    patch:
+      consumes:
+      - application/json
+      description: The method allows you to change address of an order by Id.
+      parameters:
+      - description: New address with orderID and user structure
+        in: body
+        name: AddressWithUserAndId
+        required: true
+        schema:
+          $ref: '#/definitions/order.AddressWithUserAndId'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Change address of a  specific order by Id
+      tags:
+      - order
+  /order/changestatus/:
+    patch:
+      consumes:
+      - application/json
+      description: The method allows you to change status of an order by Id.
+      parameters:
+      - description: New status with orderID and User structure
+        in: body
+        name: statusWithUserAndId
+        required: true
+        schema:
+          $ref: '#/definitions/order.StatusWithUserAndId'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Change status of a specific order by Id
+      tags:
+      - order
+  /order/create/:
+    post:
+      consumes:
+      - application/json
+      description: The method allows you to create an order out of cart and user info
+      parameters:
+      - description: Data for creating order
+        in: body
+        name: cartAddressUser
+        required: true
+        schema:
+          $ref: '#/definitions/order.CartAdressUser'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Order id
+          schema:
+            $ref: '#/definitions/order.OrderId'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Create order
+      tags:
+      - order
+  /order/delete/{orderID}:
+    delete:
+      consumes:
+      - application/json
+      description: The method allows you to delete an order by id.
+      parameters:
+      - description: Id of the order to delete
+        in: path
+        name: orderID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Delete an order by id
+      tags:
+      - order
 swagger: "2.0"
