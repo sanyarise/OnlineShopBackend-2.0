@@ -178,3 +178,35 @@ func (u *user) SaveSession(ctx context.Context, token string, t int64) error {
 	}
 	return nil
 }
+
+func (u *user) GetRightsList(ctx context.Context) (chan models.Rights, error) {
+	u.logger.Debug("Enter in repository GetCategoryList() with args: ctx")
+	rolesChan := make(chan models.Rights, 100)
+	go func() {
+		defer close(rolesChan)
+		rights := &models.Rights{}
+
+		pool := u.storage.GetPool()
+		rows, err := pool.Query(ctx, `
+		SELECT id, name, rules FROM rights`) // WHERE deleted_at is null
+		if err != nil {
+			u.logger.Error(fmt.Errorf("error on rights list query context: %w", err).Error())
+			return
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			if err := rows.Scan(
+				&rights.ID,
+				&rights.Name,
+				&rights.Rules,
+			); err != nil {
+				u.logger.Error(err.Error())
+				return
+			}
+			rolesChan <- *rights
+		}
+	}()
+
+	return rolesChan, nil
+}

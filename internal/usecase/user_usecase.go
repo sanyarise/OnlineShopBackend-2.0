@@ -117,3 +117,19 @@ func (usecase *UserUsecase) UpdateUserRole(ctx context.Context, roleId uuid.UUID
 	}
 	return nil
 }
+
+func (usecase *UserUsecase) GetRightsList(ctx context.Context) ([]models.Rights, error) {
+	usecase.logger.Debug("Enter in usecase GetRightsList() with args: ctx")
+	rightsIncomingChan, err := usecase.userStore.GetRightsList(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	rights := make([]models.Rights, 0, 100)
+	for rule := range rightsIncomingChan {
+		rights = append(rights, rule)
+	}
+
+	return rights, nil
+
+}

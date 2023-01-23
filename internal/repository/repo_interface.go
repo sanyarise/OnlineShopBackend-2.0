@@ -36,6 +36,7 @@ type UserStore interface {
 	UpdateUserData(ctx context.Context, id uuid.UUID, user *models.User) (*models.User, error)
 	SaveSession(ctx context.Context, token string, t int64) error
 	UpdateUserRole(ctx context.Context, roleId uuid.UUID, email string) error
+	GetRightsList(ctx context.Context) (chan models.Rights, error)
 }
 
 type CartStore interface {
