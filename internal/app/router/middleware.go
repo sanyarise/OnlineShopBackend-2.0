@@ -2,11 +2,18 @@ package router
 
 import (
 	"OnlineShopBackend/internal/delivery/user/jwtauth"
+	"github.com/google/uuid"
 	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
+)
+
+const (
+	authorizationHeader = "Authorization"
+	admin               = "Admin"
+	customer            = "Customer"
 )
 
 func CORSMiddleware() gin.HandlerFunc {
@@ -19,57 +26,109 @@ func CORSMiddleware() gin.HandlerFunc {
 			c.AbortWithStatus(204)
 			return
 		}
-
 		c.Next()
 	}
 }
+func JWTMiddleware(c *gin.Context) {
 
-func JWTMiddleware() gin.HandlerFunc {
+	tokenString := c.GetHeader(authorizationHeader)
+
+	if tokenString == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "Authorization header is empty"})
+		c.Abort()
+		return
+	}
+
+	headerSplit := strings.Split(tokenString, " ")
+	if len(headerSplit) != 2 || headerSplit[0] != "Bearer" {
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "header issue"})
+		return
+	}
+	if len(headerSplit[1]) == 0 {
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "empty token"})
+		return
+	}
+
+	jwtKey, err := jwtauth.NewJWTKeyConfig()
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "empty config"})
+		return
+	}
+
+	claims := &jwtauth.Payload{}
+	token, err := jwt.ParseWithClaims(headerSplit[1], claims, func(token *jwt.Token) (interface{}, error) {
+		return []byte(jwtKey.Key), nil //TODO
+	})
+
+	if err != nil {
+		if err == jwt.ErrSignatureInvalid {
+			c.JSON(http.StatusUnauthorized, gin.H{"message": "Invalid signature"})
+			c.Abort()
+			return
+		}
+	}
+
+	if !token.Valid {
+		c.JSON(http.StatusUnauthorized, gin.H{"message": tokenString})
+		c.Abort()
+		return
+	}
+
+	c.Set("claims", claims)
+}
+
+// AdminAuth method grants permission only to users with the role 'Admin'
+func AdminAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		tokenString := c.GetHeader("Authorization")
-
-		if tokenString == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{"message": "Authorization header is empty"})
-			c.Abort()
+		JWTMiddleware(c)
+		userCr, ok := c.MustGet("claims").(*jwtauth.Payload)
+		if !ok {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "incorrect claims"})
 			return
 		}
-
-		headerSplit := strings.Split(tokenString, " ")
-		if len(headerSplit) != 2 || headerSplit[0] != "Bearer" {
-			c.JSON(http.StatusUnauthorized, gin.H{"message": "header issue"})
+		if userCr.Role != admin {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "not permitted"})
 			return
 		}
-		if len(headerSplit[1]) == 0 {
-			c.JSON(http.StatusUnauthorized, gin.H{"message": "empty token"})
-			return
-		}
-
-		tt := headerSplit[1]
-
-		claims := &jwtauth.Payload{}
-		token, err := jwt.ParseWithClaims(tt, claims, func(token *jwt.Token) (interface{}, error) {
-			return []byte("dsf498uh324seyu2837912sd7*7897"), nil
-		})
-
-		if err != nil {
-			if err == jwt.ErrSignatureInvalid {
-				c.JSON(http.StatusUnauthorized, gin.H{"message": "Invalid signature"})
-				c.Abort()
-				return
-			}
-		}
-
-		if !token.Valid {
-			c.JSON(http.StatusUnauthorized, gin.H{"message": tokenString})
-			c.Abort()
-			return
-		}
-
-		c.Set("claims", claims)
 		c.Next()
 	}
 }
 
+// CustomerAuth method grants permission only to users with the role 'Customer'
+func CustomerAuth() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		JWTMiddleware(c)
+		userCr, ok := c.MustGet("claims").(*jwtauth.Payload)
+		if !ok {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "incorrect claims"})
+			return
+		}
+		if userCr.Role != customer {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "not permitted"})
+			return
+		}
+		c.Next()
+	}
+}
+
+// UserAuth method confirms that user is authorized
+func UserAuth() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		JWTMiddleware(c)
+		userCr, ok := c.MustGet("claims").(*jwtauth.Payload)
+		if !ok {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "incorrect claims"})
+			return
+		}
+		if userCr.UserId == uuid.Nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "user unauthorized 333"})
+			return
+		}
+		c.Next()
+	}
+}
+
+// noOpMiddleware is a dummy method of middleware
 func noOpMiddleware(c *gin.Context) {
 	c.Next()
 }

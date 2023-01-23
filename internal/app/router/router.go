@@ -73,11 +73,12 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 			noOpMiddleware,
 			delivery.GetFileList,
 		},
+		// -------------------------CATEGORY----------------------------------------------------------------------------
 		{
 			"CreateCategory",
 			http.MethodPost,
 			"/categories/create",
-			noOpMiddleware,
+			AdminAuth(),
 			delivery.CreateCategory,
 		},
 		{
@@ -98,35 +99,36 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 			"UpdateCategory",
 			http.MethodPut,
 			"/categories/:categoryID",
-			noOpMiddleware,
+			AdminAuth(),
 			delivery.UpdateCategory,
 		},
 		{
 			"UploadCategoryImage",
 			http.MethodPost,
 			"/categories/image/upload/:categoryID",
-			noOpMiddleware,
+			AdminAuth(),
 			delivery.UploadCategoryImage,
 		},
 		{
 			"DeleteCategoryImage",
 			http.MethodDelete,
 			"/categories/image/delete", //?id=25f32441-587a-452d-af8c-b3876ae29d45&name=20221209194557.jpeg
-			noOpMiddleware,
+			AdminAuth(),
 			delivery.DeleteCategoryImage,
 		},
 		{
 			"DeleteCategory",
 			http.MethodDelete,
 			"/categories/delete/:categoryID",
-			noOpMiddleware,
+			AdminAuth(),
 			delivery.DeleteCategory,
 		},
+		// -------------------------ITEM--------------------------------------------------------------------------------
 		{
 			"CreateItem",
 			http.MethodPost,
 			"/items/create",
-			noOpMiddleware,
+			AdminAuth(),
 			delivery.CreateItem,
 		},
 		{
@@ -147,21 +149,21 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 			"UpdateItem",
 			http.MethodPut,
 			"/items/update",
-			JWTMiddleware(),
+			AdminAuth(),
 			delivery.UpdateItem,
 		},
 		{
 			"UploadItemImage",
 			http.MethodPost,
 			"/items/image/upload/:itemID",
-			noOpMiddleware,
+			AdminAuth(),
 			delivery.UploadItemImage,
 		},
 		{
 			"DeleteItemImage",
 			http.MethodDelete,
 			"/items/image/delete", //?id=25f32441-587a-452d-af8c-b3876ae29d45&name=20221209194557.jpeg
-			noOpMiddleware,
+			AdminAuth(),
 			delivery.DeleteItemImage,
 		},
 		{
@@ -203,7 +205,7 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 			"DeleteItem",
 			http.MethodDelete,
 			"/items/delete/:itemID",
-			noOpMiddleware,
+			AdminAuth(),
 			delivery.DeleteItem,
 		},
 		{
@@ -227,6 +229,7 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 			noOpMiddleware,
 			delivery.GetFavouriteItems,
 		},
+		// -------------------------CART--------------------------------------------------------------------------------
 		{
 			"GetCart",
 			http.MethodGet,
@@ -269,6 +272,7 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 			noOpMiddleware,
 			delivery.DeleteCart,
 		},
+		// -------------------------USER--------------------------------------------------------------------------------
 		{
 			"CreateUser",
 			http.MethodPost,
@@ -276,7 +280,6 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 			noOpMiddleware,
 			delivery.CreateUser,
 		},
-
 		{
 			"LoginUser",
 			http.MethodPost,
@@ -284,7 +287,6 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 			noOpMiddleware,
 			delivery.LoginUser,
 		},
-
 		{
 			"LogoutUser",
 			http.MethodGet,
@@ -299,7 +301,6 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 			noOpMiddleware,
 			delivery.LoginUserGoogle,
 		},
-
 		{
 			"callbackGoogle",
 			http.MethodGet,
@@ -312,29 +313,36 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 			"userProfile",
 			http.MethodGet,
 			"/user/profile",
-			JWTMiddleware(),
+			UserAuth(),
 			delivery.UserProfile,
 		},
 		{
 			"userProfileUpdate",
 			http.MethodPut,
 			"/user/profile/edit",
-			JWTMiddleware(),
+			UserAuth(),
 			delivery.UserProfileUpdate,
 		},
 		{
 			"tokenUpdate",
 			http.MethodPost,
 			"/user/token/update",
-			JWTMiddleware(),
+			UserAuth(),
 			delivery.TokenUpdate,
 		},
 		{
 			"ChangeRole",
 			http.MethodPut,
 			"/user/role/update",
-			JWTMiddleware(),
+			AdminAuth(),
 			delivery.ChangeRole,
+		},
+		{
+			"UserRolesList",
+			http.MethodGet,
+			"/user/rights/list",
+			AdminAuth(),
+			delivery.RolesList,
 		},
 	}
 

@@ -17,16 +17,19 @@ type Token struct {
 }
 
 type Payload struct {
-	Email  string `json:"email"`
-	Role   string `json:"role"`
+	Email  string    `json:"email"`
+	Role   string    `json:"role"`
 	UserId uuid.UUID `json:"userId"`
 	jwt.StandardClaims
 }
 
 func NewJWT(payload Payload) (string, error) {
-	key := []byte("dsf498uh324seyu2837912sd7*7897") //TODO make env
+	key, err := NewJWTKeyConfig()
+	if err != nil {
+		return "", err
+	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &payload)
-	return token.SignedString(key)
+	return token.SignedString([]byte(key.Key))
 }
 
 func NewRefreshToken() (string, error) {
@@ -41,14 +44,6 @@ func NewRefreshToken() (string, error) {
 
 	return fmt.Sprintf("%x", refreshToken), nil
 }
-
-//func UserIdentity(header string) (*Payload, error) {
-//	userCr, err := parseAuthHeader(header)
-//	if err != nil {
-//		return &Payload{}, err
-//	}
-//	return userCr, nil
-//}
 
 func CreateSessionJWT(ctx context.Context, user *models.User) (Token, error) {
 	payload := Payload{
@@ -81,58 +76,3 @@ func CreateSessionJWT(ctx context.Context, user *models.User) (Token, error) {
 
 	return token, nil
 }
-
-//func checkJWT(tokenString string) error {
-//	_, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-//		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-//			return nil, fmt.Errorf("unexpexted signing method: %v", token.Header["alg"])
-//		}
-//		return []byte("dsf498uh324seyu2837912sd7*7897"), nil //TODO make env
-//	})
-//
-//	if err != nil {
-//		return fmt.Errorf("invalid JWT")
-//	}
-//
-//	return nil
-//}
-
-//func parseAuthHeader(header string) (*Payload, error) {
-//	if header == "" {
-//		return &Payload{}, errors.New("empty header")
-//	}
-//
-//	headerSplit := strings.Split(header, " ")
-//	if len(headerSplit) != 2 || headerSplit[0] != "Bearer" {
-//		return &Payload{}, errors.New("header issue")
-//	}
-//	if len(headerSplit[1]) == 0 {
-//		return &Payload{}, errors.New("empty token")
-//	}
-//
-//	err := checkJWT(headerSplit[1]); if err != nil {
-//		return &Payload{}, err
-//	}
-//
-//	parts := strings.Split(headerSplit[1], ".")
-//
-//	if parts == nil {
-//		return &Payload{}, errors.New(parts[2]) //todo
-//	}
-//
-//	email, err := jwt.DecodeSegment(parts[1])
-//	if err != nil {
-//		return &Payload{}, errors.New("unable to decode")
-//	}
-//	cr := &Payload{}
-//	err = json.Unmarshal(email, &cr)
-//	if err != nil {
-//		return &Payload{}, errors.New("unable to unmarshall")
-//	}
-//	payload := &Payload{
-//		Email:  cr.Email,
-//		Role:   cr.Role,
-//		UserId: cr.UserId,
-//	}
-//	return payload, nil
-//}
