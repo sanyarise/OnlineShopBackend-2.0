@@ -5,16 +5,14 @@ import (
 	"crypto/sha1"
 	"fmt"
 	"log"
-	"os"
 	"unicode"
 
 	"github.com/caarlos0/env/v6"
-	"github.com/goccy/go-json"
 	"github.com/google/uuid"
 )
 
 type SaltSHA struct {
-	Salt string `json:"salt"`
+	Salt string `json:"salt" env:"SALT" envDefault:"sjdhkashdsw823rgfeg"`
 }
 
 type User struct {
@@ -33,7 +31,7 @@ type Credentials struct {
 }
 
 func NewPasswordConfig() (*SaltSHA, error) {
-	var configPathHash = "./internal/delivery/user/password/hash.json"
+	//var configPathHash = "./internal/delivery/user/password/hash.json"
 
 	var cfg = SaltSHA{}
 
@@ -41,14 +39,14 @@ func NewPasswordConfig() (*SaltSHA, error) {
 		log.Fatalf("can't load environment variables: %s", err)
 	}
 
-	data, err := os.ReadFile(configPathHash)
-	if err != nil {
-		log.Fatalf("cannot read the file: %s", err)
-	}
-
-	if err = json.Unmarshal(data, &cfg); err != nil {
-		log.Fatalf("cannot unmarshal: %s", err)
-	}
+	//data, err := os.ReadFile(configPathHash)
+	//if err != nil {
+	//	log.Fatalf("cannot read the file: %s", err)
+	//}
+	//
+	//if err = json.Unmarshal(data, &cfg); err != nil {
+	//	log.Fatalf("cannot unmarshal: %s", err)
+	//}
 
 	return &cfg, nil
 }

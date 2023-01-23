@@ -27,7 +27,6 @@ import (
 )
 
 const (
-	userCtx             = "userID"
 	authorizationHeader = "Authorization"
 )
 
@@ -76,14 +75,8 @@ func (delivery *Delivery) CreateUser(c *gin.Context) {
 	}
 	delivery.logger.Info("success: user was created")
 
-	token, err := jwtauth.CreateSessionJWT(c.Request.Context(), createdUser)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-	}
+	c.JSON(http.StatusCreated, gin.H{"userId": createdUser.ID})
 
-	//user.IssueSession(delivery.logger, createdUser.ID.String())
-
-	c.JSON(http.StatusCreated, token)
 }
 
 // LoginUser login user
@@ -125,6 +118,7 @@ func (delivery *Delivery) LoginUser(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, token)
+
 }
 
 // UserProfile user profile
@@ -142,13 +136,9 @@ func (delivery *Delivery) LoginUser(c *gin.Context) {
 //	@Router			/user/profile [get]
 func (delivery *Delivery) UserProfile(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery UserProfile()")
-	header := c.GetHeader(authorizationHeader)
-	userCr, err := jwtauth.UserIdentity(header)
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
-		return
+	userCr, ok := c.MustGet("claims").(*jwtauth.Payload); if !ok {
+		c.JSON(http.StatusNotFound, gin.H{"error": "claims error"})
 	}
-
 	userData, err := delivery.userUsecase.GetUserByEmail(c.Request.Context(), userCr.Email)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
@@ -160,14 +150,11 @@ func (delivery *Delivery) UserProfile(c *gin.Context) {
 
 func (delivery *Delivery) UserProfileUpdate(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery UserProfileUpdate()")
-	header := c.GetHeader("Authorization")
-	userCr, err := jwtauth.UserIdentity(header)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-	}
+
+	userCr := c.MustGet("claims").(*jwtauth.Payload)
 
 	var newInfoUser *models.User
-	if err = c.ShouldBindJSON(&newInfoUser); err != nil {
+	if err := c.ShouldBindJSON(&newInfoUser); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -276,16 +263,6 @@ func (delivery *Delivery) success(c *gin.Context) http.HandlerFunc {
 			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 			return
 		}
-		//url := "http://localhost:3000" // TODO
-		//
-		//redirectURL := fmt.Sprintf(
-		//	"%s?token=%s&refresh=%s",
-		//	url,
-		//	token.AccessToken,
-		//	token.RefreshToken,
-		//)
-		//
-		//http.Redirect(w, req, redirectURL , http.StatusFound)
 
 		c.JSON(http.StatusOK, token)
 
@@ -311,7 +288,70 @@ func failure(c *gin.Context) http.HandlerFunc {
 //	@Router			/user/logout [get]
 func (delivery *Delivery) LogoutUser(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery LogoutUser()")
-	c.SetCookie("token", "", -1, "/", "http://localhost:3000", false, true) //TODO change to webapp url
-	c.JSON(http.StatusOK, gin.H{"you have been successfully logged out": nil})
+	c.Set(authorizationHeader, "")
+	c.JSON(http.StatusOK, gin.H{"message": "you have been successfully logged out"})
+}
 
+// ChangeRole Change User Role
+//
+//	@Summary		Change User Role
+//	@Description	Method provides to Change User Role
+//	@Tags			user
+//	@Accept			json
+//	@Produce		json
+//	@Success		200
+//	@Failure		500
+//	@Router			/user/callbackGoogle [put]
+func (delivery *Delivery) ChangeRole(c *gin.Context) {
+	delivery.logger.Debug("Enter in delivery ChangeRights()")
+	userCr, ok := c.MustGet("claims").(*jwtauth.Payload); if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "incorrect claims"})
+		return
+	}
+
+	var newInfoUser *models.User
+	if err := c.ShouldBindJSON(&newInfoUser); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if userCr.Email == newInfoUser.Email {
+		c.JSON(http.StatusUnavailableForLegalReasons, gin.H{"error": "change your own rights is prohibited"})
+		return
+	}
+		roleId, err := delivery.userUsecase.GetRightsId(c.Request.Context(), newInfoUser.Rights.Name)
+
+	err = delivery.userUsecase.UpdateUserRole(c.Request.Context(), roleId.ID, newInfoUser.Email)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err})
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "new user role"})
+
+}
+
+
+// RolesList List of Rights
+//
+//	@Summary		Change User Role
+//	@Description	Method provides to Change User Role
+//	@Tags			user
+//	@Accept			json
+//	@Produce		json
+//	@Success		200
+//	@Failure		500 {object}	ErrorResponse
+//	@Failure		401	{object}	ErrorResponse
+//	@Router			/user/rights/list [get]
+func (delivery *Delivery) RolesList(c *gin.Context) {
+	delivery.logger.Debug("Enter in delivery RolesList()")
+	userCr := c.MustGet("claims").(*jwtauth.Payload)
+	if userCr.Role != "Admin" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "not permitted"})
+		return
+	}
+	roles, err := delivery.userUsecase.GetRightsList(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err})
+	}
+	c.JSON(http.StatusOK, roles)
 }

@@ -353,7 +353,7 @@ func (delivery *Delivery) ItemsList(c *gin.Context) {
 	c.JSON(http.StatusOK, items)
 }
 
-// ItemsListQuantity returns quantity of all items
+// ItemsQuantity returns quantity of all items
 //
 //	@Summary		Get quantity of items
 //	@Description	Method provides to get quantity of items
