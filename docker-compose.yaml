@@ -57,7 +57,7 @@ services:
       - ./deployment/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
       - /etc/localtime:/etc/localtime:ro
     ports:
-      - 9090:9090
+      - 9091:9090
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
     restart: unless-stopped
@@ -71,8 +71,8 @@ services:
       - ./deployment/grafana/dashboard.yaml:/etc/grafana/provisioning/dashboards/main.yaml
       - ./deployment/grafana/datasource.yaml:/etc/grafana/provisioning/datasources/main.yaml
       - ./deployment/grafana/dashboard.json:/var/lib/grafana/dashboards/dashboard.json
+      - ./deployment/grafana/go-metrics_rev1.json:/var/lib/grafana/dashboards/go-metrics_rev1.json
     restart: unless-stopped
-
 
 networks:
   default:
