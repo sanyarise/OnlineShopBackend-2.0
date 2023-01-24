@@ -319,9 +319,9 @@ func (delivery *Delivery) ChangeRole(c *gin.Context) {
 		c.JSON(http.StatusUnavailableForLegalReasons, gin.H{"error": "change your own rights is prohibited"})
 		return
 	}
-		roleId, err := delivery.userUsecase.GetRightsId(c.Request.Context(), newInfoUser.Rights.Name)
+		roleId, _ := delivery.userUsecase.GetRightsId(c.Request.Context(), newInfoUser.Rights.Name)
 
-	err = delivery.userUsecase.UpdateUserRole(c.Request.Context(), roleId.ID, newInfoUser.Email)
+	err := delivery.userUsecase.UpdateUserRole(c.Request.Context(), roleId.ID, newInfoUser.Email)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err})
 	}
