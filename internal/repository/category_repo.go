@@ -35,15 +35,25 @@ func NewCategoryRepo(store *PGres, log *zap.SugaredLogger) CategoryStore {
 
 func (repo *categoryRepo) CreateCategory(ctx context.Context, category *models.Category) (uuid.UUID, error) {
 	repo.logger.Debugf("Enter in repository CreateCategory() with args: ctx, category: %v", category)
-
 	repoCategory := &Category{
 		Name:        category.Name,
 		Description: category.Description,
 		Image:       category.Image,
 	}
-	var id uuid.UUID
 	pool := repo.storage.GetPool()
 
+	if id, ok := repo.isDeletedCategory(ctx, repoCategory.Name); ok {
+		_, err := pool.Exec(ctx, `UPDATE categories SET description=$1, picture=$2, deleted_at=null WHERE name=$3`,
+			repoCategory.Description,
+			repoCategory.Image,
+			repoCategory.Name)
+		if err != nil {
+			repo.logger.Debug(err.Error())
+			return uuid.Nil, err
+		}
+		return id, nil
+	}
+	var id uuid.UUID
 	tx, err := pool.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		repo.logger.Errorf("Can't create transaction: %s", err)
@@ -78,6 +88,22 @@ func (repo *categoryRepo) CreateCategory(ctx context.Context, category *models.C
 	repo.logger.Debug("Category created success")
 	repo.logger.Debugf("Id is %v\n", id)
 	return id, nil
+}
+
+func (repo *categoryRepo) isDeletedCategory(ctx context.Context, name string) (uuid.UUID, bool) {
+	repo.logger.Debug("Enter in repository is DeletedCategory() with args: ctx, name: %s", name)
+	pool := repo.storage.GetPool()
+	category := models.Category{}
+	row := pool.QueryRow(ctx,
+		`SELECT id FROM categories WHERE deleted_at is not null AND name = $1`, name)
+	err := row.Scan(
+		&category.Id,
+	)
+	if err == nil && category.Id != uuid.Nil {
+		return category.Id, true
+	}
+	repo.logger.Error(err.Error())
+	return uuid.Nil, false
 }
 
 func (repo *categoryRepo) UpdateCategory(ctx context.Context, category *models.Category) error {
