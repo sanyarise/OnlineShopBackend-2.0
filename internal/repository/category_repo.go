@@ -41,8 +41,8 @@ func (repo *categoryRepo) CreateCategory(ctx context.Context, category *models.C
 		Image:       category.Image,
 	}
 	pool := repo.storage.GetPool()
-	
-	if id, ok := repo.IsDeletedCategory(ctx, repoCategory.Name); ok {
+
+	if id, ok := repo.isDeletedCategory(ctx, repoCategory.Name); ok {
 		_, err := pool.Exec(ctx, `UPDATE categories SET description=$1, picture=$2, deleted_at=null WHERE name=$3`,
 			repoCategory.Description,
 			repoCategory.Image,
@@ -90,7 +90,7 @@ func (repo *categoryRepo) CreateCategory(ctx context.Context, category *models.C
 	return id, nil
 }
 
-func (repo *categoryRepo) IsDeletedCategory(ctx context.Context, name string) (uuid.UUID, bool) {
+func (repo *categoryRepo) isDeletedCategory(ctx context.Context, name string) (uuid.UUID, bool) {
 	repo.logger.Debug("Enter in repository is DeletedCategory() with args: ctx, name: %s", name)
 	pool := repo.storage.GetPool()
 	category := models.Category{}
