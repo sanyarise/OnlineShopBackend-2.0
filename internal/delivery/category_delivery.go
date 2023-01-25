@@ -12,6 +12,7 @@ package delivery
 import (
 	"OnlineShopBackend/internal/delivery/category"
 	"OnlineShopBackend/internal/models"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -121,6 +122,12 @@ func (delivery *Delivery) UpdateCategory(c *gin.Context) {
 	}
 	ctx := c.Request.Context()
 	err = delivery.categoryUsecase.UpdateCategory(ctx, &modelsCategory)
+	if err != nil && errors.Is(err, models.ErrorNotFound{}) {
+		err = fmt.Errorf("category with id: %s not found", id)
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusNotFound, err)
+		return
+	}
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusInternalServerError, err)
@@ -193,6 +200,12 @@ func (delivery *Delivery) UploadCategoryImage(c *gin.Context) {
 	}
 	ctx := c.Request.Context()
 	category, err := delivery.categoryUsecase.GetCategory(ctx, uid)
+	if err != nil && errors.Is(err, models.ErrorNotFound{}) {
+		err = fmt.Errorf("category with id: %s not found", uid)
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusNotFound, err)
+		return
+	}
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusInternalServerError, err)
@@ -258,6 +271,12 @@ func (delivery *Delivery) DeleteCategoryImage(c *gin.Context) {
 	}
 
 	category, err := delivery.categoryUsecase.GetCategory(ctx, uid)
+	if err != nil && errors.Is(err, models.ErrorNotFound{}) {
+		err = fmt.Errorf("category with id: %s not found", uid)
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusNotFound, err)
+		return
+	}
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusInternalServerError, err)
@@ -307,6 +326,12 @@ func (delivery *Delivery) GetCategory(c *gin.Context) {
 	delivery.logger.Debug(fmt.Sprintf("Category id from request is %v", id))
 	ctx := c.Request.Context()
 	modelsCategory, err := delivery.categoryUsecase.GetCategory(ctx, uid)
+	if err != nil && errors.Is(err, models.ErrorNotFound{}) {
+		err = fmt.Errorf("category with id: %s not found", uid)
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusNotFound, err)
+		return
+	}
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusInternalServerError, err)
@@ -396,6 +421,12 @@ func (delivery *Delivery) DeleteCategory(c *gin.Context) {
 	}
 	ctx := c.Request.Context()
 	deletedCategory, err := delivery.categoryUsecase.GetCategory(ctx, uid)
+	if err != nil && errors.Is(err, models.ErrorNotFound{}) {
+		err = fmt.Errorf("category with id: %s not found", uid)
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusNotFound, err)
+		return
+	}
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusInternalServerError, err)
@@ -454,8 +485,8 @@ func (delivery *Delivery) DeleteCategory(c *gin.Context) {
 		return
 	}
 	noCategory, err := delivery.categoryUsecase.GetCategoryByName(ctx, "NoCategory")
-	if err != nil {
-		delivery.logger.Error(fmt.Sprintf("error on get category by name: %v", err))
+	if err != nil && errors.Is(err, models.ErrorNotFound{}) {
+		delivery.logger.Error("NoCategory is not exists")
 		noCategory := models.Category{
 			Name:        "NoCategory",
 			Description: "Category for items from deleting categories",
@@ -481,7 +512,12 @@ func (delivery *Delivery) DeleteCategory(c *gin.Context) {
 		delivery.logger.Sugar().Infof("Category with id: %s deleted success", id)
 		c.JSON(http.StatusOK, gin.H{})
 		return
+	} else if err != nil && !errors.Is(err, models.ErrorNotFound{}) {
+		delivery.logger.Error(fmt.Sprintf("error on get category by name: %v", err))
+		delivery.SetError(c, http.StatusInternalServerError, err)
+		return
 	}
+
 	for _, item := range items {
 		item.Category = *noCategory
 		err := delivery.itemUsecase.UpdateItem(ctx, &item)
