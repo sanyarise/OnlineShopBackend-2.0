@@ -4,6 +4,7 @@ import (
 	"OnlineShopBackend/internal/models"
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4"
@@ -173,7 +174,7 @@ func (c *cart) GetCart(ctx context.Context, cartId uuid.UUID) (*models.Cart, err
 		c.logger.Debug("read info from db in pool.Query success")
 		items := make([]models.ItemWithQuantity, 0, 100)
 		for rows.Next() {
-			if err := rows.Scan(
+			err := rows.Scan(
 				&item.Id,
 				&item.Title,
 				&item.Description,
@@ -185,7 +186,12 @@ func (c *cart) GetCart(ctx context.Context, cartId uuid.UUID) (*models.Cart, err
 				&item.Vendor,
 				&item.Images,
 				&item.Quantity,
-			); err != nil {
+			)
+			if err != nil && strings.Contains(err.Error(), "no rows in result set") {
+				c.logger.Error(err.Error())
+				return nil, models.ErrorNotFound{}
+			}
+			if err != nil {
 				c.logger.Error(err.Error())
 				return nil, err
 			}
@@ -230,7 +236,7 @@ func (c *cart) GetCartByUserId(ctx context.Context, userId uuid.UUID) (*models.C
 		c.logger.Debug("read info from db in pool.Query success")
 		items := make([]models.ItemWithQuantity, 0, 100)
 		for rows.Next() {
-			if err := rows.Scan(
+			err := rows.Scan(
 				&item.Id,
 				&item.Title,
 				&item.Description,
@@ -242,7 +248,12 @@ func (c *cart) GetCartByUserId(ctx context.Context, userId uuid.UUID) (*models.C
 				&item.Vendor,
 				&item.Images,
 				&item.Quantity,
-			); err != nil {
+			)
+			if err != nil && strings.Contains(err.Error(), "no rows in result set") {
+				c.logger.Error(err.Error())
+				return nil, models.ErrorNotFound{}
+			}
+			if err != nil {
 				c.logger.Error(err.Error())
 				return nil, err
 			}
