@@ -106,7 +106,7 @@ func (repo *itemRepo) UpdateItem(ctx context.Context, item *models.Item) error {
 		item.Id)
 	if err != nil && strings.Contains(err.Error(), "no rows in result set") {
 		repo.logger.Errorf("Error on update item %s: %s", item.Id, err)
-		return models.ErrorNotFound{}
+		return models.ErrorNotFound{Message: fmt.Sprintf("item with id: %v not found", item.Id)}
 	} else if err != nil && !strings.Contains(err.Error(), "no rows in result set") {
 		repo.logger.Errorf("Error on update item %s: %s", item.Id, err)
 		return fmt.Errorf("error on update item %s: %w", item.Id, err)
@@ -135,7 +135,7 @@ func (repo *itemRepo) GetItem(ctx context.Context, id uuid.UUID) (*models.Item, 
 	)
 	if err != nil && strings.Contains(err.Error(), "no rows in result set") {
 		repo.logger.Errorf("Error in rows scan get item by id: %s", err)
-		return &models.Item{}, models.ErrorNotFound{}
+		return &models.Item{}, models.ErrorNotFound{Message: fmt.Sprintf("item with id: %v not found", id)}
 	} else if err != nil && !strings.Contains(err.Error(), "no rows in result set") {
 		repo.logger.Errorf("Error in rows scan get item by id: %s", err)
 		return &models.Item{}, fmt.Errorf("error in rows scan get item by id: %w", err)
@@ -289,7 +289,7 @@ func (repo *itemRepo) DeleteItem(ctx context.Context, id uuid.UUID) error {
 		time.Now(), id)
 	if err != nil && strings.Contains(err.Error(), "no rows in result set") {
 		repo.logger.Errorf("Error on delete item %s: %s", id, err)
-		return models.ErrorNotFound{}
+		return models.ErrorNotFound{Message: fmt.Sprintf("item with id: %v not found", id)}
 	} else if err != nil && !strings.Contains(err.Error(), "no rows in result set") {
 		repo.logger.Errorf("Error on delete item %s: %s", id, err)
 		return fmt.Errorf("error on delete item %s: %w", id, err)
@@ -304,7 +304,7 @@ func (repo *itemRepo) AddFavouriteItem(ctx context.Context, userId uuid.UUID, it
 	_, err := pool.Exec(ctx, `INSERT INTO favourite_items (user_id, item_id) VALUES ($1, $2)`, userId, itemId)
 	if err != nil && strings.Contains(err.Error(), "no rows in result set") {
 		repo.logger.Errorf("can't add item to favourite_items: %s", err)
-		return models.ErrorNotFound{}
+		return models.ErrorNotFound{Message: fmt.Sprintf("user id: %v or item id: %v not found", userId, itemId)}
 	} else if err != nil && !strings.Contains(err.Error(), "no rows in result set") {
 		repo.logger.Errorf("can't add item to favourite_items: %s", err)
 		return fmt.Errorf("can't add item to favourite_items: %w", err)
@@ -318,7 +318,7 @@ func (repo *itemRepo) DeleteFavouriteItem(ctx context.Context, userId uuid.UUID,
 	_, err := pool.Exec(ctx, `DELETE FROM favourite_items WHERE user_id=$1 AND item_id=$2`, userId, itemId)
 	if err != nil && strings.Contains(err.Error(), "no rows in result set") {
 		repo.logger.Errorf("can't delete item from favourite: %s", err)
-		return models.ErrorNotFound{}
+		return models.ErrorNotFound{Message: fmt.Sprintf("user id: %v or item id: %v not found", userId, itemId)}
 	} else if err != nil && !strings.Contains(err.Error(), "no rows in result set") {
 		repo.logger.Errorf("can't delete item from favourite: %s", err)
 		return fmt.Errorf("can't delete item from favourite: %w", err)
