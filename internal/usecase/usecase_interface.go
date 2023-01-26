@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"OnlineShopBackend/internal/delivery/user"
 	"OnlineShopBackend/internal/models"
 	"context"
 
@@ -49,10 +50,10 @@ type ICartUsecase interface {
 }
 
 type IUserUsecase interface {
-	CreateUser(ctx context.Context, user *models.User) (*models.User, error)
+	CreateUser(ctx context.Context, user *user.CreateUserData) (*models.User, error)
 	GetUserByEmail(ctx context.Context, email string) (*models.User, error)
 	GetRightsId(ctx context.Context, name string) (*models.Rights, error)
-	UpdateUserData(ctx context.Context, id uuid.UUID, user *models.User) (*models.User, error)
+	UpdateUserData(ctx context.Context, id uuid.UUID, user *user.CreateUserData) (*models.User, error)
 	UpdateUserRole(ctx context.Context, roleId uuid.UUID, email string) error
 	GetRightsList(ctx context.Context) ([]models.Rights, error)
 }
