@@ -262,7 +262,14 @@ definitions:
     - email
     - password
     type: object
-  password.User:
+  user.CreateUserData:
+    type: object
+  user.LoginResponseData:
+    properties:
+      cartId:
+        type: string
+      token:
+        $ref: '#/definitions/jwtauth.Token'
     type: object
 info:
   contact:
@@ -1417,22 +1424,18 @@ paths:
         name: user
         required: true
         schema:
-          $ref: '#/definitions/password.User'
+          $ref: '#/definitions/user.CreateUserData'
       produces:
       - application/json
       responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/jwtauth.Token'
-        "400":
-          description: Bad Request
-        "404":
-          description: 404 Not Found
+        "100":
+          description: Continue
           schema:
             $ref: '#/definitions/delivery.ErrorResponse'
-        "500":
-          description: Internal Server Error
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
           schema:
             $ref: '#/definitions/delivery.ErrorResponse'
       summary: Create a new user
@@ -1456,7 +1459,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/jwtauth.Token'
+            $ref: '#/definitions/user.LoginResponseData'
         "404":
           description: 404 Not Found
           schema:
@@ -1506,22 +1509,47 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
           schema:
-            $ref: '#/definitions/password.User'
+            $ref: '#/definitions/user.CreateUserData'
         "404":
           description: 404 Not Found
-          schema:
-            $ref: '#/definitions/delivery.ErrorResponse'
-        "500":
-          description: Internal Server Error
           schema:
             $ref: '#/definitions/delivery.ErrorResponse'
       security:
       - ApiKeyAuth: []
         firebase: []
       summary: User profile
+      tags:
+      - user
+  /user/profile/edit:
+    put:
+      consumes:
+      - application/json
+      description: Method provides to update profile info
+      parameters:
+      - description: User data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/user.CreateUserData'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/user.CreateUserData'
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+        firebase: []
+      summary: User profile update
       tags:
       - user
   /user/rights/list:

@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"OnlineShopBackend/internal/delivery/user"
 	"OnlineShopBackend/internal/models"
 	"OnlineShopBackend/internal/repository"
 	"context"
@@ -47,7 +48,7 @@ type Rights struct {
 	Rules []string  `json:"rules,omitempty"`
 }
 
-func (usecase *UserUsecase) CreateUser(ctx context.Context, user *models.User) (*models.User, error) {
+func (usecase *UserUsecase) CreateUser(ctx context.Context, user *user.CreateUserData) (*models.User, error) {
 	usecase.logger.Debug("Enter in usecase CreateUser()")
 
 	rights, err := usecase.userStore.GetRightsId(ctx, "Customer")
@@ -102,12 +103,22 @@ func (usecase *UserUsecase) GetRightsId(ctx context.Context, name string) (*mode
 	return &rights, nil
 }
 
-func (usecase *UserUsecase) UpdateUserData(ctx context.Context, id uuid.UUID, user *models.User) (*models.User, error) {
-	user, err := usecase.userStore.UpdateUserData(ctx, id, user)
+func (usecase *UserUsecase) UpdateUserData(ctx context.Context, id uuid.UUID, user *user.CreateUserData) (*models.User, error) {
+	userData := &models.User{
+		Firstname: user.Firstname,
+		Lastname:  user.Lastname,
+		Address:   models.UserAddress{
+			Zipcode: user.Address.Zipcode,
+			Country: user.Address.Country,
+			City:    user.Address.City,
+			Street:  user.Address.Street,
+		},
+	}
+	userUpdated, err := usecase.userStore.UpdateUserData(ctx, id, userData)
 	if err != nil {
 		return nil, err
 	}
-	return user, nil
+	return userUpdated, nil
 }
 
 func (usecase *UserUsecase) UpdateUserRole(ctx context.Context, roleId uuid.UUID, email string) error {

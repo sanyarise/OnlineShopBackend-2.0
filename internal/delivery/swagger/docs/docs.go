@@ -1747,28 +1747,22 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/password.User"
+                            "$ref": "#/definitions/user.CreateUserData"
                         }
                     }
                 ],
                 "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/jwtauth.Token"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request"
-                    },
-                    "404": {
-                        "description": "404 Not Found",
+                    "100": {
+                        "description": "Continue",
                         "schema": {
                             "$ref": "#/definitions/delivery.ErrorResponse"
                         }
                     },
-                    "500": {
-                        "description": "Internal Server Error",
+                    "201": {
+                        "description": "Created"
+                    },
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/delivery.ErrorResponse"
                         }
@@ -1804,7 +1798,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/jwtauth.Token"
+                            "$ref": "#/definitions/user.LoginResponseData"
                         }
                     },
                     "404": {
@@ -1888,10 +1882,10 @@ const docTemplate = `{
                 ],
                 "summary": "User profile",
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "201": {
+                        "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/password.User"
+                            "$ref": "#/definitions/user.CreateUserData"
                         }
                     },
                     "404": {
@@ -1899,9 +1893,49 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/delivery.ErrorResponse"
                         }
+                    }
+                }
+            }
+        },
+        "/user/profile/edit": {
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": [],
+                        "firebase": []
+                    }
+                ],
+                "description": "Method provides to update profile info",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "User profile update",
+                "parameters": [
+                    {
+                        "description": "User data",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/user.CreateUserData"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/user.CreateUserData"
+                        }
                     },
-                    "500": {
-                        "description": "Internal Server Error",
+                    "404": {
+                        "description": "404 Not Found",
                         "schema": {
                             "$ref": "#/definitions/delivery.ErrorResponse"
                         }
@@ -2307,8 +2341,19 @@ const docTemplate = `{
                 }
             }
         },
-        "password.User": {
+        "user.CreateUserData": {
             "type": "object"
+        },
+        "user.LoginResponseData": {
+            "type": "object",
+            "properties": {
+                "cartId": {
+                    "type": "string"
+                },
+                "token": {
+                    "$ref": "#/definitions/jwtauth.Token"
+                }
+            }
         }
     }
 }`

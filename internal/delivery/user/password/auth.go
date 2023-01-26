@@ -4,25 +4,12 @@ import (
 	"OnlineShopBackend/internal/models"
 	"crypto/sha1"
 	"fmt"
-	"log"
-	"unicode"
-
 	"github.com/caarlos0/env/v6"
-	"github.com/google/uuid"
+	"log"
 )
 
 type SaltSHA struct {
 	Salt string `json:"salt" env:"SALT" envDefault:"sjdhkashdsw823rgfeg"`
-}
-
-type User struct {
-	ID        uuid.UUID          `json:"id"`
-	Firstname string             `json:"firstname,omitempty"`
-	Lastname  string             `json:"lastname,omitempty"`
-	Password  string             `json:"password,omitempty"`
-	Email     string             `json:"email,omitempty"`
-	Address   models.UserAddress `json:"address,omitempty"`
-	Rights    models.Rights      `json:"rights"`
 }
 
 type Credentials struct {
@@ -51,20 +38,20 @@ func NewPasswordConfig() (*SaltSHA, error) {
 	return &cfg, nil
 }
 
-func ValidationCheck(user models.User) error {
-	if user.Email == "" && user.Firstname == "" && user.Lastname == "" {
-		return fmt.Errorf("empty filed")
-	}
-	if len(user.Password) < 5 {
-		return fmt.Errorf("password is too short")
-	}
-	for _, char := range user.Password {
-		if !unicode.IsDigit(char) && !unicode.Is(unicode.Latin, char) {
-			return fmt.Errorf("password should contain lathin letter or numbers only")
-		}
-	}
-	return nil
-}
+//func ValidationCheck(user models.User) error {
+//	if user.Email == "" && user.Firstname == "" && user.Lastname == "" {
+//		return fmt.Errorf("empty filed")
+//	}
+//	if len(user.Password) < 5 {
+//		return fmt.Errorf("password is too short")
+//	}
+//	for _, char := range user.Password {
+//		if !unicode.IsDigit(char) && !unicode.Is(unicode.Latin, char) {
+//			return fmt.Errorf("password should contain lathin letter or numbers only")
+//		}
+//	}
+//	return nil
+//}
 
 func GeneratePasswordHash(password string) string {
 	cfg, err := NewPasswordConfig()
