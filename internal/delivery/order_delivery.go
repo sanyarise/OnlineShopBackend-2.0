@@ -84,6 +84,7 @@ func (d *Delivery) CreateOrder(c *gin.Context) {
 	if err != nil {
 		d.logger.Sugar().Errorf("can't create order: %s", err)
 		d.SetError(c, http.StatusInternalServerError, err)
+		return
 	}
 	c.JSON(http.StatusCreated, order.OrderId{Value: ordr.ID.String()})
 }
@@ -122,6 +123,7 @@ func (d *Delivery) GetOrder(c *gin.Context) {
 		UserId:       modelOrder.User.ID.String(),
 		ShipmentTime: modelOrder.ShipmentTime,
 		Address:      order.OrderAddress(modelOrder.Address),
+		Status:       string(modelOrder.Status),
 		Items:        make([]cart.CartItem, 0, len(modelOrder.Items)),
 	}
 	for _, item := range modelOrder.Items {
@@ -146,7 +148,7 @@ func firstNotEmpty(arr []string) string {
 	return ""
 }
 
-// GetOrderForUser - get a specific order by UserId
+// GetOrdersForUser - get a specific order by UserId
 //
 //	@Summary		Get all orders by UserId
 //	@Description	The method allows you to get all orders by UserId.
@@ -159,7 +161,7 @@ func firstNotEmpty(arr []string) string {
 //	@Failure		403		"Forbidden"
 //	@Failure		404		{object}	ErrorResponse	"404 Not Found"
 //	@Failure		500		{object}	ErrorResponse
-//	@Router			/order/{userID} [get]
+//	@Router			/order/list/{userID} [get]
 func (d *Delivery) GetOrdersForUser(c *gin.Context) {
 	d.logger.Sugar().Debug("Enter the delivery GetOrdersForUser()")
 	ctx := c.Request.Context()
@@ -182,6 +184,7 @@ func (d *Delivery) GetOrdersForUser(c *gin.Context) {
 			UserId:       modelOrder.User.ID.String(),
 			ShipmentTime: modelOrder.ShipmentTime,
 			Address:      order.OrderAddress(modelOrder.Address),
+			Status:       string(modelOrder.Status),
 			Items:        make([]cart.CartItem, 0, len(modelOrder.Items)),
 		}
 		for _, item := range modelOrder.Items {
@@ -315,7 +318,7 @@ func (d *Delivery) ChangeStatus(c *gin.Context) {
 		d.SetError(c, http.StatusBadRequest, err)
 		return
 	}
-	if strings.ToLower(status.User.Role) == "user" {
+	if strings.ToLower(status.User.Role) == "customer" {
 		d.logger.Sugar().Errorf("the action not allowed: %s", err)
 		d.SetError(c, http.StatusForbidden, err)
 		return
