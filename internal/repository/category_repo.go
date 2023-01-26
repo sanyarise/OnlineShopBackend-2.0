@@ -138,7 +138,7 @@ func (repo *categoryRepo) UpdateCategory(ctx context.Context, category *models.C
 		category.Id)
 	if err != nil && strings.Contains(err.Error(), "no rows in result set") {
 		repo.logger.Errorf("Error on update category %s: %s", category.Id, err)
-		return models.ErrorNotFound{Message: fmt.Sprintf("category with id: %v not found", category.Id)}
+		return models.ErrorNotFound{}
 	}
 	if err != nil {
 		repo.logger.Errorf("Error on update category %s: %s", category.Id, err)
@@ -162,7 +162,7 @@ func (repo *categoryRepo) GetCategory(ctx context.Context, id uuid.UUID) (*model
 	)
 	if err != nil && strings.Contains(err.Error(), "no rows in result set") {
 		repo.logger.Errorf("Error in rows scan get category by id: %s", err)
-		return &models.Category{}, models.ErrorNotFound{Message: fmt.Sprintf("category with id: %v not found", id)}
+		return &models.Category{}, models.ErrorNotFound{}
 	}
 	if err != nil {
 		repo.logger.Errorf("Error in rows scan get category by id: %s", err)
@@ -186,7 +186,7 @@ func (repo *categoryRepo) GetCategoryByName(ctx context.Context, name string) (*
 	)
 	if err != nil && strings.Contains(err.Error(), "no rows in result set") {
 		repo.logger.Errorf("Error in rows scan get category by name: %s", err)
-		return &models.Category{}, models.ErrorNotFound{Message: fmt.Sprintf("category with name: %s not found", name)}
+		return &models.Category{}, models.ErrorNotFound{}
 	}
 	if err != nil {
 		repo.logger.Errorf("Error in rows scan get category by name: %s", err)
@@ -256,7 +256,7 @@ func (repo *categoryRepo) DeleteCategory(ctx context.Context, id uuid.UUID) erro
 		time.Now(), id)
 	if err != nil && strings.Contains(err.Error(), "no rows in result set") {
 		repo.logger.Errorf("Error on delete category %s: %s", id, err)
-		return models.ErrorNotFound{Message: fmt.Sprintf("category with id: %v not found", id)}
+		return models.ErrorNotFound{}
 	}
 	if err != nil {
 		repo.logger.Errorf("Error on delete category %s: %s", id, err)

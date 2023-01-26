@@ -108,7 +108,7 @@ func (c *cart) DeleteCart(ctx context.Context, cartId uuid.UUID) error {
 		_, err = tx.Exec(ctx, `DELETE FROM carts WHERE id=$1`, cartId)
 		if err != nil && strings.Contains(err.Error(), "no rows in result set") {
 			c.logger.Errorf("can't delete cart: %s", err)
-			return models.ErrorNotFound{Message: fmt.Sprintf("cart with id: %v not found", cartId)}
+			return models.ErrorNotFound{}
 		}
 		if err != nil {
 			c.logger.Errorf("can't delete cart: %s", err)
@@ -162,7 +162,7 @@ func (c *cart) GetCart(ctx context.Context, cartId uuid.UUID) (*models.Cart, err
 		err := row.Scan(&userId)
 		if err != nil && strings.Contains(err.Error(), "no rows in result set") {
 			c.logger.Error(err.Error())
-			return nil, models.ErrorNotFound{Message: fmt.Sprintf("user id on cart id: %v not found", cartId)}
+			return nil, models.ErrorNotFound{}
 		}
 		if err != nil {
 			c.logger.Error(err)
@@ -197,7 +197,7 @@ func (c *cart) GetCart(ctx context.Context, cartId uuid.UUID) (*models.Cart, err
 			)
 			if err != nil && strings.Contains(err.Error(), "no rows in result set") {
 				c.logger.Error(err.Error())
-				return nil, models.ErrorNotFound{Message: fmt.Sprintf("cart with id: %v not found", cartId)}
+				return nil, models.ErrorNotFound{}
 			}
 			if err != nil {
 				c.logger.Error(err.Error())
@@ -228,7 +228,7 @@ func (c *cart) GetCartByUserId(ctx context.Context, userId uuid.UUID) (*models.C
 		err := row.Scan(&cartId)
 		if err != nil && strings.Contains(err.Error(), "no rows in result set") {
 			c.logger.Error(err.Error())
-			return nil, models.ErrorNotFound{Message: fmt.Sprintf("cart id by user id: %v not found", userId)}
+			return nil, models.ErrorNotFound{}
 		}
 		if err != nil {
 			c.logger.Error(err)
@@ -263,7 +263,7 @@ func (c *cart) GetCartByUserId(ctx context.Context, userId uuid.UUID) (*models.C
 			)
 			if err != nil && strings.Contains(err.Error(), "no rows in result set") {
 				c.logger.Error(err.Error())
-				return nil, models.ErrorNotFound{Message: fmt.Sprintf("cart by user id: %v not found", userId)}
+				return nil, models.ErrorNotFound{}
 			}
 			if err != nil {
 				c.logger.Error(err.Error())
