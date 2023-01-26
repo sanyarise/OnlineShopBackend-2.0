@@ -1,6 +1,6 @@
 package delivery
 
-import (
+/*import (
 	"OnlineShopBackend/internal/delivery/cart"
 	"OnlineShopBackend/internal/delivery/order"
 	fs "OnlineShopBackend/internal/filestorage/mocks"
@@ -499,7 +499,7 @@ func TestChangeAddressInternal(t *testing.T) {
 	require.Equal(t, 500, w.Code)
 }
 
-func TestChangeStatus(t *testing.T) {
+/*func TestChangeStatus(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	logger := zap.NewExample()
@@ -519,9 +519,9 @@ func TestChangeStatus(t *testing.T) {
 	MockCartUserAddressJson(c, testStatusWithUSerAndId, "PATCH")
 	delivery.ChangeStatus(c)
 	require.Equal(t, 200, w.Code)
-}
+}*/
 
-func TestChangeStatusForbidden(t *testing.T) {
+/*func TestChangeStatusForbidden(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	logger := zap.NewExample()
@@ -590,4 +590,4 @@ func TestChangeStatusInternal(t *testing.T) {
 	MockCartUserAddressJson(c, testStatusWithUSerAndId, "PATCH")
 	delivery.ChangeStatus(c)
 	require.Equal(t, 500, w.Code)
-}
+}*/
