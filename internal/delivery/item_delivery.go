@@ -75,7 +75,12 @@ func (delivery *Delivery) CreateItem(c *gin.Context) {
 
 	if deliveryItem.Category == "" {
 		noCategory, err := delivery.categoryUsecase.GetCategoryByName(ctx, "NoCategory")
-		if err != nil {
+		if err != nil && !errors.Is(err, models.ErrorNotFound{}) {
+			delivery.logger.Error(err.Error())
+			delivery.SetError(c, http.StatusInternalServerError, err)
+			return
+		}
+		if err != nil && errors.Is(err, models.ErrorNotFound{}) {
 			delivery.logger.Sugar().Errorf("NoCategory is not exists: %v", err)
 			noCategory := models.Category{
 				Name:        "NoCategory",
@@ -88,10 +93,11 @@ func (delivery *Delivery) CreateItem(c *gin.Context) {
 				return
 			}
 			deliveryItem.Category = noCategoryId.String()
-		} else {
+		} else if err == nil {
 			deliveryItem.Category = noCategory.Id.String()
 		}
 	}
+
 	categoryId, err := uuid.Parse(deliveryItem.Category)
 	if err != nil {
 		delivery.logger.Error(err.Error())
@@ -153,7 +159,6 @@ func (delivery *Delivery) GetItem(c *gin.Context) {
 	ctx := c.Request.Context()
 	modelsItem, err := delivery.itemUsecase.GetItem(ctx, uid)
 	if err != nil && errors.Is(err, models.ErrorNotFound{}) {
-		err = fmt.Errorf("item with id: %s not found", id)
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusNotFound, err)
 		return
@@ -226,7 +231,6 @@ func (delivery *Delivery) UpdateItem(c *gin.Context) {
 	}
 	itemBeforUpdate, err := delivery.itemUsecase.GetItem(ctx, uid)
 	if err != nil && errors.Is(err, models.ErrorNotFound{}) {
-		err = fmt.Errorf("item with id: %s not found", deliveryItem.Id)
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusNotFound, err)
 		return
@@ -251,7 +255,6 @@ func (delivery *Delivery) UpdateItem(c *gin.Context) {
 
 	err = delivery.itemUsecase.UpdateItem(ctx, updatingItem)
 	if err != nil && errors.Is(err, models.ErrorNotFound{}) {
-		err = fmt.Errorf("item with id: %s not found", deliveryItem.Id)
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusNotFound, err)
 		return
@@ -265,7 +268,6 @@ func (delivery *Delivery) UpdateItem(c *gin.Context) {
 	if itemBeforUpdate.Category.Id != categoryUid {
 		updCategory, err := delivery.categoryUsecase.GetCategory(ctx, categoryUid)
 		if err != nil && errors.Is(err, models.ErrorNotFound{}) {
-			err = fmt.Errorf("category with id: %s not found", deliveryItem.Category)
 			delivery.logger.Error(err.Error())
 			delivery.SetError(c, http.StatusNotFound, err)
 			return
@@ -672,7 +674,6 @@ func (delivery *Delivery) UploadItemImage(c *gin.Context) {
 
 	item, err := delivery.itemUsecase.GetItem(ctx, uid)
 	if err != nil && errors.Is(err, models.ErrorNotFound{}) {
-		err = fmt.Errorf("item with id: %s not found", id)
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusNotFound, err)
 		return
@@ -749,7 +750,6 @@ func (delivery *Delivery) DeleteItemImage(c *gin.Context) {
 
 	item, err := delivery.itemUsecase.GetItem(ctx, uid)
 	if err != nil && errors.Is(err, models.ErrorNotFound{}) {
-		err = fmt.Errorf("item with id: %s not found", imageOptions.Id)
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusNotFound, err)
 		return
@@ -818,7 +818,6 @@ func (delivery *Delivery) DeleteItem(c *gin.Context) {
 	ctx := c.Request.Context()
 	deletedItem, err := delivery.itemUsecase.GetItem(ctx, uid)
 	if err != nil && errors.Is(err, models.ErrorNotFound{}) {
-		err = fmt.Errorf("item with id: %s not found", id)
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusNotFound, err)
 		return
@@ -831,6 +830,11 @@ func (delivery *Delivery) DeleteItem(c *gin.Context) {
 	delivery.logger.Debug(fmt.Sprintf("deletedItem: %v", deletedItem))
 
 	err = delivery.itemUsecase.DeleteItem(ctx, uid)
+	if err != nil && errors.Is(err, models.ErrorNotFound{}) {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusNotFound, err)
+		return
+	}
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusInternalServerError, err)
@@ -886,7 +890,6 @@ func (delivery *Delivery) AddFavouriteItem(c *gin.Context) {
 	ctx := c.Request.Context()
 	err = delivery.itemUsecase.AddFavouriteItem(ctx, userId, itemId)
 	if err != nil && errors.Is(err, models.ErrorNotFound{}) {
-		err = fmt.Errorf("item with id: %s not found", itemId)
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusNotFound, err)
 		return
@@ -931,7 +934,6 @@ func (delivery *Delivery) DeleteFavouriteItem(c *gin.Context) {
 	ctx := c.Request.Context()
 	err = delivery.itemUsecase.DeleteFavouriteItem(ctx, userId, itemId)
 	if err != nil && errors.Is(err, models.ErrorNotFound{}) {
-		err = fmt.Errorf("item with id: %s not found", itemId)
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusNotFound, err)
 		return
