@@ -269,33 +269,31 @@ func (delivery *Delivery) UpdateItem(c *gin.Context) {
 			return
 		}
 		updatingItem.Category = *updCategory
+	}
 
-		err = delivery.itemUsecase.UpdateItem(ctx, updatingItem)
-		if err != nil && errors.Is(err, models.ErrorNotFound{}) {
-			delivery.logger.Sugar().Errorf("item with id: %v not found", updatingItem.Id)
-			err = fmt.Errorf("item with id: %v not found", updatingItem.Id)
-			delivery.SetError(c, http.StatusNotFound, err)
-			return
-		}
-		if err != nil {
-			delivery.logger.Error(err.Error())
-			delivery.SetError(c, http.StatusInternalServerError, err)
-			return
-		}
+	err = delivery.itemUsecase.UpdateItem(ctx, updatingItem)
+	if err != nil && errors.Is(err, models.ErrorNotFound{}) {
+		delivery.logger.Sugar().Errorf("item with id: %v not found", updatingItem.Id)
+		err = fmt.Errorf("item with id: %v not found", updatingItem.Id)
+		delivery.SetError(c, http.StatusNotFound, err)
+		return
+	}
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusInternalServerError, err)
+		return
+	}
 
-		err = delivery.itemUsecase.UpdateItemsInCategoryCash(ctx, updatingItem, "create")
-		if err != nil {
-			delivery.logger.Error(err.Error())
-			delivery.SetError(c, http.StatusInternalServerError, err)
-			return
-		} else {
-			delivery.logger.Info("Category cash of updating item updated success")
-		}
+	err = delivery.itemUsecase.UpdateItemsInCategoryCash(ctx, updatingItem, "create")
+	if err != nil {
+		delivery.logger.Warn(err.Error())
+	} else {
+		delivery.logger.Info("Category cash of updating item updated success")
+	}
+	if itemBeforUpdate.Category.Id != categoryUid {
 		err = delivery.itemUsecase.UpdateItemsInCategoryCash(ctx, itemBeforUpdate, "delete")
 		if err != nil {
-			delivery.logger.Error(err.Error())
-			delivery.SetError(c, http.StatusInternalServerError, err)
-			return
+			delivery.logger.Warn(err.Error())
 		} else {
 			delivery.logger.Info("Category cash of old item updated success")
 		}
