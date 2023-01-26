@@ -161,41 +161,11 @@ var (
 		Price:  10,
 		Vendor: "testVendor",
 	}
-	testShortModelsItemWithId = &models.Item{
+	testShortModelsItemWithIdWithEmptyImage2 = &models.Item{
 		Id:          testId,
 		Title:       "testTitle",
 		Description: "testDescription",
-		Category: models.Category{
-			Id: testId,
-		},
-		Price:  10,
-		Vendor: "testVendor",
-	}
-
-	testShortModelsItemWithIdWithEmptyImage = &models.Item{
-		Id:          testId,
-		Title:       "testTitle",
-		Description: "testDescription",
-		Category: models.Category{
-			Id: testId,
-		},
-		Price:  10,
-		Vendor: "testVendor",
-		Images: []string{""},
-	}
-
-	testModelsCategoryWithOtherId = &models.Category{
-		Id:          testId2,
-		Name:        "testName",
-		Description: "testDescr",
-		Image:       "testImg",
-	}
-
-	testShortModelsItemWithIdAndOtherCatWithEmptyImage = &models.Item{
-		Id:          testId,
-		Title:       "testTitle",
-		Description: "testDescription",
-		Category:    *testModelsCategoryWithOtherId,
+		Category:    models.Category{},
 		Price:       10,
 		Vendor:      "testVendor",
 		Images:      []string{""},
@@ -487,8 +457,9 @@ func TestUpdateItem(t *testing.T) {
 		Header: make(http.Header),
 	}
 	MockJson(c, testInItem, put)
-	itemUsecase.EXPECT().GetItem(ctx, testId).Return(testModelsItemWithId, nil)
-	itemUsecase.EXPECT().UpdateItem(ctx, testShortModelsItemWithIdWithEmptyImage).Return(fmt.Errorf("error"))
+	itemUsecase.EXPECT().GetItem(ctx, testId).Return(testModelsItemWithIdAndOtherCatId, nil)
+	categoryUsecase.EXPECT().GetCategory(ctx, testModelsItemWithId.Category.Id).Return(&models.Category{}, nil)
+	itemUsecase.EXPECT().UpdateItem(ctx, testShortModelsItemWithIdWithEmptyImage2).Return(fmt.Errorf("error"))
 	delivery.UpdateItem(c)
 	require.Equal(t, 500, w.Code)
 
@@ -499,34 +470,19 @@ func TestUpdateItem(t *testing.T) {
 		Header: make(http.Header),
 	}
 	MockJson(c, testInItem, put)
-	itemUsecase.EXPECT().GetItem(ctx, testId).Return(testModelsItemWithId, nil)
-	itemUsecase.EXPECT().UpdateItem(ctx, testShortModelsItemWithIdWithEmptyImage).Return(nil)
+	itemUsecase.EXPECT().GetItem(ctx, testId).Return(nil, models.ErrorNotFound{})
 	delivery.UpdateItem(c)
-	require.Equal(t, 200, w.Code)
-}
+	require.Equal(t, 404, w.Code)
 
-func TestUpdateItem2(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	ctx := context.Background()
-	logger := zap.L()
-	itemUsecase := mocks.NewMockIItemUsecase(ctrl)
-	categoryUsecase := mocks.NewMockICategoryUsecase(ctrl)
-
-	cartUsecase := mocks.NewMockICartUsecase(ctrl)
-	filestorage := fs.NewMockFileStorager(ctrl)
-	delivery := NewDelivery(itemUsecase, nil, categoryUsecase, cartUsecase, logger, filestorage)
-
-	w := httptest.NewRecorder()
-	c, _ := gin.CreateTestContext(w)
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
 
 	c.Request = &http.Request{
 		Header: make(http.Header),
 	}
 	MockJson(c, testInItem, put)
 	itemUsecase.EXPECT().GetItem(ctx, testId).Return(testModelsItemWithIdAndOtherCatId, nil)
-	itemUsecase.EXPECT().UpdateItem(ctx, testShortModelsItemWithIdWithEmptyImage).Return(nil)
-	categoryUsecase.EXPECT().GetCategory(ctx, testShortModelsItemWithId.Category.Id).Return(nil, fmt.Errorf("error"))
+	categoryUsecase.EXPECT().GetCategory(ctx, testModelsItemWithId.Category.Id).Return(&models.Category{}, err)
 	delivery.UpdateItem(c)
 	require.Equal(t, 500, w.Code)
 
@@ -538,9 +494,34 @@ func TestUpdateItem2(t *testing.T) {
 	}
 	MockJson(c, testInItem, put)
 	itemUsecase.EXPECT().GetItem(ctx, testId).Return(testModelsItemWithIdAndOtherCatId, nil)
-	itemUsecase.EXPECT().UpdateItem(ctx, testShortModelsItemWithIdWithEmptyImage).Return(nil)
-	categoryUsecase.EXPECT().GetCategory(ctx, testShortModelsItemWithId.Category.Id).Return(testModelsCategoryWithOtherId, nil)
-	itemUsecase.EXPECT().UpdateItemsInCategoryCash(ctx, testShortModelsItemWithIdAndOtherCatWithEmptyImage, "create").Return(fmt.Errorf("err"))
+	categoryUsecase.EXPECT().GetCategory(ctx, testModelsItemWithId.Category.Id).Return(&models.Category{}, models.ErrorNotFound{})
+	delivery.UpdateItem(c)
+	require.Equal(t, 404, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	MockJson(c, testInItem, put)
+	itemUsecase.EXPECT().GetItem(ctx, testId).Return(testModelsItemWithIdAndOtherCatId, nil)
+	categoryUsecase.EXPECT().GetCategory(ctx, testModelsItemWithId.Category.Id).Return(&models.Category{}, nil)
+	itemUsecase.EXPECT().UpdateItem(ctx, testShortModelsItemWithIdWithEmptyImage2).Return(models.ErrorNotFound{})
+	delivery.UpdateItem(c)
+	require.Equal(t, 404, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	MockJson(c, testInItem, put)
+	itemUsecase.EXPECT().GetItem(ctx, testId).Return(testModelsItemWithIdAndOtherCatId, nil)
+	categoryUsecase.EXPECT().GetCategory(ctx, testModelsItemWithId.Category.Id).Return(&models.Category{}, nil)
+	itemUsecase.EXPECT().UpdateItem(ctx, testShortModelsItemWithIdWithEmptyImage2).Return(nil)
+	itemUsecase.EXPECT().UpdateItemsInCategoryCash(ctx, testShortModelsItemWithIdWithEmptyImage2, "create").Return(err)
 	delivery.UpdateItem(c)
 	require.Equal(t, 500, w.Code)
 
@@ -552,10 +533,10 @@ func TestUpdateItem2(t *testing.T) {
 	}
 	MockJson(c, testInItem, put)
 	itemUsecase.EXPECT().GetItem(ctx, testId).Return(testModelsItemWithIdAndOtherCatId, nil)
-	itemUsecase.EXPECT().UpdateItem(ctx, testShortModelsItemWithIdWithEmptyImage).Return(nil)
-	categoryUsecase.EXPECT().GetCategory(ctx, testShortModelsItemWithId.Category.Id).Return(testModelsCategoryWithOtherId, nil)
-	itemUsecase.EXPECT().UpdateItemsInCategoryCash(ctx, testShortModelsItemWithIdAndOtherCatWithEmptyImage, "create").Return(nil)
-	itemUsecase.EXPECT().UpdateItemsInCategoryCash(ctx, testModelsItemWithIdAndOtherCatId, "delete").Return(fmt.Errorf("err"))
+	categoryUsecase.EXPECT().GetCategory(ctx, testModelsItemWithId.Category.Id).Return(&models.Category{}, nil)
+	itemUsecase.EXPECT().UpdateItem(ctx, testShortModelsItemWithIdWithEmptyImage2).Return(nil)
+	itemUsecase.EXPECT().UpdateItemsInCategoryCash(ctx, testShortModelsItemWithIdWithEmptyImage2, "create").Return(nil)
+	itemUsecase.EXPECT().UpdateItemsInCategoryCash(ctx, testModelsItemWithIdAndOtherCatId, "delete").Return(err)
 	delivery.UpdateItem(c)
 	require.Equal(t, 500, w.Code)
 
@@ -567,9 +548,9 @@ func TestUpdateItem2(t *testing.T) {
 	}
 	MockJson(c, testInItem, put)
 	itemUsecase.EXPECT().GetItem(ctx, testId).Return(testModelsItemWithIdAndOtherCatId, nil)
-	itemUsecase.EXPECT().UpdateItem(ctx, testShortModelsItemWithIdWithEmptyImage).Return(nil)
-	categoryUsecase.EXPECT().GetCategory(ctx, testShortModelsItemWithId.Category.Id).Return(testModelsCategoryWithOtherId, nil)
-	itemUsecase.EXPECT().UpdateItemsInCategoryCash(ctx, testShortModelsItemWithIdAndOtherCatWithEmptyImage, "create").Return(nil)
+	categoryUsecase.EXPECT().GetCategory(ctx, testModelsItemWithId.Category.Id).Return(&models.Category{}, nil)
+	itemUsecase.EXPECT().UpdateItem(ctx, testShortModelsItemWithIdWithEmptyImage2).Return(nil)
+	itemUsecase.EXPECT().UpdateItemsInCategoryCash(ctx, testShortModelsItemWithIdWithEmptyImage2, "create").Return(nil)
 	itemUsecase.EXPECT().UpdateItemsInCategoryCash(ctx, testModelsItemWithIdAndOtherCatId, "delete").Return(nil)
 	delivery.UpdateItem(c)
 	require.Equal(t, 200, w.Code)
