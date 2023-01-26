@@ -332,7 +332,7 @@ func TestCreateItem(t *testing.T) {
 		Header: make(http.Header),
 	}
 	MockJson(c, testShortItemWithoutCat, post)
-	categoryUsecase.EXPECT().GetCategoryByName(ctx, "NoCategory").Return(nil, fmt.Errorf("error"))
+	categoryUsecase.EXPECT().GetCategoryByName(ctx, "NoCategory").Return(nil, models.ErrorNotFound{})
 	categoryUsecase.EXPECT().CreateCategory(ctx, &testNoCategory).Return(uuid.Nil, fmt.Errorf("error"))
 	delivery.CreateItem(c)
 	require.Equal(t, 500, w.Code)
@@ -343,7 +343,17 @@ func TestCreateItem(t *testing.T) {
 		Header: make(http.Header),
 	}
 	MockJson(c, testShortItemWithoutCat, post)
-	categoryUsecase.EXPECT().GetCategoryByName(ctx, "NoCategory").Return(nil, fmt.Errorf("error"))
+	categoryUsecase.EXPECT().GetCategoryByName(ctx, "NoCategory").Return(nil, err)
+	delivery.CreateItem(c)
+	require.Equal(t, 500, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	MockJson(c, testShortItemWithoutCat, post)
+	categoryUsecase.EXPECT().GetCategoryByName(ctx, "NoCategory").Return(nil, models.ErrorNotFound{})
 	categoryUsecase.EXPECT().CreateCategory(ctx, &testNoCategory).Return(testId, nil)
 	itemUsecase.EXPECT().CreateItem(ctx, testModelsItemWithoutId).Return(testId, nil)
 	delivery.CreateItem(c)
@@ -954,42 +964,42 @@ func TestUploadItemImage(t *testing.T) {
 	require.Equal(t, 507, w.Code)
 
 	w = httptest.NewRecorder()
-		c, _ = gin.CreateTestContext(w)
+	c, _ = gin.CreateTestContext(w)
 
-		c.Request = &http.Request{
-			Header: make(http.Header),
-		}
-		c.Params = []gin.Param{
-			{
-				Key:   "itemID",
-				Value: testId.String(),
-			},
-		}
-		MockFile(c, "jpeg", testFile)
-		itemUsecase.EXPECT().GetItem(ctx, testId).Return(testModelsItemWithId, nil)
-		filestorage.EXPECT().PutItemImage(testId.String(), carbon.Now().ToShortDateTimeString()+".jpeg", testFile).Return("testName", nil)
-		itemUsecase.EXPECT().UpdateItem(ctx, &testModelsItemWithImage).Return(fmt.Errorf("error"))
-		delivery.UploadItemImage(c)
-		require.Equal(t, 500, w.Code)
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Params = []gin.Param{
+		{
+			Key:   "itemID",
+			Value: testId.String(),
+		},
+	}
+	MockFile(c, "jpeg", testFile)
+	itemUsecase.EXPECT().GetItem(ctx, testId).Return(testModelsItemWithId, nil)
+	filestorage.EXPECT().PutItemImage(testId.String(), carbon.Now().ToShortDateTimeString()+".jpeg", testFile).Return("testName", nil)
+	itemUsecase.EXPECT().UpdateItem(ctx, &testModelsItemWithImage).Return(fmt.Errorf("error"))
+	delivery.UploadItemImage(c)
+	require.Equal(t, 500, w.Code)
 
 	w = httptest.NewRecorder()
-		c, _ = gin.CreateTestContext(w)
+	c, _ = gin.CreateTestContext(w)
 
-		c.Request = &http.Request{
-			Header: make(http.Header),
-		}
-		c.Params = []gin.Param{
-			{
-				Key:   "itemID",
-				Value: testId.String(),
-			},
-		}
-		MockFile(c, "jpeg", testFile)
-		filestorage.EXPECT().PutItemImage(testId.String(), carbon.Now().ToShortDateTimeString()+".jpeg", testFile).Return("testName", nil)
-		itemUsecase.EXPECT().GetItem(ctx, testId).Return(testModelsItemWithId2, nil)
-		itemUsecase.EXPECT().UpdateItem(ctx, &testModelsItemWithImage).Return(nil)
-		delivery.UploadItemImage(c)
-		require.Equal(t, 201, w.Code)
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Params = []gin.Param{
+		{
+			Key:   "itemID",
+			Value: testId.String(),
+		},
+	}
+	MockFile(c, "jpeg", testFile)
+	filestorage.EXPECT().PutItemImage(testId.String(), carbon.Now().ToShortDateTimeString()+".jpeg", testFile).Return("testName", nil)
+	itemUsecase.EXPECT().GetItem(ctx, testId).Return(testModelsItemWithId2, nil)
+	itemUsecase.EXPECT().UpdateItem(ctx, &testModelsItemWithImage).Return(nil)
+	delivery.UploadItemImage(c)
+	require.Equal(t, 201, w.Code)
 }
 
 func TestDeleteItemImage(t *testing.T) {
