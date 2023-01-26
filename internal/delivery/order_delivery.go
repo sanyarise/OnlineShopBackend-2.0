@@ -246,10 +246,10 @@ func (d *Delivery) DeleteOrder(c *gin.Context) {
 //	@Produce		json
 //	@Param			AddressWithUserAndId	body	order.AddressWithUserAndId	true	"New address with orderID and user structure"
 //	@Success		200
-//	@Failure		400						{object}	ErrorResponse
-//	@Failure		403						"Forbidden"
-//	@Failure		404						{object}	ErrorResponse	"404 Not Found"
-//	@Failure		500						{object}	ErrorResponse
+//	@Failure		400	{object}	ErrorResponse
+//	@Failure		403	"Forbidden"
+//	@Failure		404	{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500	{object}	ErrorResponse
 //	@Router			/order/changeaddress/ [patch]
 func (d *Delivery) ChangeAddress(c *gin.Context) {
 	d.logger.Sugar().Debug("Enter the delivery ChangeAddress()")
@@ -298,10 +298,10 @@ func (d *Delivery) ChangeAddress(c *gin.Context) {
 //	@Produce		json
 //	@Param			statusWithUserAndId	body	order.StatusWithUserAndId	true	"New status with orderID and User structure"
 //	@Success		200
-//	@Failure		400					{object}	ErrorResponse
-//	@Failure		403					"Forbidden"
-//	@Failure		404					{object}	ErrorResponse	"404 Not Found"
-//	@Failure		500					{object}	ErrorResponse
+//	@Failure		400	{object}	ErrorResponse
+//	@Failure		403	"Forbidden"
+//	@Failure		404	{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500	{object}	ErrorResponse
 //	@Router			/order/changestatus/ [patch]
 func (d *Delivery) ChangeStatus(c *gin.Context) {
 	d.logger.Sugar().Debug("Enter the delivery ChangeStatus()")

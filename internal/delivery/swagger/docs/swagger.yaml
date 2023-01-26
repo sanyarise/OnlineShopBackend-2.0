@@ -1245,43 +1245,6 @@ paths:
       summary: Get order by id
       tags:
       - order
-  /order/{userID}:
-    get:
-      consumes:
-      - application/json
-      description: The method allows you to get all orders by UserId.
-      parameters:
-      - description: Id of the user
-        in: path
-        name: userID
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: List of orders
-          schema:
-            items:
-              $ref: '#/definitions/order.Order'
-            type: array
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/delivery.ErrorResponse'
-        "403":
-          description: Forbidden
-        "404":
-          description: 404 Not Found
-          schema:
-            $ref: '#/definitions/delivery.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/delivery.ErrorResponse'
-      summary: Get all orders by UserId
-      tags:
-      - order
   /order/changeaddress/:
     patch:
       consumes:
@@ -1417,6 +1380,43 @@ paths:
           schema:
             $ref: '#/definitions/delivery.ErrorResponse'
       summary: Delete an order by id
+      tags:
+      - order
+  /order/list/{userID}:
+    get:
+      consumes:
+      - application/json
+      description: The method allows you to get all orders by UserId.
+      parameters:
+      - description: Id of the user
+        in: path
+        name: userID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of orders
+          schema:
+            items:
+              $ref: '#/definitions/order.Order'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Get all orders by UserId
       tags:
       - order
 swagger: "2.0"
