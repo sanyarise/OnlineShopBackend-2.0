@@ -168,6 +168,22 @@ func TestGetCart(t *testing.T) {
 			Value: testCartId.String(),
 		},
 	}
+	cartUsecase.EXPECT().GetCart(ctx, testCartId).Return(nil, models.ErrorNotFound{})
+	delivery.GetCart(c)
+	require.Equal(t, 404, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Params = []gin.Param{
+		{
+			Key:   "cartID",
+			Value: testCartId.String(),
+		},
+	}
 	cartUsecase.EXPECT().GetCart(ctx, testCartId).Return(&testModelCart, nil)
 	delivery.GetCart(c)
 	require.Equal(t, 200, w.Code)
@@ -214,6 +230,22 @@ func TestGetCartByUserId(t *testing.T) {
 	cartUsecase.EXPECT().GetCartByUserId(ctx, testId).Return(nil, err)
 	delivery.GetCartByUserId(c)
 	require.Equal(t, 500, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Params = []gin.Param{
+		{
+			Key:   "userID",
+			Value: testId.String(),
+		},
+	}
+	cartUsecase.EXPECT().GetCartByUserId(ctx, testId).Return(nil, models.ErrorNotFound{})
+	delivery.GetCartByUserId(c)
+	require.Equal(t, 404, w.Code)
 
 	w = httptest.NewRecorder()
 	c, _ = gin.CreateTestContext(w)
@@ -415,6 +447,25 @@ func TestDeleteItemFromCart(t *testing.T) {
 
 	c.Request = &http.Request{
 		Header: make(http.Header),
+	}
+	delivery.DeleteItemFromCart(c)
+	require.Equal(t, 400, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Params = []gin.Param{
+		{
+			Key:   "cartID",
+			Value: testUserId.String(),
+		},
+		{
+			Key:   "itemID",
+			Value: testId.String()+"l",
+		},
 	}
 	delivery.DeleteItemFromCart(c)
 	require.Equal(t, 400, w.Code)

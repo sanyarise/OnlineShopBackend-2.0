@@ -475,7 +475,6 @@ func (delivery *Delivery) DeleteCategory(c *gin.Context) {
 		err = delivery.filestorage.DeleteCategoryImageById(id)
 		if err != nil {
 			delivery.logger.Error(err.Error())
-			delivery.SetError(c, http.StatusInternalServerError, err)
 		}
 	}
 
@@ -512,7 +511,8 @@ func (delivery *Delivery) DeleteCategory(c *gin.Context) {
 		delivery.logger.Sugar().Infof("Category with id: %s deleted success", id)
 		c.JSON(http.StatusOK, gin.H{})
 		return
-	} else if err != nil && !errors.Is(err, models.ErrorNotFound{}) {
+	}
+	if err != nil {
 		delivery.logger.Error(fmt.Sprintf("error on get category by name: %v", err))
 		delivery.SetError(c, http.StatusInternalServerError, err)
 		return
