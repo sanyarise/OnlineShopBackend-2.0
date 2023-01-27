@@ -45,6 +45,7 @@ func main() {
 	userStore := repository.NewUser(pgstore, lsug)
 
 	cartStore := repository.NewCartStore(pgstore, lsug)
+	orderStore := repository.NewOrderRepo(pgstore, lsug)
 
 	redis, err := cash.NewRedisCash(cfg.CashHost, cfg.CashPort, time.Duration(cfg.CashTTL), l)
 	if err != nil {
@@ -58,9 +59,10 @@ func main() {
 	userUsecase := usecase.NewUserUsecase(userStore, l)
 
 	cartUsecase := usecase.NewCartUseCase(cartStore, l)
+	orderUsecase := usecase.NewOrderUsecase(orderStore, lsug)
 
 	filestorage := filestorage.NewOnDiskLocalStorage(cfg.ServerURL, cfg.FsPath, l)
-	delivery := delivery.NewDelivery(itemUsecase, userUsecase, categoryUsecase, cartUsecase, l, filestorage)
+	delivery := delivery.NewDelivery(itemUsecase, userUsecase, categoryUsecase, cartUsecase, l, filestorage, orderUsecase)
 
 	router := router.NewRouter(delivery, l)
 	serverOptions := map[string]int{
