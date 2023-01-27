@@ -3,7 +3,6 @@
 ![GitHub top language](https://img.shields.io/github/languages/top/GBteammates/OnlineShopBackend)
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/GBteammates/OnlineShopBackend)
 ![GitHub repo file count](https://img.shields.io/github/directory-file-count/GBteammates/OnlineShopBackend)
-![GitHub repo directory count](https://img.shields.io/github/directory-file-count/GBteammates/OnlineShopBackend)
 ![GitHub repo size](https://img.shields.io/github/repo-size/GBteammates/OnlineShopBackend)
 ![GitHub](https://img.shields.io/github/license/GBteammates/OnlineShopBackend)
 ![GitHub contributors](https://img.shields.io/github/contributors/GBteammates/OnlineShopBackend)
