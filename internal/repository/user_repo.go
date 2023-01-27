@@ -210,3 +210,43 @@ func (u *user) GetRightsList(ctx context.Context) (chan models.Rights, error) {
 
 	return rolesChan, nil
 }
+
+func (u *user) CreateRights(ctx context.Context, rights *models.Rights) (uuid.UUID, error) {
+	u.logger.Debugf("Enter in repository CreateRights() with args: ctx, rights: %v", rights)
+
+	var id uuid.UUID
+	pool := u.storage.GetPool()
+
+	tx, err := pool.BeginTx(ctx, pgx.TxOptions{})
+	if err != nil {
+		u.logger.Errorf("Can't create transaction: %s", err)
+		return uuid.Nil, fmt.Errorf("can't create transaction: %w", err)
+	}
+	u.logger.Debug("Transaction begin success")
+	defer func() {
+		if err != nil {
+			u.logger.Errorf("Transaction rolled back")
+			if err = tx.Rollback(ctx); err != nil {
+				u.logger.Errorf("Can't rollback %s", err)
+			}
+
+		} else {
+			u.logger.Info("Transaction commited")
+			if err != tx.Commit(ctx) {
+				u.logger.Errorf("Can't commit %s", err)
+			}
+		}
+	}()
+	row := tx.QueryRow(ctx, `INSERT INTO rights(name, rules) values ($1, $2) RETURNING id`,
+		rights.Name,
+		rights.Rules,
+	)
+	err = row.Scan(&id)
+	if err != nil {
+		u.logger.Errorf("can't create rights %s", err)
+		return uuid.Nil, fmt.Errorf("can't create rights %w", err)
+	}
+	u.logger.Info("Rights create success")
+	u.logger.Debugf("id is %v\n", id)
+	return id, nil
+}

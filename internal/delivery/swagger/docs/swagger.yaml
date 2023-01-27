@@ -370,6 +370,27 @@ definitions:
       token:
         $ref: '#/definitions/jwtauth.Token'
     type: object
+  user.RightsId:
+    properties:
+      id:
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        type: string
+    required:
+    - id
+    type: object
+  user.ShortRights:
+    properties:
+      name:
+        example: admin
+        type: string
+      rules:
+        items:
+          type: string
+        type: array
+    required:
+    - name
+    type: object
 info:
   contact:
     url: https://github.com/GBteammates/OnlineShopBackend
@@ -1747,6 +1768,42 @@ paths:
           schema:
             $ref: '#/definitions/delivery.ErrorResponse'
       summary: Create a new user
+      tags:
+      - user
+  /user/createRights/:
+    post:
+      consumes:
+      - application/json
+      description: Method provides to create rights.
+      parameters:
+      - description: Data for creating rights
+        in: body
+        name: rights
+        required: true
+        schema:
+          $ref: '#/definitions/user.ShortRights'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/user.RightsId'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Method provides to create rights
       tags:
       - user
   /user/login:

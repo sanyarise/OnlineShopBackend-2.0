@@ -344,6 +344,13 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 			AdminAuth(),
 			delivery.RolesList,
 		},
+		{
+			"CreateRights",
+			http.MethodPost,
+			"/user/createRights",
+			AdminAuth(),
+			delivery.CreateRights,
+		},
 		// -------------------------ORDER--------------------------------------------------------------------------------
 		{
 			"CreateOrder",

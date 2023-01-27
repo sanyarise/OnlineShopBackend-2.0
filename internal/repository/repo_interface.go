@@ -37,6 +37,7 @@ type UserStore interface {
 	SaveSession(ctx context.Context, token string, t int64) error
 	UpdateUserRole(ctx context.Context, roleId uuid.UUID, email string) error
 	GetRightsList(ctx context.Context) (chan models.Rights, error)
+	CreateRights(ctx context.Context, rights *models.Rights) (uuid.UUID, error)
 }
 
 type CartStore interface {

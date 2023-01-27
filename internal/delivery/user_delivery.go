@@ -17,6 +17,7 @@ import (
 	"OnlineShopBackend/internal/models"
 	"OnlineShopBackend/internal/usecase"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/dghubble/gologin/v2"
@@ -427,4 +428,49 @@ func (delivery *Delivery) RolesList(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, roles)
+}
+
+// CreateRights
+//
+//	@Summary		Method provides to create rights
+//	@Description	Method provides to create rights.
+//	@Tags			user
+//	@Accept			json
+//	@Produce		json
+//	@Param			rights	body		user.ShortRights	true	"Data for creating rights"
+//	@Success		201		{object}	user.RightsId
+//	@Failure		400		{object}	ErrorResponse
+//	@Failure		403		"Forbidden"
+//	@Failure		404		{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500		{object}	ErrorResponse
+//	@Router			/user/createRights/ [post]
+func (delivery *Delivery) CreateRights(c *gin.Context) {
+	delivery.logger.Sugar().Debugf("Enter in delivery CreateRights()")
+
+	var createdRights user.ShortRights
+	if err := c.ShouldBindJSON(&createdRights); err != nil {
+		delivery.logger.Sugar().Errorf("error on bind json from request: %v", err)
+		delivery.SetError(c, http.StatusBadRequest, err)
+		return
+	}
+	if createdRights.Name == "" {
+		err := fmt.Errorf("empty name is not correct")
+		if err != nil {
+			delivery.logger.Error(err.Error())
+			delivery.SetError(c, http.StatusBadRequest, err)
+			return
+		}
+	}
+	ctx := c.Request.Context()
+	id, err := delivery.userUsecase.CreateRights(ctx, &models.Rights{
+		Name:  createdRights.Name,
+		Rules: createdRights.Rules,
+	})
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusInternalServerError, err)
+		return
+	}
+
+	c.JSON(http.StatusCreated, user.RightsId{Value: id.String()})
 }

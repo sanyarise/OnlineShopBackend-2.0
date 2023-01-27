@@ -6,7 +6,9 @@ import (
 	"OnlineShopBackend/internal/app/router"
 	"OnlineShopBackend/internal/app/server"
 	"OnlineShopBackend/internal/delivery"
+	"OnlineShopBackend/internal/delivery/user/password"
 	"OnlineShopBackend/internal/filestorage"
+	"OnlineShopBackend/internal/models"
 	"OnlineShopBackend/internal/repository"
 	"OnlineShopBackend/internal/repository/cash"
 	"OnlineShopBackend/internal/usecase"
@@ -18,6 +20,7 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.uber.org/zap"
 )
@@ -36,13 +39,16 @@ func main() {
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 
-	pgstore, err := repository.NewPgxStorage(ctx, lsug, cfg.DSN)
+	pgstore, err := repository.NewPgxStorage(ctx, lsug, cfg.DNS)
 	if err != nil {
 		log.Fatalf("can't initalize storage: %v", err)
 	}
 	itemStore := repository.NewItemRepo(pgstore, lsug)
 	categoryStore := repository.NewCategoryRepo(pgstore, lsug)
 	userStore := repository.NewUser(pgstore, lsug)
+
+	setAdmin(userStore, cfg.AdminMail, cfg.AdminPass, l)
+	setCustomerRights(userStore, l)
 
 	cartStore := repository.NewCartStore(pgstore, lsug)
 	orderStore := repository.NewOrderRepo(pgstore, lsug)
@@ -148,4 +154,85 @@ func createCashOnStartService(ctx context.Context, categoryUsecase usecase.ICate
 	}
 	l.Info("Items lists in categories cash create success")
 	return nil
+}
+
+func setAdmin(userStore repository.UserStore, mail string, pass string, logger *zap.Logger) {
+	logger.Debug("Enter in main setAdmin()")
+	ctx := context.Background()
+	exist, err := userStore.GetUserByEmail(ctx, mail)
+	logger.Sugar().Debugf("existAdmin is: %v", exist)
+	if err != nil {
+		logger.Error(err.Error())
+	}
+	if exist.ID != uuid.Nil {
+		logger.Info("User admin is already exists")
+		return
+	}
+
+	adminRights := &models.Rights{}
+
+	existAdminRights, err := userStore.GetRightsId(ctx, "Admin")
+	if err != nil {
+		logger.Error(err.Error())
+	}
+	logger.Sugar().Debugf("ExistAdminRights: %v", existAdminRights)
+	if existAdminRights.ID == uuid.Nil {
+		adminRights.Name = "Admin"
+		adminRights.Rules = []string{"Admin"}
+
+		rightsId, err := userStore.CreateRights(ctx, adminRights)
+		if err != nil {
+			logger.Error(err.Error())
+			return
+		}
+		adminRights.ID = rightsId
+	} else {
+		logger.Info("rights admin is already exists")
+	}
+	newAdmin := &models.User{
+		Firstname: "Admin",
+		Lastname:  "Admin",
+		Email:     mail,
+		Password:  pass,
+		Rights: models.Rights{
+			ID: adminRights.ID,
+		},
+	}
+	hash := password.GeneratePasswordHash(newAdmin.Password)
+	newAdmin.Password = hash
+
+	admin, err := userStore.Create(ctx, newAdmin)
+	if err != nil {
+		logger.Error(err.Error())
+		return
+	}
+	if admin != nil {
+		logger.Info("Set Admin success")
+	} else {
+		logger.Warn("Set Admin fail")
+	}
+}
+
+func setCustomerRights(userStore repository.UserStore, logger *zap.Logger) {
+	logger.Debug("Enter in setCustomerRights()")
+	ctx := context.Background()
+
+	existRights, err := userStore.GetRightsId(ctx, "Customer")
+	if err != nil {
+		logger.Error(err.Error())
+	}
+	if existRights.ID != uuid.Nil {
+		logger.Sugar().Debugf("ExistCustomerRights: %v", existRights)
+		return
+	}
+	customerRights := models.Rights{
+		Name: "Customer",
+		Rules: []string{"Customer"},
+	}
+	rightsId, err := userStore.CreateRights(ctx, &customerRights)
+	if err != nil {
+		logger.Error(err.Error())
+		return
+	}
+	logger.Sugar().Infof("Customer rights with id: %v create success", rightsId)
 }
