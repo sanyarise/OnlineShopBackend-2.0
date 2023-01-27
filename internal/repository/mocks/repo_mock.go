@@ -331,6 +331,21 @@ func (mr *MockUserStoreMockRecorder) Create(ctx, user interface{}) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockUserStore)(nil).Create), ctx, user)
 }
 
+// CreateRights mocks base method.
+func (m *MockUserStore) CreateRights(ctx context.Context, rights *models.Rights) (uuid.UUID, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateRights", ctx, rights)
+	ret0, _ := ret[0].(uuid.UUID)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateRights indicates an expected call of CreateRights.
+func (mr *MockUserStoreMockRecorder) CreateRights(ctx, rights interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRights", reflect.TypeOf((*MockUserStore)(nil).CreateRights), ctx, rights)
+}
+
 // GetRightsId mocks base method.
 func (m *MockUserStore) GetRightsId(ctx context.Context, name string) (models.Rights, error) {
 	m.ctrl.T.Helper()

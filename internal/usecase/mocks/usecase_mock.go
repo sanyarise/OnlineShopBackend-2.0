@@ -662,6 +662,21 @@ func (m *MockIUserUsecase) EXPECT() *MockIUserUsecaseMockRecorder {
 	return m.recorder
 }
 
+// CreateRights mocks base method.
+func (m *MockIUserUsecase) CreateRights(ctx context.Context, rights *models.Rights) (uuid.UUID, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateRights", ctx, rights)
+	ret0, _ := ret[0].(uuid.UUID)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateRights indicates an expected call of CreateRights.
+func (mr *MockIUserUsecaseMockRecorder) CreateRights(ctx, rights interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRights", reflect.TypeOf((*MockIUserUsecase)(nil).CreateRights), ctx, rights)
+}
+
 // CreateUser mocks base method.
 func (m *MockIUserUsecase) CreateUser(ctx context.Context, user *user.CreateUserData) (*models.User, error) {
 	m.ctrl.T.Helper()
