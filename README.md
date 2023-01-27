@@ -6,6 +6,8 @@
 ![GitHub repo directory count](https://img.shields.io/github/directory-file-count/GBteammates/OnlineShopBackend)
 ![GitHub repo size](https://img.shields.io/github/repo-size/GBteammates/OnlineShopBackend)
 ![GitHub](https://img.shields.io/github/license/GBteammates/OnlineShopBackend)
+![GitHub contributors](https://img.shields.io/github/contributors/GBteammates/OnlineShopBackend)
+![GitHub last commit](https://img.shields.io/github/last-commit/GBteammates/OnlineShopBackend)
 
 <img src="./static/pictures/header.jpg">
 <img align="right" width="50%" src="./static/pictures/favicon.ico">
