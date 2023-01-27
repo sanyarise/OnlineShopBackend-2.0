@@ -168,6 +168,7 @@ var (
 		Price:       10,
 		Vendor:      "testVendor",
 		Images:      []string{""},
+		Images:      []string{""},
 	}
 	testModelsItemWithImage = models.Item{
 		Id:          testId,

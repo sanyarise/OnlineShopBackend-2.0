@@ -39,6 +39,14 @@ type ICategoryUsecase interface {
 	DeleteCategoryCash(ctx context.Context, name string) error
 }
 
+type IOrderUsecase interface {
+	PlaceOrder(ctx context.Context, cart *models. Cart, user models.User, address models.UserAddress) (*models.Order, error)
+	ChangeStatus(ctx context.Context, order *models.Order, newStatus models.Status) error
+	GetOrdersForUser(ctx context.Context, user *models.User) ([]models.Order, error)
+	DeleteOrder(ctx context.Context, order *models.Order) error
+	ChangeAddress(ctx context.Context, order *models.Order, newAddress models.UserAddress) error
+	GetOrder(ctx context.Context, id uuid.UUID) (*models.Order, error)
+}
 type ICartUsecase interface {
 	GetCart(ctx context.Context, cartId uuid.UUID) (*models.Cart, error)
 	DeleteItemFromCart(ctx context.Context, cartId uuid.UUID, itemId uuid.UUID) error
