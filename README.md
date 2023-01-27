@@ -68,10 +68,10 @@
 
 ### Минимальные требования для запуска сервиса:
 - Установленый [docker](https://docs.docker.com/engine/install/)
-- Установленный [docker-compose](`https://docs.docker.com/compose/install/`)
-- установленный [git](`https://git-scm.com/book/en/v2/Getting-Started-Installing-Git?source=post_page---------------------------`)
-- установлена утилита [make](`https://habr.com/ru/post/211751/`)
-- для запуска тестов необходима установка языка [Golang](`https://go.dev/doc/install`)
+- Установленный [docker-compose](https://docs.docker.com/compose/install/)
+- установленный [git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git?source=post_page---------------------------)
+- установлена утилита [make](https://habr.com/ru/post/211751/)
+- для запуска тестов необходима установка языка [Golang](https://go.dev/doc/install)
 
 ### Инструкция по запуску:
 1. Переходим в папку, в которой планируем разместить исходные файлы
