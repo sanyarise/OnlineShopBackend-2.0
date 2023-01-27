@@ -13,7 +13,7 @@ services:
       - 8000:8000
     environment:
       PORT: ":8000"
-      DSN: "postgres://shopteam:123@postgres:5432/shop?sslmode=disable"
+      DNS: "postgres://shopteam:123@postgres:5432/shop?sslmode=disable"
       CASH_HOST: "redis"
 
   postgres:
@@ -40,15 +40,15 @@ services:
     depends_on:
       - postgres
 
-#  frontend:
-#    image: front:latest
-#    container_name: frontend
-#    hostname: frontend
-#    restart: always
-#    ports:
-#      - 3000:3000
-#    depends_on:
-#      - shop
+  frontend:
+    image: front:latest
+    container_name: frontend
+    hostname: frontend
+    restart: always
+    ports:
+      - 3000:3000
+    depends_on:
+      - shop
 
 #  Observability
   prometheus:
@@ -78,21 +78,5 @@ networks:
   default:
     name: shop
     driver: bridge
-
-#  password := 123
-#    username := shopteam
-#    db_name := shop
-#    init_dir := $(CURDIR)/storage/init_db
-#
-#  start_db:
-#    (docker stop postgres && docker rm postgres) || true
-#    docker run \
-#    --name postgres \
-#    -e POSTGRESQL_USERNAME=$(username) \
-#    -e POSTGRESQL_DATABASE=$(db_name) \
-#    -e POSTGRESQL_PASSWORD=$(password) \
-#    -p 5432:5432 \
-#    -v $(init_dir):/docker-entrypoint-initdb.d \
-#    bitnami/postgresql:latest
 
 
