@@ -1,4 +1,5 @@
 <img src="./static/pictures/header.jpg">
+<img align="right" width="50%" src="./static/pictures/favicon.ico">
 
 ## Описание
 
