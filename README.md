@@ -1,3 +1,12 @@
+![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/GBteammates/OnlineShopBackend/test.yml)
+![GitHub language count](https://img.shields.io/github/languages/count/GBteammates/OnlineShopBackend)
+![GitHub top language](https://img.shields.io/github/languages/top/GBteammates/OnlineShopBackend)
+![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/GBteammates/OnlineShopBackend)
+![GitHub repo file count](https://img.shields.io/github/directory-file-count/GBteammates/OnlineShopBackend)
+![GitHub repo directory count](https://img.shields.io/github/directory-file-count/GBteammates/OnlineShopBackend)
+![GitHub repo size](https://img.shields.io/github/repo-size/GBteammates/OnlineShopBackend)
+![GitHub](https://img.shields.io/github/license/GBteammates/OnlineShopBackend)
+
 <img src="./static/pictures/header.jpg">
 <img align="right" width="50%" src="./static/pictures/favicon.ico">
 
