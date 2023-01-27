@@ -41,7 +41,7 @@ watch: ## Run the code with cosmtrek/air to have automatic reload on changes
 	docker run -it --rm -w /go/src/$(PACKAGE_NAME) -v $(shell pwd):/go/src/$(PACKAGE_NAME) -p $(SERVICE_PORT):$(SERVICE_PORT) cosmtrek/air
 
 ## Test:
-test: ## Run the tests of the project
+testw: ## Run the tests of the project
 ifeq ($(EXPORT_RESULT), true)
 	GO111MODULE=off go get -u github.com/jstemmer/go-junit-report
 	$(eval OUTPUT_OPTIONS = | tee /dev/tty | go-junit-report -set-exit-code > junit-report.xml)
@@ -151,3 +151,6 @@ up-win:
 
 up-lin:
 	git clone https://github.com/ZavNatalia/gb-store.git&&cd gb-store&&git checkout feature/new-api&&cd ..&&cp ./front.Dockerfile ./gb-store&&cd ./gb-store&&docker build -f ./front.Dockerfile -t front:latest .&&cd ..&&rm -R -f ./gb-store&&docker-compose up -d
+
+test:
+	go test ./... -v
