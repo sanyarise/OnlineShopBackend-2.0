@@ -34,16 +34,16 @@ const (
 
 // CreateUser create a new user
 //
-//		@Summary		Create a new user
-//		@Description	Method provides to create a user
-//		@Tags			user
-//		@Accept			json
-//		@Produce		json
-//		@Param			user	body		user.CreateUserData	true	"User data"
-//		@Success		201
-//		@Failure		400		{object}	ErrorResponse
-//	 @Failure		100		{object}	ErrorResponse
-//		@Router			/user/create [post]
+//	@Summary		Create a new user
+//	@Description	Method provides to create a user
+//	@Tags			user
+//	@Accept			json
+//	@Produce		json
+//	@Param			user	body	user.CreateUserData	true	"User data"
+//	@Success		201
+//	@Failure		400	{object}	ErrorResponse
+//	@Failure		100	{object}	ErrorResponse
+//	@Router			/user/create [post]
 func (delivery *Delivery) CreateUser(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery CreateUser()")
 	ctx := c.Request.Context()
@@ -193,7 +193,7 @@ func (delivery *Delivery) UserProfile(c *gin.Context) {
 //	@Tags			user
 //	@Accept			json
 //	@Produce		json
-//	@Param			user	body		user.CreateUserData	true	"User data"
+//	@Param			user	body	user.CreateUserData	true	"User data"
 //	@Security		ApiKeyAuth || firebase
 //	@Success		201	{object}	user.CreateUserData
 //	@Failure		404	{object}	ErrorResponse	"404 Not Found"
@@ -410,7 +410,7 @@ func (delivery *Delivery) ChangeRole(c *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Success		200
-//	@Failure		500 {object}	ErrorResponse
+//	@Failure		500	{object}	ErrorResponse
 //	@Failure		401	{object}	ErrorResponse
 //	@Router			/user/rights/list [get]
 func (delivery *Delivery) RolesList(c *gin.Context) {

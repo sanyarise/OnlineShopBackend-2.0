@@ -2,6 +2,8 @@ package delivery
 
 import (
 	"OnlineShopBackend/internal/delivery/cart"
+	"OnlineShopBackend/internal/delivery/category"
+	"OnlineShopBackend/internal/delivery/item"
 	"OnlineShopBackend/internal/delivery/order"
 	"OnlineShopBackend/internal/models"
 	"net/http"
@@ -55,8 +57,8 @@ func (d *Delivery) CreateOrder(c *gin.Context) {
 		UserId: user.ID,
 		Items:  make([]models.ItemWithQuantity, 0, len(cart.Cart.Items)),
 	}
-	for _, item := range cart.Cart.Items {
-		id, err = uuid.Parse(item.Id)
+	for _, oitem := range cart.Cart.Items {
+		id, err = uuid.Parse(oitem.Item.Id)
 		if err != nil {
 			d.logger.Sugar().Errorf("can't parse item id: %s", err)
 			d.SetError(c, http.StatusInternalServerError, err)
@@ -65,10 +67,10 @@ func (d *Delivery) CreateOrder(c *gin.Context) {
 		itemM := models.ItemWithQuantity{
 			Item: models.Item{
 				Id:    id,
-				Title: item.Title,
-				Price: item.Price,
+				Title: oitem.Item.Title,
+				Price: oitem.Item.Price,
 			},
-			Quantity: item.Quantity,
+			Quantity: oitem.Quantity.Quantity,
 		}
 		cartModel.Items = append(cartModel.Items, itemM)
 	}
@@ -126,26 +128,27 @@ func (d *Delivery) GetOrder(c *gin.Context) {
 		Status:       string(modelOrder.Status),
 		Items:        make([]cart.CartItem, 0, len(modelOrder.Items)),
 	}
-	for _, item := range modelOrder.Items {
+	for _, oitem := range modelOrder.Items {
 		cartItem := cart.CartItem{
-			Id:       item.Id.String(),
-			Title:    item.Title,
-			Price:    item.Price,
-			Image:    firstNotEmpty(item.Images),
-			Quantity: item.Quantity,
+			Item: item.OutItem{
+				Id:          oitem.Id.String(),
+				Title:       oitem.Title,
+				Description: oitem.Description,
+				Category: category.Category{
+					Id:          oitem.Category.Id.String(),
+					Name:        oitem.Category.Name,
+					Description: oitem.Category.Description,
+					Image:       oitem.Category.Image,
+				},
+				Price:  oitem.Price,
+				Vendor: oitem.Vendor,
+				Images: oitem.Images,
+			},
 		}
+		cartItem.Quantity.Quantity = oitem.Quantity
 		order.Items = append(order.Items, cartItem)
 	}
 	c.JSON(http.StatusOK, order)
-}
-
-func firstNotEmpty(arr []string) string {
-	for _, item := range arr {
-		if item != "" {
-			return item
-		}
-	}
-	return ""
 }
 
 // GetOrdersForUser - get a specific order by UserId
@@ -187,14 +190,24 @@ func (d *Delivery) GetOrdersForUser(c *gin.Context) {
 			Status:       string(modelOrder.Status),
 			Items:        make([]cart.CartItem, 0, len(modelOrder.Items)),
 		}
-		for _, item := range modelOrder.Items {
+		for _, oitem := range modelOrder.Items {
 			cartItem := cart.CartItem{
-				Id:       item.Id.String(),
-				Title:    item.Title,
-				Price:    item.Price,
-				Image:    firstNotEmpty(item.Images),
-				Quantity: item.Quantity,
+				Item: item.OutItem{
+					Id:          oitem.Id.String(),
+					Title:       oitem.Title,
+					Description: oitem.Description,
+					Category: category.Category{
+						Id:          oitem.Category.Id.String(),
+						Name:        oitem.Category.Name,
+						Description: oitem.Category.Description,
+						Image:       oitem.Category.Image,
+					},
+					Price:  oitem.Price,
+					Vendor: oitem.Vendor,
+					Images: oitem.Images,
+				},
 			}
+			cartItem.Quantity.Quantity = oitem.Quantity
 			order.Items = append(order.Items, cartItem)
 		}
 		orders = append(orders, order)
@@ -237,7 +250,7 @@ func (d *Delivery) DeleteOrder(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{})
 }
 
-// ChangeAddressOfTheOrder - change address of a specific order by Id
+// ChangeAddress - change address of a specific order by Id
 //
 //	@Summary		Change address of a  specific order by Id
 //	@Description	The method allows you to change address of an order by Id.
@@ -289,7 +302,7 @@ func (d *Delivery) ChangeAddress(c *gin.Context) {
 	}
 }
 
-// ChangeStatusOfTheOrder - change status of a specific order by Id
+// ChangeStatus - change status of a specific order by Id
 //
 //	@Summary		Change status of a specific order by Id
 //	@Description	The method allows you to change status of an order by Id.
