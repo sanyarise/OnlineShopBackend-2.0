@@ -144,3 +144,13 @@ func (usecase *UserUsecase) GetRightsList(ctx context.Context) ([]models.Rights,
 	return rights, nil
 
 }
+
+func (usecase *UserUsecase) CreateRights(ctx context.Context, rights *models.Rights) (uuid.UUID, error) {
+	usecase.logger.Sugar().Debugf("Enter in usecase CreateRights() with args: ctx, rights: %v", rights)
+
+	id, err := usecase.userStore.CreateRights(ctx, rights)
+	if err != nil {
+		return uuid.Nil, err
+	}
+	return id, nil
+}

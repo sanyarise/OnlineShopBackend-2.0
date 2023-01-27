@@ -64,4 +64,5 @@ type IUserUsecase interface {
 	UpdateUserData(ctx context.Context, id uuid.UUID, user *user.CreateUserData) (*models.User, error)
 	UpdateUserRole(ctx context.Context, roleId uuid.UUID, email string) error
 	GetRightsList(ctx context.Context) ([]models.Rights, error)
+	CreateRights(ctx context.Context, rights *models.Rights) (uuid.UUID, error)
 }

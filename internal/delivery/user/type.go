@@ -21,3 +21,12 @@ type CreateUserData struct {
 	Address   models.UserAddress `json:"address,omitempty"`
 	Rights    models.Rights      `json:"rights"`
 }
+
+type ShortRights struct {
+	Name  string   `json:"name" binding:"required" example:"admin"`
+	Rules []string `json:"rules,omitempty"`
+}
+
+type RightsId struct {
+	Value string `json:"id" uri:"itemID" binding:"required,uuid" example:"00000000-0000-0000-0000-000000000000" format:"uuid"`
+}
