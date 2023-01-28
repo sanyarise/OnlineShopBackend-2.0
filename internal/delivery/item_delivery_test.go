@@ -1548,3 +1548,66 @@ func TestGetFavouriteItems(t *testing.T) {
 	require.Equal(t, 200, w.Code)
 	require.Equal(t, bytesRes, w.Body.Bytes())
 }
+
+func TestItemsQuantityInSearch(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	ctx := context.Background()
+	logger := zap.L()
+	itemUsecase := mocks.NewMockIItemUsecase(ctrl)
+	categoryUsecase := mocks.NewMockICategoryUsecase(ctrl)
+
+	cartUsecase := mocks.NewMockICartUsecase(ctrl)
+	filestorage := fs.NewMockFileStorager(ctrl)
+	orderUsecase := mocks.NewMockIOrderUsecase(ctrl)
+	delivery := NewDelivery(itemUsecase, nil, categoryUsecase, cartUsecase, logger, filestorage, orderUsecase)
+
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Params = []gin.Param{
+		{
+			Key:   "searchRequet",
+			Value: "test",
+		},
+	}
+	delivery.ItemsQuantityInSearch(c)
+	require.Equal(t, 400, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Params = []gin.Param{
+		{
+			Key:   "searchRequest",
+			Value: "test",
+		},
+	}
+
+	itemUsecase.EXPECT().ItemsQuantityInSearch(ctx, "test").Return(-1, err)
+	delivery.ItemsQuantityInSearch(c)
+	require.Equal(t, 500, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Params = []gin.Param{
+		{
+			Key:   "searchRequest",
+			Value: "test",
+		},
+	}
+
+	itemUsecase.EXPECT().ItemsQuantityInSearch(ctx, "test").Return(1, nil)
+	delivery.ItemsQuantityInSearch(c)
+	require.Equal(t, 200, w.Code)
+}
