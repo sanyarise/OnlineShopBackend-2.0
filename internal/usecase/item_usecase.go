@@ -655,3 +655,4 @@ func (usecase *ItemUsecase) UpdateFavouriteItemsCash(ctx context.Context, userId
 	}
 	usecase.logger.Info("Update favourite items list cash success")
 }
+
