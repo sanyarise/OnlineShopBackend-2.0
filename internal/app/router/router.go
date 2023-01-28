@@ -188,6 +188,13 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 			delivery.ItemsQuantityInFavourite,
 		},
 		{
+			"ItemsQuantityInSearch",
+			http.MethodGet,
+			"/items/quantitySearch/:searchRequest",
+			noOpMiddleware,
+			delivery.ItemsQuantityInSearch,
+		},
+		{
 			"ItemsList",
 			http.MethodGet,
 			"/items/list", //?offset=20&limit=10&sort_type=name&sort_order=asc (sort_type == name or price, sort_order == asc or desc)

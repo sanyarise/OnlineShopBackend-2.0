@@ -1413,6 +1413,37 @@ paths:
       summary: Get quantity of favourite items
       tags:
       - items
+  /items/quantitySearch/{searchRequest}:
+    get:
+      consumes:
+      - application/json
+      description: Method provides to get quantity of items in search request
+      parameters:
+      - description: Search request
+        in: path
+        name: searchRequest
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Quantity of items
+          schema:
+            $ref: '#/definitions/item.ItemsQuantity'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Get quantity of items in search request
+      tags:
+      - items
   /items/search:
     get:
       consumes:

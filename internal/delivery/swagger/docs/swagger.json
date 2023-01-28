@@ -1486,6 +1486,53 @@
                 }
             }
         },
+        "/items/quantitySearch/{searchRequest}": {
+            "get": {
+                "description": "Method provides to get quantity of items in search request",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "items"
+                ],
+                "summary": "Get quantity of items in search request",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Search request",
+                        "name": "searchRequest",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Quantity of items",
+                        "schema": {
+                            "$ref": "#/definitions/item.ItemsQuantity"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "404 Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/items/search": {
             "get": {
                 "description": "Method provides to get list of items by search parameters",

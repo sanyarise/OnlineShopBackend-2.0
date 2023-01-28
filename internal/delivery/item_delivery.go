@@ -471,6 +471,39 @@ func (delivery *Delivery) ItemsQuantityInFavourite(c *gin.Context) {
 	c.JSON(http.StatusOK, itemsQuantity)
 }
 
+// ItemsQuantityInSearch returns quantity of items in search request
+//
+//	@Summary		Get quantity of items in search request
+//	@Description	Method provides to get quantity of items in search request
+//	@Tags			items
+//	@Accept			json
+//	@Produce		json
+//	@Param			searchRequest	path		string				true	"Search request"
+//	@Success		200				{object}	item.ItemsQuantity	"Quantity of items"
+//	@Failure		403				"Forbidden"
+//	@Failure		404				{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500				{object}	ErrorResponse
+//	@Router			/items/quantitySearch/{searchRequest} [get]
+func (delivery *Delivery) ItemsQuantityInSearch(c *gin.Context) {
+	delivery.logger.Debug("Enter in delivery ItemsQuantityInSearch()")
+	searchRequest := c.Param("searchRequest")
+	if searchRequest == "" {
+		err := fmt.Errorf("empty  searchRequest is not correct")
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
+		return
+	}
+	ctx := c.Request.Context()
+	quantity, err := delivery.itemUsecase.ItemsQuantityInSearch(ctx, searchRequest)
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusInternalServerError, err)
+		return
+	}
+	itemsQuantity := item.ItemsQuantity{Quantity: quantity}
+	c.JSON(http.StatusOK, itemsQuantity)
+}
+
 // SearchLine - returns list of items with parameters
 //
 //	@Summary		Get list of items by search parameters
