@@ -12,6 +12,7 @@ package delivery
 import (
 	"OnlineShopBackend/internal/delivery/category"
 	"OnlineShopBackend/internal/delivery/item"
+	"OnlineShopBackend/internal/delivery/user/jwtauth"
 	"OnlineShopBackend/internal/metrics"
 	"OnlineShopBackend/internal/models"
 	"context"
@@ -320,6 +321,19 @@ func (delivery *Delivery) UpdateItem(c *gin.Context) {
 //	@Router			/items/list [get]
 func (delivery *Delivery) ItemsList(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery ItemsList()")
+	ctx := c.Request.Context()
+	claims, ok := c.Get("claims")
+	var favouriteItemsIds *map[uuid.UUID]uuid.UUID
+	if ok {
+		favItemsIds, err := delivery.itemUsecase.GetFavouriteItemsId(ctx, claims.(*jwtauth.Payload).UserId)
+		if err != nil && errors.Is(err, models.ErrorNotFound{}) {
+			delivery.logger.Info("favourite items for this user is not exists")
+		}
+		if err != nil {
+			delivery.logger.Error(err.Error())
+		}
+		favouriteItemsIds = favItemsIds
+	}
 	var options Options
 	err := c.Bind(&options)
 	if err != nil {
@@ -328,7 +342,6 @@ func (delivery *Delivery) ItemsList(c *gin.Context) {
 		return
 	}
 	delivery.logger.Debug(fmt.Sprintf("options is %v", options))
-	ctx := c.Request.Context()
 	if options.Limit == 0 {
 		quantity, err := delivery.itemUsecase.ItemsQuantity(ctx)
 		if err != nil {
@@ -362,20 +375,46 @@ func (delivery *Delivery) ItemsList(c *gin.Context) {
 		return
 	}
 	items := make([]item.OutItem, len(list))
-	for idx, modelsItem := range list {
-		items[idx] = item.OutItem{
-			Id:          modelsItem.Id.String(),
-			Title:       modelsItem.Title,
-			Description: modelsItem.Description,
-			Category: category.Category{
-				Id:          modelsItem.Category.Id.String(),
-				Name:        modelsItem.Category.Name,
-				Description: modelsItem.Category.Description,
-				Image:       modelsItem.Category.Image,
-			},
-			Price:  modelsItem.Price,
-			Vendor: modelsItem.Vendor,
-			Images: modelsItem.Images,
+	if favouriteItemsIds == nil {
+		for idx, modelsItem := range list {
+			items[idx] = item.OutItem{
+				Id:          modelsItem.Id.String(),
+				Title:       modelsItem.Title,
+				Description: modelsItem.Description,
+				Category: category.Category{
+					Id:          modelsItem.Category.Id.String(),
+					Name:        modelsItem.Category.Name,
+					Description: modelsItem.Category.Description,
+					Image:       modelsItem.Category.Image,
+				},
+				Price:       modelsItem.Price,
+				Vendor:      modelsItem.Vendor,
+				Images:      modelsItem.Images,
+				IsFavourite: false,
+			}
+		}
+	} else {
+		favItems := *favouriteItemsIds
+		for idx, modelsItem := range list {
+			items[idx] = item.OutItem{
+				Id:          modelsItem.Id.String(),
+				Title:       modelsItem.Title,
+				Description: modelsItem.Description,
+				Category: category.Category{
+					Id:          modelsItem.Category.Id.String(),
+					Name:        modelsItem.Category.Name,
+					Description: modelsItem.Category.Description,
+					Image:       modelsItem.Category.Image,
+				},
+				Price:       modelsItem.Price,
+				Vendor:      modelsItem.Vendor,
+				Images:      modelsItem.Images,
+				IsFavourite: false,
+			}
+			_, ok := favItems[modelsItem.Id]
+			if ok {
+				items[idx].IsFavourite = true
+			}
 		}
 	}
 	c.JSON(http.StatusOK, items)

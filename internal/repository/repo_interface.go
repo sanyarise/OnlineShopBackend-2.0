@@ -18,6 +18,7 @@ type ItemStore interface {
 	AddFavouriteItem(ctx context.Context, userId uuid.UUID, itemId uuid.UUID) error
 	DeleteFavouriteItem(ctx context.Context, userId uuid.UUID, itemId uuid.UUID) error
 	GetFavouriteItems(ctx context.Context, userId uuid.UUID) (chan models.Item, error)
+	GetFavouriteItemsId(ctx context.Context, userId uuid.UUID) (*map[uuid.UUID]uuid.UUID, error)
 }
 
 type CategoryStore interface {

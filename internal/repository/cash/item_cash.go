@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/go-redis/redis/v8"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
@@ -53,7 +54,7 @@ func (cash *ItemsCash) CreateItemsCash(ctx context.Context, res []models.Item, k
 	}
 	data, err := json.Marshal(in)
 	if err != nil {
-		return fmt.Errorf("marshal unknown item: %w", err)
+		return fmt.Errorf("error on marshal items cash: %w", err)
 	}
 
 	err = cash.Set(ctx, key, data, cash.TTL).Err()
@@ -61,6 +62,20 @@ func (cash *ItemsCash) CreateItemsCash(ctx context.Context, res []models.Item, k
 		return fmt.Errorf("redis: error on set key %s: %w", key, err)
 	}
 	cash.logger.Info(fmt.Sprintf("Cash with key: %s create success", key))
+	return nil
+}
+
+// CreateFavouriteItemsIdCash add favourite items id in cash
+func (cash *ItemsCash) CreateFavouriteItemsIdCash(ctx context.Context, res map[uuid.UUID]uuid.UUID, key string) error {
+	cash.logger.Sugar().Debugf("Enter in cash CreateFavouriteItemsIdCash() with args: ctx, res, key: %s", key)
+	data, err := json.Marshal(res)
+	if err != nil {
+		return fmt.Errorf("error on marshal favourite items id cash: %w", err)
+	}
+	err = cash.Set(ctx, key, data, cash.TTL).Err()
+	if err != nil {
+		return fmt.Errorf("redis: error on set key: %s: %w", key, err)
+	}
 	return nil
 }
 
@@ -107,4 +122,26 @@ func (cash *ItemsCash) GetItemsQuantityCash(ctx context.Context, key string) (in
 	}
 	cash.logger.Debug("Get cash success")
 	return data, nil
+}
+
+// GetItemsQuantityCash retrieves data from the cache
+func (cash *ItemsCash) GetFavouriteItemsIdCash(ctx context.Context, key string) (*map[uuid.UUID]uuid.UUID, error) {
+	cash.logger.Sugar().Debugf("Enter in cash GetFavouriteItemsIdCash() with args: ctx, key: %s", key)
+	res := make(map[uuid.UUID]uuid.UUID)
+	data, err := cash.Get(ctx, key).Bytes()
+	if err == redis.Nil {
+		// we got empty result, it's not an error
+		cash.logger.Debug("Success get nil result")
+		return nil, nil
+	} else if err != nil {
+		cash.logger.Sugar().Errorf("Error on get cash: %v", err)
+		return nil, err
+	}
+	err = json.Unmarshal(data, &res)
+	if err != nil {
+		cash.logger.Sugar().Warnf("Can't json unmarshal data: %v", data)
+		return nil, err
+	}
+	cash.logger.Debug("Get cash success")
+	return &res, nil
 }

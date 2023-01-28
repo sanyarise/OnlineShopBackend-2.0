@@ -109,6 +109,21 @@ func (mr *MockIItemUsecaseMockRecorder) GetFavouriteItems(ctx, userId, limitOpti
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFavouriteItems", reflect.TypeOf((*MockIItemUsecase)(nil).GetFavouriteItems), ctx, userId, limitOptions, sortOptions)
 }
 
+// GetFavouriteItemsId mocks base method.
+func (m *MockIItemUsecase) GetFavouriteItemsId(ctx context.Context, userId uuid.UUID) (*map[uuid.UUID]uuid.UUID, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetFavouriteItemsId", ctx, userId)
+	ret0, _ := ret[0].(*map[uuid.UUID]uuid.UUID)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetFavouriteItemsId indicates an expected call of GetFavouriteItemsId.
+func (mr *MockIItemUsecaseMockRecorder) GetFavouriteItemsId(ctx, userId interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFavouriteItemsId", reflect.TypeOf((*MockIItemUsecase)(nil).GetFavouriteItemsId), ctx, userId)
+}
+
 // GetItem mocks base method.
 func (m *MockIItemUsecase) GetItem(ctx context.Context, id uuid.UUID) (*models.Item, error) {
 	m.ctrl.T.Helper()

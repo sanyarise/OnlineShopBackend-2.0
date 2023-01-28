@@ -5,6 +5,7 @@ import (
 	"OnlineShopBackend/internal/repository"
 	"OnlineShopBackend/internal/repository/cash"
 	"context"
+	"errors"
 	"fmt"
 	"sort"
 	"strings"
@@ -656,3 +657,34 @@ func (usecase *ItemUsecase) UpdateFavouriteItemsCash(ctx context.Context, userId
 	usecase.logger.Info("Update favourite items list cash success")
 }
 
+func (usecase *ItemUsecase) GetFavouriteItemsId(ctx context.Context, userId uuid.UUID) (*map[uuid.UUID]uuid.UUID, error) {
+	usecase.logger.Sugar().Debugf("Enter in usecase GetFavouriteItemsId() with args: ctx, userId: %v", userId)
+	if !usecase.itemCash.CheckCash(ctx, userId.String()+"Fav") {
+		quantity, err := usecase.ItemsQuantityInFavourite(ctx, userId)
+		if err != nil && quantity == -1 {
+			usecase.logger.Warn(err.Error())
+			return nil, err
+		}
+		if quantity == 0 {
+			return nil, models.ErrorNotFound{}
+		}
+		favUids, err := usecase.itemStore.GetFavouriteItemsId(ctx, userId)
+		if err != nil && errors.Is(err, models.ErrorNotFound{}) {
+			return nil, models.ErrorNotFound{}
+		}
+		if err != nil {
+			return nil, err
+		}
+		err = usecase.itemCash.CreateFavouriteItemsIdCash(ctx, *favUids, userId.String()+"Fav")
+		if err != nil {
+			usecase.logger.Sugar().Errorf("error on create favourite items id cash: %v", err)
+			return favUids, nil
+		}
+	}
+	favUids, err := usecase.itemCash.GetFavouriteItemsIdCash(ctx, userId.String()+"Fav")
+	if err != nil {
+		usecase.logger.Sugar().Errorf("error on get favourite items id cash: %v", err)
+		return nil, err
+	}
+	return favUids, nil
+}

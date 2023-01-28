@@ -27,6 +27,7 @@ type IItemUsecase interface {
 	UpdateFavouriteItemsCash(ctx context.Context, userId uuid.UUID, itemId uuid.UUID, op string)
 	SortItems(items []models.Item, sortType string, sortOrder string)
 	ItemsQuantityInSearch(ctx context.Context, search string) (int, error)
+	GetFavouriteItemsId(ctx context.Context, userId uuid.UUID) (*map[uuid.UUID]uuid.UUID, error)
 }
 
 type ICategoryUsecase interface {
