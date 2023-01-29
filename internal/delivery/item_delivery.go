@@ -196,25 +196,6 @@ func (delivery *Delivery) GetItem(c *gin.Context) {
 		Images:      modelsItem.Images,
 		IsFavourite: delivery.IsFavourite(favItems, modelsItem.Id),
 	}
-	//var favouriteItemsIds *map[uuid.UUID]uuid.UUID
-	if delivery.IsAuthorize(c) {
-		userId := delivery.GetUserId(c)
-		if userId != uuid.Nil {
-			delivery.logger.Sugar().Debugf("userId is %v", userId)
-			favItemsIds, err := delivery.itemUsecase.GetFavouriteItemsId(ctx, userId)
-			if err != nil && errors.Is(err, models.ErrorNotFound{}) {
-				delivery.logger.Info("favourite items for this user is not exists")
-			}
-			if err != nil {
-				delivery.logger.Error(err.Error())
-			}
-			favItems := *favItemsIds
-			if _, ok := favItems[modelsItem.Id]; ok {
-				result.IsFavourite = true
-			}
-		}
-	}
-
 	c.JSON(http.StatusOK, result)
 }
 
@@ -1130,9 +1111,9 @@ func (delivery *Delivery) GetFavouriteItems(c *gin.Context) {
 				Description: modelsItem.Category.Description,
 				Image:       modelsItem.Category.Image,
 			},
-			Price:  modelsItem.Price,
-			Vendor: modelsItem.Vendor,
-			Images: modelsItem.Images,
+			Price:       modelsItem.Price,
+			Vendor:      modelsItem.Vendor,
+			Images:      modelsItem.Images,
 			IsFavourite: true,
 		}
 	}
