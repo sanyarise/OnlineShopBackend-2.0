@@ -23,6 +23,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt"
 	"github.com/golang-module/carbon/v2"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
@@ -170,7 +171,17 @@ func (delivery *Delivery) GetItem(c *gin.Context) {
 		delivery.SetError(c, http.StatusInternalServerError, err)
 		return
 	}
-	c.JSON(http.StatusOK, item.OutItem{
+	var favItems *map[uuid.UUID]uuid.UUID
+	if !delivery.IsAuthorize(c) {
+		favItems = nil
+	} else {
+		fav, err := delivery.GetFavouriteIds(c)
+		if err != nil {
+			favItems = nil
+		}
+		favItems = fav
+	}
+	result := item.OutItem{
 		Id:          modelsItem.Id.String(),
 		Title:       modelsItem.Title,
 		Description: modelsItem.Description,
@@ -180,10 +191,31 @@ func (delivery *Delivery) GetItem(c *gin.Context) {
 			Description: modelsItem.Category.Description,
 			Image:       modelsItem.Category.Image,
 		},
-		Price:  modelsItem.Price,
-		Vendor: modelsItem.Vendor,
-		Images: modelsItem.Images,
-	})
+		Price:       modelsItem.Price,
+		Vendor:      modelsItem.Vendor,
+		Images:      modelsItem.Images,
+		IsFavourite: delivery.IsFavourite(favItems, modelsItem.Id),
+	}
+	//var favouriteItemsIds *map[uuid.UUID]uuid.UUID
+	if delivery.IsAuthorize(c) {
+		userId := delivery.GetUserId(c)
+		if userId != uuid.Nil {
+			delivery.logger.Sugar().Debugf("userId is %v", userId)
+			favItemsIds, err := delivery.itemUsecase.GetFavouriteItemsId(ctx, userId)
+			if err != nil && errors.Is(err, models.ErrorNotFound{}) {
+				delivery.logger.Info("favourite items for this user is not exists")
+			}
+			if err != nil {
+				delivery.logger.Error(err.Error())
+			}
+			favItems := *favItemsIds
+			if _, ok := favItems[modelsItem.Id]; ok {
+				result.IsFavourite = true
+			}
+		}
+	}
+
+	c.JSON(http.StatusOK, result)
 }
 
 // UpdateItem - update an item
@@ -322,18 +354,6 @@ func (delivery *Delivery) UpdateItem(c *gin.Context) {
 func (delivery *Delivery) ItemsList(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery ItemsList()")
 	ctx := c.Request.Context()
-	claims, ok := c.Get("claims")
-	var favouriteItemsIds *map[uuid.UUID]uuid.UUID
-	if ok {
-		favItemsIds, err := delivery.itemUsecase.GetFavouriteItemsId(ctx, claims.(*jwtauth.Payload).UserId)
-		if err != nil && errors.Is(err, models.ErrorNotFound{}) {
-			delivery.logger.Info("favourite items for this user is not exists")
-		}
-		if err != nil {
-			delivery.logger.Error(err.Error())
-		}
-		favouriteItemsIds = favItemsIds
-	}
 	var options Options
 	err := c.Bind(&options)
 	if err != nil {
@@ -374,47 +394,33 @@ func (delivery *Delivery) ItemsList(c *gin.Context) {
 		delivery.SetError(c, http.StatusInternalServerError, err)
 		return
 	}
-	items := make([]item.OutItem, len(list))
-	if favouriteItemsIds == nil {
-		for idx, modelsItem := range list {
-			items[idx] = item.OutItem{
-				Id:          modelsItem.Id.String(),
-				Title:       modelsItem.Title,
-				Description: modelsItem.Description,
-				Category: category.Category{
-					Id:          modelsItem.Category.Id.String(),
-					Name:        modelsItem.Category.Name,
-					Description: modelsItem.Category.Description,
-					Image:       modelsItem.Category.Image,
-				},
-				Price:       modelsItem.Price,
-				Vendor:      modelsItem.Vendor,
-				Images:      modelsItem.Images,
-				IsFavourite: false,
-			}
-		}
+	var favItems *map[uuid.UUID]uuid.UUID
+	if !delivery.IsAuthorize(c) {
+		favItems = nil
 	} else {
-		favItems := *favouriteItemsIds
-		for idx, modelsItem := range list {
-			items[idx] = item.OutItem{
-				Id:          modelsItem.Id.String(),
-				Title:       modelsItem.Title,
-				Description: modelsItem.Description,
-				Category: category.Category{
-					Id:          modelsItem.Category.Id.String(),
-					Name:        modelsItem.Category.Name,
-					Description: modelsItem.Category.Description,
-					Image:       modelsItem.Category.Image,
-				},
-				Price:       modelsItem.Price,
-				Vendor:      modelsItem.Vendor,
-				Images:      modelsItem.Images,
-				IsFavourite: false,
-			}
-			_, ok := favItems[modelsItem.Id]
-			if ok {
-				items[idx].IsFavourite = true
-			}
+		fav, err := delivery.GetFavouriteIds(c)
+		if err != nil {
+			favItems = nil
+		}
+		favItems = fav
+	}
+
+	items := make([]item.OutItem, len(list))
+	for idx, modelsItem := range list {
+		items[idx] = item.OutItem{
+			Id:          modelsItem.Id.String(),
+			Title:       modelsItem.Title,
+			Description: modelsItem.Description,
+			Category: category.Category{
+				Id:          modelsItem.Category.Id.String(),
+				Name:        modelsItem.Category.Name,
+				Description: modelsItem.Category.Description,
+				Image:       modelsItem.Category.Image,
+			},
+			Price:       modelsItem.Price,
+			Vendor:      modelsItem.Vendor,
+			Images:      modelsItem.Images,
+			IsFavourite: delivery.IsFavourite(favItems, modelsItem.Id),
 		}
 	}
 	c.JSON(http.StatusOK, items)
@@ -597,6 +603,17 @@ func (delivery *Delivery) SearchLine(c *gin.Context) {
 		delivery.SetError(c, http.StatusInternalServerError, err)
 		return
 	}
+	var favItems *map[uuid.UUID]uuid.UUID
+	if !delivery.IsAuthorize(c) {
+		favItems = nil
+	} else {
+		fav, err := delivery.GetFavouriteIds(c)
+		if err != nil {
+			favItems = nil
+		}
+		favItems = fav
+	}
+
 	items := make([]item.OutItem, len(list))
 	for idx, modelsItem := range list {
 		items[idx] = item.OutItem{
@@ -609,9 +626,10 @@ func (delivery *Delivery) SearchLine(c *gin.Context) {
 				Description: modelsItem.Category.Description,
 				Image:       modelsItem.Category.Image,
 			},
-			Price:  modelsItem.Price,
-			Vendor: modelsItem.Vendor,
-			Images: modelsItem.Images,
+			Price:       modelsItem.Price,
+			Vendor:      modelsItem.Vendor,
+			Images:      modelsItem.Images,
+			IsFavourite: delivery.IsFavourite(favItems, modelsItem.Id),
 		}
 	}
 	c.JSON(http.StatusOK, items)
@@ -670,6 +688,17 @@ func (delivery *Delivery) GetItemsByCategory(c *gin.Context) {
 		delivery.SetError(c, http.StatusInternalServerError, err)
 		return
 	}
+	var favItems *map[uuid.UUID]uuid.UUID
+	if !delivery.IsAuthorize(c) {
+		favItems = nil
+	} else {
+		fav, err := delivery.GetFavouriteIds(c)
+		if err != nil {
+			favItems = nil
+		}
+		favItems = fav
+	}
+
 	items := make([]item.OutItem, len(list))
 	for idx, modelsItem := range list {
 		items[idx] = item.OutItem{
@@ -682,9 +711,10 @@ func (delivery *Delivery) GetItemsByCategory(c *gin.Context) {
 				Description: modelsItem.Category.Description,
 				Image:       modelsItem.Category.Image,
 			},
-			Price:  modelsItem.Price,
-			Vendor: modelsItem.Vendor,
-			Images: modelsItem.Images,
+			Price:       modelsItem.Price,
+			Vendor:      modelsItem.Vendor,
+			Images:      modelsItem.Images,
+			IsFavourite: delivery.IsFavourite(favItems, modelsItem.Id),
 		}
 	}
 	c.JSON(http.StatusOK, items)
@@ -1103,7 +1133,89 @@ func (delivery *Delivery) GetFavouriteItems(c *gin.Context) {
 			Price:  modelsItem.Price,
 			Vendor: modelsItem.Vendor,
 			Images: modelsItem.Images,
+			IsFavourite: true,
 		}
 	}
 	c.JSON(http.StatusOK, items)
+}
+
+func (delivery *Delivery) IsFavourite(favIds *map[uuid.UUID]uuid.UUID, itemId uuid.UUID) bool {
+	delivery.logger.Debug("Enter in delivery IsFavourite()")
+	if favIds == nil {
+		return false
+	}
+	favMap := *favIds
+	_, ok := favMap[itemId]
+	return ok
+}
+
+func (delivery *Delivery) GetFavouriteIds(c *gin.Context) (*map[uuid.UUID]uuid.UUID, error) {
+	delivery.logger.Debug("Enter in delivery IsFavourite()")
+	userId := delivery.GetUserId(c)
+	if userId != uuid.Nil {
+		ctx := c.Request.Context()
+		favIds, err := delivery.itemUsecase.GetFavouriteItemsId(ctx, userId)
+		if err != nil && errors.Is(err, models.ErrorNotFound{}) {
+			delivery.logger.Debug("User haven't favourite items")
+			return nil, fmt.Errorf("user haven't favourite items")
+		}
+		if err != nil {
+			delivery.logger.Error(err.Error())
+			return nil, err
+		}
+		return favIds, nil
+	}
+	return nil, models.ErrorNotFound{}
+}
+
+func (delivery *Delivery) IsAuthorize(c *gin.Context) bool {
+	delivery.logger.Debug("Enter in delivery item IsAuthorize()")
+
+	tokenString := c.GetHeader(authorizationHeader)
+
+	if tokenString == "" {
+		delivery.logger.Debug("Token sting is empty, user not authorized")
+		return false
+	}
+
+	headerSplit := strings.Split(tokenString, " ")
+	if len(headerSplit) != 2 || headerSplit[0] != "Bearer" {
+		delivery.logger.Debug("Header[0] is not Bearer")
+		return false
+	}
+	if len(headerSplit[1]) == 0 {
+		delivery.logger.Debug("Header[1] is empty")
+		return false
+	}
+	return true
+}
+
+func (delivery *Delivery) GetUserId(c *gin.Context) uuid.UUID {
+	delivery.logger.Debug("Enter in delivery GetUserId()")
+
+	tokenString := c.GetHeader(authorizationHeader)
+	headerSplit := strings.Split(tokenString, " ")
+	jwtKey, err := jwtauth.NewJWTKeyConfig()
+	if err != nil {
+		delivery.logger.Warn("Empty JWTKeyConfig")
+		return uuid.Nil
+	}
+
+	claims := &jwtauth.Payload{}
+	token, err := jwt.ParseWithClaims(headerSplit[1], claims, func(token *jwt.Token) (interface{}, error) {
+		return []byte(jwtKey.Key), nil
+	})
+
+	if err != nil {
+		if err == jwt.ErrSignatureInvalid {
+			delivery.logger.Warn("Invalid signature of token")
+			return uuid.Nil
+		}
+	}
+
+	if !token.Valid {
+		delivery.logger.Warn("Invalid token")
+		return uuid.Nil
+	}
+	return claims.UserId
 }
