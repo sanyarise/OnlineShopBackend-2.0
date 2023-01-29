@@ -675,7 +675,7 @@ func (delivery *Delivery) GetItemsByCategory(c *gin.Context) {
 	} else {
 		fav, err := delivery.GetFavouriteIds(c)
 		if err != nil {
-			favItems = nil
+			delivery.logger.Warn(err.Error())
 		}
 		favItems = fav
 	}
