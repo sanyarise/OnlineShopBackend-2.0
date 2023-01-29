@@ -177,7 +177,7 @@ func (delivery *Delivery) GetItem(c *gin.Context) {
 	} else {
 		fav, err := delivery.GetFavouriteIds(c)
 		if err != nil {
-			favItems = nil
+			delivery.logger.Warn(err.Error())
 		}
 		favItems = fav
 	}
@@ -381,7 +381,7 @@ func (delivery *Delivery) ItemsList(c *gin.Context) {
 	} else {
 		fav, err := delivery.GetFavouriteIds(c)
 		if err != nil {
-			favItems = nil
+			delivery.logger.Warn(err.Error())
 		}
 		favItems = fav
 	}
@@ -590,7 +590,7 @@ func (delivery *Delivery) SearchLine(c *gin.Context) {
 	} else {
 		fav, err := delivery.GetFavouriteIds(c)
 		if err != nil {
-			favItems = nil
+			delivery.logger.Warn(err.Error())
 		}
 		favItems = fav
 	}
