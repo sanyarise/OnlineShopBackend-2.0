@@ -109,6 +109,21 @@ func (mr *MockIItemUsecaseMockRecorder) GetFavouriteItems(ctx, userId, limitOpti
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFavouriteItems", reflect.TypeOf((*MockIItemUsecase)(nil).GetFavouriteItems), ctx, userId, limitOptions, sortOptions)
 }
 
+// GetFavouriteItemsId mocks base method.
+func (m *MockIItemUsecase) GetFavouriteItemsId(ctx context.Context, userId uuid.UUID) (*map[uuid.UUID]uuid.UUID, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetFavouriteItemsId", ctx, userId)
+	ret0, _ := ret[0].(*map[uuid.UUID]uuid.UUID)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetFavouriteItemsId indicates an expected call of GetFavouriteItemsId.
+func (mr *MockIItemUsecaseMockRecorder) GetFavouriteItemsId(ctx, userId interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFavouriteItemsId", reflect.TypeOf((*MockIItemUsecase)(nil).GetFavouriteItemsId), ctx, userId)
+}
+
 // GetItem mocks base method.
 func (m *MockIItemUsecase) GetItem(ctx context.Context, id uuid.UUID) (*models.Item, error) {
 	m.ctrl.T.Helper()
@@ -253,6 +268,18 @@ func (m *MockIItemUsecase) UpdateCash(ctx context.Context, id uuid.UUID, op stri
 func (mr *MockIItemUsecaseMockRecorder) UpdateCash(ctx, id, op interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateCash", reflect.TypeOf((*MockIItemUsecase)(nil).UpdateCash), ctx, id, op)
+}
+
+// UpdateFavIdsCash mocks base method.
+func (m *MockIItemUsecase) UpdateFavIdsCash(ctx context.Context, userId, itemId uuid.UUID, op string) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "UpdateFavIdsCash", ctx, userId, itemId, op)
+}
+
+// UpdateFavIdsCash indicates an expected call of UpdateFavIdsCash.
+func (mr *MockIItemUsecaseMockRecorder) UpdateFavIdsCash(ctx, userId, itemId, op interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateFavIdsCash", reflect.TypeOf((*MockIItemUsecase)(nil).UpdateFavIdsCash), ctx, userId, itemId, op)
 }
 
 // UpdateFavouriteItemsCash mocks base method.

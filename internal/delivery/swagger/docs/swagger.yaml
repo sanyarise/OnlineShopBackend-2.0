@@ -197,6 +197,9 @@ definitions:
         items:
           type: string
         type: array
+      isFavourite:
+        example: false
+        type: boolean
       price:
         default: 10
         example: 1990

@@ -23,6 +23,7 @@ type OutItem struct {
 	Price       int32             `json:"price" example:"1990" default:"10" binding:"required" minimum:"0"`
 	Vendor      string            `json:"vendor" binding:"required" example:"Витязь"`
 	Images      []string          `json:"image,omitempty"`
+	IsFavourite bool              `json:"isFavourite" example:"false"`
 }
 
 type InItem struct {

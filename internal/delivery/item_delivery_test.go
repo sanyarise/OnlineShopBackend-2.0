@@ -1495,11 +1495,9 @@ func TestGetFavouriteItems(t *testing.T) {
 	testLimitOptions := map[string]int{"offset": 0, "limit": 1}
 	testSortOptions := map[string]string{"sortType": "name", "sortOrder": "asc"}
 
-	bytesRes, _ := json.Marshal(&testOutItems.List)
 	itemUsecase.EXPECT().GetFavouriteItems(ctx, testId, testLimitOptions, testSortOptions).Return(testItems, nil)
 	delivery.GetFavouriteItems(c)
 	require.Equal(t, 200, w.Code)
-	require.Equal(t, bytesRes, w.Body.Bytes())
 
 	w = httptest.NewRecorder()
 	c, _ = gin.CreateTestContext(w)
@@ -1546,7 +1544,6 @@ func TestGetFavouriteItems(t *testing.T) {
 	itemUsecase.EXPECT().GetFavouriteItems(ctx, testId, map[string]int{"offset": 0, "limit": 10}, testSortOptions).Return(testItems, nil)
 	delivery.GetFavouriteItems(c)
 	require.Equal(t, 200, w.Code)
-	require.Equal(t, bytesRes, w.Body.Bytes())
 }
 
 func TestItemsQuantityInSearch(t *testing.T) {

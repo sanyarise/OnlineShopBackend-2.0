@@ -366,3 +366,33 @@ func (repo *itemRepo) GetFavouriteItems(ctx context.Context, userId uuid.UUID) (
 	repo.logger.Info("Select items from favourites success")
 	return itemChan, nil
 }
+
+func (repo *itemRepo) GetFavouriteItemsId(ctx context.Context, userId uuid.UUID) (*map[uuid.UUID]uuid.UUID, error) {
+	repo.logger.Debug("Enter in repository GetFavouribeItemsId() with args: ctx, userId: %v", userId)
+	result := make(map[uuid.UUID]uuid.UUID)
+	pool := repo.storage.GetPool()
+	item := models.Item{}
+	rows, err := pool.Query(ctx, `
+		SELECT 	i.id FROM favourite_items f, items i WHERE f.user_id=$1 and i.id = f.item_id`, userId)
+	if err != nil {
+		repo.logger.Errorf("can't select items from favourite_items: %s", err)
+		return nil, err
+	}
+	defer rows.Close()
+	repo.logger.Debug("read info from db in pool.Query success")
+	for rows.Next() {
+		err := rows.Scan(
+			&item.Id,
+		); 
+		if err != nil&&strings.Contains(err.Error(), "no rows in result set") {
+			repo.logger.Info("this user don't have favourite items")
+			return nil, models.ErrorNotFound{}
+		}
+		if err != nil {
+			repo.logger.Error(err.Error())
+			return nil, err
+		}
+		result[item.Id] = userId
+	}
+	return &result, nil
+}

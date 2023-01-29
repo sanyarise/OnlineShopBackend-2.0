@@ -5,6 +5,7 @@ import (
 	"OnlineShopBackend/internal/repository"
 	"OnlineShopBackend/internal/repository/cash"
 	"context"
+	"errors"
 	"fmt"
 	"sort"
 	"strings"
@@ -202,7 +203,7 @@ func (usecase *ItemUsecase) SearchLine(ctx context.Context, param string, limitO
 		err = usecase.itemCash.CreateItemsQuantityCash(ctx, len(items), param+"Quantity")
 		if err != nil {
 			usecase.logger.Warn("can't create items quantity cash: %v", zap.Error(err))
-		}else{
+		} else {
 			usecase.logger.Info("Items quantity cash create success")
 		}
 		usecase.SortItems(items, sortType, sortOrder)
@@ -501,6 +502,7 @@ func (usecase *ItemUsecase) AddFavouriteItem(ctx context.Context, userId uuid.UU
 		return err
 	}
 	usecase.UpdateFavouriteItemsCash(ctx, userId, itemId, "add")
+	usecase.UpdateFavIdsCash(ctx, userId, itemId, "add")
 	return nil
 }
 
@@ -511,6 +513,7 @@ func (usecase *ItemUsecase) DeleteFavouriteItem(ctx context.Context, userId uuid
 		return err
 	}
 	usecase.UpdateFavouriteItemsCash(ctx, userId, itemId, "delete")
+	usecase.UpdateFavIdsCash(ctx, userId, itemId, "delete")
 	return nil
 }
 
@@ -654,4 +657,69 @@ func (usecase *ItemUsecase) UpdateFavouriteItemsCash(ctx context.Context, userId
 		}
 	}
 	usecase.logger.Info("Update favourite items list cash success")
+}
+
+func (usecase *ItemUsecase) GetFavouriteItemsId(ctx context.Context, userId uuid.UUID) (*map[uuid.UUID]uuid.UUID, error) {
+	usecase.logger.Sugar().Debugf("Enter in usecase GetFavouriteItemsId() with args: ctx, userId: %v", userId)
+	if !usecase.itemCash.CheckCash(ctx, userId.String()+"Fav") {
+		quantity, err := usecase.ItemsQuantityInFavourite(ctx, userId)
+		if err != nil && quantity == -1 {
+			usecase.logger.Warn(err.Error())
+			return nil, err
+		}
+		if quantity == 0 {
+			return nil, models.ErrorNotFound{}
+		}
+		favUids, err := usecase.itemStore.GetFavouriteItemsId(ctx, userId)
+		if err != nil && errors.Is(err, models.ErrorNotFound{}) {
+			return nil, models.ErrorNotFound{}
+		}
+		if err != nil {
+			return nil, err
+		}
+		err = usecase.itemCash.CreateFavouriteItemsIdCash(ctx, *favUids, userId.String()+"Fav")
+		if err != nil {
+			usecase.logger.Sugar().Errorf("error on create favourite items id cash: %v", err)
+			return favUids, nil
+		}
+	}
+	favUids, err := usecase.itemCash.GetFavouriteItemsIdCash(ctx, userId.String()+"Fav")
+	if err != nil {
+		usecase.logger.Sugar().Errorf("error on get favourite items id cash: %v", err)
+		return nil, err
+	}
+	return favUids, nil
+}
+
+func (usecase *ItemUsecase) UpdateFavIdsCash(ctx context.Context, userId, itemId uuid.UUID, op string) {
+	usecase.logger.Sugar().Debugf("Enter in usecase UpdateFavIdsCash() with args userId: %v, itemId: %v", userId, itemId)
+	if !usecase.itemCash.CheckCash(ctx, userId.String()+"Fav") {
+		favMap := make(map[uuid.UUID]uuid.UUID)
+		favMap[itemId] = userId
+		err := usecase.itemCash.CreateFavouriteItemsIdCash(ctx, favMap, userId.String()+"Fav")
+		if err != nil {
+			usecase.logger.Sugar().Warnf("error on create favourite items id cash: %v", err)
+			return
+		}
+		usecase.logger.Info("create favourite items id cash success")
+		return
+	}
+	favMapLink, err := usecase.itemCash.GetFavouriteItemsIdCash(ctx, userId.String()+"Fav")
+	if err != nil {
+		usecase.logger.Sugar().Warn("error on get favourite items id cash with key: %v, err: %v", userId.String()+"Fav", err)
+		return
+	}
+	favMap := *favMapLink
+	if op == "add" {
+		favMap[itemId] = userId
+	}
+	if op == "delete" {
+		delete(favMap, itemId)
+	}
+	err = usecase.itemCash.CreateFavouriteItemsIdCash(ctx, favMap, userId.String()+"Fav")
+	if err != nil {
+		usecase.logger.Sugar().Warn("error on create favourite items id cash: %v", err)
+		return
+	}
+	usecase.logger.Info("Create favourite items id cash success")
 }
