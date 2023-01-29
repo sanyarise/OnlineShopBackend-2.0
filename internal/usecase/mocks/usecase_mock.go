@@ -270,6 +270,18 @@ func (mr *MockIItemUsecaseMockRecorder) UpdateCash(ctx, id, op interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateCash", reflect.TypeOf((*MockIItemUsecase)(nil).UpdateCash), ctx, id, op)
 }
 
+// UpdateFavIdsCash mocks base method.
+func (m *MockIItemUsecase) UpdateFavIdsCash(ctx context.Context, userId, itemId uuid.UUID, op string) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "UpdateFavIdsCash", ctx, userId, itemId, op)
+}
+
+// UpdateFavIdsCash indicates an expected call of UpdateFavIdsCash.
+func (mr *MockIItemUsecaseMockRecorder) UpdateFavIdsCash(ctx, userId, itemId, op interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateFavIdsCash", reflect.TypeOf((*MockIItemUsecase)(nil).UpdateFavIdsCash), ctx, userId, itemId, op)
+}
+
 // UpdateFavouriteItemsCash mocks base method.
 func (m *MockIItemUsecase) UpdateFavouriteItemsCash(ctx context.Context, userId, itemId uuid.UUID, op string) {
 	m.ctrl.T.Helper()
