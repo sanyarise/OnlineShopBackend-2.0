@@ -2679,6 +2679,10 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
+                "isFavourite": {
+                    "type": "boolean",
+                    "example": false
+                },
                 "price": {
                     "type": "integer",
                     "default": 10,
