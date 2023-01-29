@@ -194,7 +194,7 @@ func (o *order) GetOrdersForUser(ctx context.Context, user *models.User) (chan m
 		resChan := make(chan models.Order, 1)
 		go func() {
 			defer close(resChan)
-			rows, err := pool.Query(ctx, `SELECT items.id, items.name, categories.id, categories.name, categories.description, category.picture,
+			rows, err := pool.Query(ctx, `SELECT items.id, items.name, categories.id, categories.name, categories.description, categories.picture,
 			items.description, items.price, items.vendor, items.pictures, orders.id, orders.user_id, orders.status, orders.shipment_time,
 			orders.status, orders.address, order_items.item_quantity from items INNER JOIN categories ON categories.id=category  INNER JOIN order_items ON
 			items.id=order_items.item_id INNER JOIN orders ON orders.id=order_items.order_id and orders.user_id = $1 ORDER BY order_id ASC`, user.ID)
