@@ -218,7 +218,7 @@ func NewRouter(delivery *delivery.Delivery, logger *zap.Logger) *Router {
 		{
 			"AddFavouriteItem",
 			http.MethodPost,
-			"/items/addFav/:userID/:itemID",
+			"/items/addFavItem",
 			UserAuth(),
 			delivery.AddFavouriteItem,
 		},

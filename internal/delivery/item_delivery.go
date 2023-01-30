@@ -955,23 +955,34 @@ func (delivery *Delivery) DeleteItem(c *gin.Context) {
 //	@Tags			items
 //	@Accept			json
 //	@Produce		json
-//	@Param			userID	path	string	true	"id of user"
-//	@Param			itemID	path	string	true	"id of item"
+//	@Param			item	body	item.AddFavItem	true	"Data for add item to favourite"
 //	@Success		200
 //	@Failure		400	{object}	ErrorResponse
 //	@Failure		403	"Forbidden"
 //	@Failure		404	{object}	ErrorResponse	"404 Not Found"
 //	@Failure		500	{object}	ErrorResponse
-//	@Router			/items/addFav/{userID}/{itemID} [post]
+//	@Router			/items/addFavItem [post]
 func (delivery *Delivery) AddFavouriteItem(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery AddFavouriteItem()")
-	userId, err := uuid.Parse(c.Param("userID"))
+	var addFavItem item.AddFavItem
+	if err := c.ShouldBindJSON(&addFavItem); err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
+		return
+	}
+	if addFavItem.UserId == "" || addFavItem.ItemId == "" {
+		err := fmt.Errorf("empty value of user id or item id")
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
+		return
+	}
+	userId, err := uuid.Parse(addFavItem.UserId)
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusBadRequest, err)
 		return
 	}
-	itemId, err := uuid.Parse(c.Param("itemID"))
+	itemId, err := uuid.Parse(addFavItem.ItemId)
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusBadRequest, err)
