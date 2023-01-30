@@ -326,7 +326,7 @@ func (delivery *Delivery) UpdateItem(c *gin.Context) {
 //	@Param			limit		query		int				false	"Quantity of recordings"		default(10)	minimum(0)
 //	@Param			sortType	query		string			false	"Sort type (name or price)"		default("name")
 //	@Param			sortOrder	query		string			false	"Sort order (asc or desc)"		default("asc")
-//	@Success		200			{object}		item.ItemsList	"List of items"
+//	@Success		200			{object}	item.ItemsList	"List of items"
 //	@Failure		400			{object}	ErrorResponse
 //	@Failure		403			"Forbidden"
 //	@Failure		404			{object}	ErrorResponse	"404 Not Found"
@@ -551,7 +551,7 @@ func (delivery *Delivery) ItemsQuantityInSearch(c *gin.Context) {
 //	@Param			limit		query		int				false	"Quantity of recordings"		default(10)	minimum(0)
 //	@Param			sortType	query		string			false	"Sort type (name or price)"		default("name")
 //	@Param			sortOrder	query		string			false	"Sort order (asc or desc)"		default("asc")
-//	@Success		200			{object}		item.ItemsList	"List of items"
+//	@Success		200			{object}	item.ItemsList	"List of items"
 //	@Failure		400			{object}	ErrorResponse
 //	@Failure		403			"Forbidden"
 //	@Failure		404			{object}	ErrorResponse	"404 Not Found"
@@ -646,7 +646,7 @@ func (delivery *Delivery) SearchLine(c *gin.Context) {
 //	@Param			limit		query		int				false	"Quantity of recordings"		default(10)	minimum(0)
 //	@Param			sortType	query		string			false	"Sort type (name or price)"		default("name")
 //	@Param			sortOrder	query		string			false	"Sort order (asc or desc)"		default("asc")
-//	@Success		200			{object}		item.ItemsList	"List of items"
+//	@Success		200			{object}	item.ItemsList	"List of items"
 //	@Failure		400			{object}	ErrorResponse
 //	@Failure		403			"Forbidden"
 //	@Failure		404			{object}	ErrorResponse	"404 Not Found"
@@ -1081,7 +1081,7 @@ func (delivery *Delivery) DeleteFavouriteItem(c *gin.Context) {
 //	@Param			offset		query		int				false	"Offset when receiving records"	default(0)	mininum(0)
 //	@Param			sortType	query		string			false	"Sort type (name or price)"
 //	@Param			sortOrder	query		string			false	"Sort order (asc or desc)"
-//	@Success		200			{object}		item.ItemsList	"List of items"
+//	@Success		200			{object}	item.ItemsList	"List of items"
 //	@Failure		400			{object}	ErrorResponse
 //	@Failure		403			"Forbidden"
 //	@Failure		404			{object}	ErrorResponse	"404 Not Found"
