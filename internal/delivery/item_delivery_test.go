@@ -37,6 +37,11 @@ type WrongShortItem struct {
 	Vendor      int
 }
 
+type WrongAddFav struct {
+	UserId int
+	ItemId int32
+}
+
 type WrongInItem struct {
 	Id          int
 	Title       int
@@ -76,7 +81,7 @@ var (
 		Description: 11,
 		Category:    []int{1},
 		Price:       "5",
-		Vendor:      5, 
+		Vendor:      5,
 	}
 	testModelsItemWithoutId = &models.Item{
 		Title:       "testTitle",
@@ -186,10 +191,9 @@ var (
 		Id:          testId,
 		Title:       "testTitle",
 		Description: "testDescription",
-		Price:  10,
-		Vendor: "testVendor",
+		Price:       10,
+		Vendor:      "testVendor",
 		Images:      []string{""},
-		
 	}
 	testModelsItemWithImage2 = models.Item{
 		Id:          testId,
@@ -210,6 +214,14 @@ var (
 		Category:    testId.String(),
 		Price:       0,
 		Vendor:      "",
+	}
+	testAddFav = item.AddFavItem{
+		UserId: testId.String(),
+		ItemId: testId2.String(),
+	}
+	testWrongAddFav = WrongAddFav{
+		UserId: 1,
+		ItemId: 2,
 	}
 	post         = "POST"
 	put          = "PUT"
@@ -1275,12 +1287,7 @@ func TestAddFavouriteItem(t *testing.T) {
 	c.Request = &http.Request{
 		Header: make(http.Header),
 	}
-	c.Params = []gin.Param{
-		{
-			Key:   "userID",
-			Value: "test",
-		},
-	}
+	MockJson(c, testWrongAddFav, post)
 	delivery.AddFavouriteItem(c)
 	require.Equal(t, 400, w.Code)
 
@@ -1290,55 +1297,7 @@ func TestAddFavouriteItem(t *testing.T) {
 	c.Request = &http.Request{
 		Header: make(http.Header),
 	}
-	c.Params = []gin.Param{
-		{
-			Key:   "userID",
-			Value: testId.String(),
-		},
-		{
-			Key:   "itemID",
-			Value: "test",
-		},
-	}
-	delivery.AddFavouriteItem(c)
-	require.Equal(t, 400, w.Code)
-
-	w = httptest.NewRecorder()
-	c, _ = gin.CreateTestContext(w)
-
-	c.Request = &http.Request{
-		Header: make(http.Header),
-	}
-	c.Params = []gin.Param{
-		{
-			Key:   "userID",
-			Value: testId.String(),
-		},
-		{
-			Key:   "itemID",
-			Value: testId2.String(),
-		},
-	}
-	itemUsecase.EXPECT().AddFavouriteItem(ctx, testId, testId2).Return(err)
-	delivery.AddFavouriteItem(c)
-	require.Equal(t, 500, w.Code)
-
-	w = httptest.NewRecorder()
-	c, _ = gin.CreateTestContext(w)
-
-	c.Request = &http.Request{
-		Header: make(http.Header),
-	}
-	c.Params = []gin.Param{
-		{
-			Key:   "userID",
-			Value: testId.String(),
-		},
-		{
-			Key:   "itemID",
-			Value: testId2.String(),
-		},
-	}
+	MockJson(c, testAddFav, post)
 	itemUsecase.EXPECT().AddFavouriteItem(ctx, testId, testId2).Return(models.ErrorNotFound{})
 	delivery.AddFavouriteItem(c)
 	require.Equal(t, 404, w.Code)
@@ -1349,16 +1308,18 @@ func TestAddFavouriteItem(t *testing.T) {
 	c.Request = &http.Request{
 		Header: make(http.Header),
 	}
-	c.Params = []gin.Param{
-		{
-			Key:   "userID",
-			Value: testId.String(),
-		},
-		{
-			Key:   "itemID",
-			Value: testId2.String(),
-		},
+	MockJson(c, testAddFav, post)
+	itemUsecase.EXPECT().AddFavouriteItem(ctx, testId, testId2).Return(err)
+	delivery.AddFavouriteItem(c)
+	require.Equal(t, 500, w.Code)
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
 	}
+	MockJson(c, testAddFav, post)
 	itemUsecase.EXPECT().AddFavouriteItem(ctx, testId, testId2).Return(nil)
 	delivery.AddFavouriteItem(c)
 	require.Equal(t, 200, w.Code)

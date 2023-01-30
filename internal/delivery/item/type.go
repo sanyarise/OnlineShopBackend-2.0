@@ -11,6 +11,11 @@ type ShortItem struct {
 	Images      []string `json:"image,omitempty"`
 }
 
+type AddFavItem struct {
+	UserId string `json:"userId" binding:"required,uuid" example:"00000000-0000-0000-0000-000000000000" format:"uuid"`
+	ItemId string `json:"itemId" binding:"required,uuid" example:"00000000-0000-0000-0000-000000000000" format:"uuid"`
+}
+
 type ItemId struct {
 	Value string `json:"id" uri:"itemID" binding:"required,uuid" example:"00000000-0000-0000-0000-000000000000" format:"uuid"`
 }
