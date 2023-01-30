@@ -326,7 +326,7 @@ func (delivery *Delivery) UpdateItem(c *gin.Context) {
 //	@Param			limit		query		int				false	"Quantity of recordings"		default(10)	minimum(0)
 //	@Param			sortType	query		string			false	"Sort type (name or price)"		default("name")
 //	@Param			sortOrder	query		string			false	"Sort order (asc or desc)"		default("asc")
-//	@Success		200			array		item.OutItem	"List of items"
+//	@Success		200			{object}		item.ItemsList	"List of items"
 //	@Failure		400			{object}	ErrorResponse
 //	@Failure		403			"Forbidden"
 //	@Failure		404			{object}	ErrorResponse	"404 Not Found"
@@ -385,6 +385,12 @@ func (delivery *Delivery) ItemsList(c *gin.Context) {
 		}
 		favItems = fav
 	}
+	quantity, err := delivery.itemUsecase.ItemsQuantity(ctx)
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusInternalServerError, err)
+		return
+	}
 
 	items := make([]item.OutItem, len(list))
 	for idx, modelsItem := range list {
@@ -404,7 +410,10 @@ func (delivery *Delivery) ItemsList(c *gin.Context) {
 			IsFavourite: delivery.IsFavourite(favItems, modelsItem.Id),
 		}
 	}
-	c.JSON(http.StatusOK, items)
+	c.JSON(http.StatusOK, item.ItemsList{
+		List:     items,
+		Quantity: quantity,
+	})
 }
 
 // ItemsQuantity returns quantity of all items
@@ -542,7 +551,7 @@ func (delivery *Delivery) ItemsQuantityInSearch(c *gin.Context) {
 //	@Param			limit		query		int				false	"Quantity of recordings"		default(10)	minimum(0)
 //	@Param			sortType	query		string			false	"Sort type (name or price)"		default("name")
 //	@Param			sortOrder	query		string			false	"Sort order (asc or desc)"		default("asc")
-//	@Success		200			array		item.OutItem	"List of items"
+//	@Success		200			{object}		item.ItemsList	"List of items"
 //	@Failure		400			{object}	ErrorResponse
 //	@Failure		403			"Forbidden"
 //	@Failure		404			{object}	ErrorResponse	"404 Not Found"
@@ -594,6 +603,12 @@ func (delivery *Delivery) SearchLine(c *gin.Context) {
 		}
 		favItems = fav
 	}
+	quantity, err := delivery.itemUsecase.ItemsQuantityInSearch(ctx, options.Param)
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusInternalServerError, err)
+		return
+	}
 
 	items := make([]item.OutItem, len(list))
 	for idx, modelsItem := range list {
@@ -613,7 +628,10 @@ func (delivery *Delivery) SearchLine(c *gin.Context) {
 			IsFavourite: delivery.IsFavourite(favItems, modelsItem.Id),
 		}
 	}
-	c.JSON(http.StatusOK, items)
+	c.JSON(http.StatusOK, item.ItemsList{
+		List:     items,
+		Quantity: quantity,
+	})
 }
 
 // GetItemsByCategory returns list of items in category
@@ -628,7 +646,7 @@ func (delivery *Delivery) SearchLine(c *gin.Context) {
 //	@Param			limit		query		int				false	"Quantity of recordings"		default(10)	minimum(0)
 //	@Param			sortType	query		string			false	"Sort type (name or price)"		default("name")
 //	@Param			sortOrder	query		string			false	"Sort order (asc or desc)"		default("asc")
-//	@Success		200			array		item.OutItem	"List of items"
+//	@Success		200			{object}		item.ItemsList	"List of items"
 //	@Failure		400			{object}	ErrorResponse
 //	@Failure		403			"Forbidden"
 //	@Failure		404			{object}	ErrorResponse	"404 Not Found"
@@ -679,7 +697,12 @@ func (delivery *Delivery) GetItemsByCategory(c *gin.Context) {
 		}
 		favItems = fav
 	}
-
+	quantity, err := delivery.itemUsecase.ItemsQuantityInCategory(ctx, options.Param)
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusInternalServerError, err)
+		return
+	}
 	items := make([]item.OutItem, len(list))
 	for idx, modelsItem := range list {
 		items[idx] = item.OutItem{
@@ -698,7 +721,10 @@ func (delivery *Delivery) GetItemsByCategory(c *gin.Context) {
 			IsFavourite: delivery.IsFavourite(favItems, modelsItem.Id),
 		}
 	}
-	c.JSON(http.StatusOK, items)
+	c.JSON(http.StatusOK, item.ItemsList{
+		List:     items,
+		Quantity: quantity,
+	})
 }
 
 // UploadItemImage - upload an image
@@ -1055,7 +1081,7 @@ func (delivery *Delivery) DeleteFavouriteItem(c *gin.Context) {
 //	@Param			offset		query		int				false	"Offset when receiving records"	default(0)	mininum(0)
 //	@Param			sortType	query		string			false	"Sort type (name or price)"
 //	@Param			sortOrder	query		string			false	"Sort order (asc or desc)"
-//	@Success		200			array		item.OutItem	"List of items"
+//	@Success		200			{object}		item.ItemsList	"List of items"
 //	@Failure		400			{object}	ErrorResponse
 //	@Failure		403			"Forbidden"
 //	@Failure		404			{object}	ErrorResponse	"404 Not Found"
@@ -1104,6 +1130,12 @@ func (delivery *Delivery) GetFavouriteItems(c *gin.Context) {
 		delivery.SetError(c, http.StatusInternalServerError, err)
 		return
 	}
+	quantity, err := delivery.itemUsecase.ItemsQuantityInFavourite(ctx, userId)
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusInternalServerError, err)
+		return
+	}
 	items := make([]item.OutItem, len(list))
 	for idx, modelsItem := range list {
 		items[idx] = item.OutItem{
@@ -1122,7 +1154,10 @@ func (delivery *Delivery) GetFavouriteItems(c *gin.Context) {
 			IsFavourite: true,
 		}
 	}
-	c.JSON(http.StatusOK, items)
+	c.JSON(http.StatusOK, item.ItemsList{
+		List:     items,
+		Quantity: quantity,
+	})
 }
 
 func (delivery *Delivery) IsFavourite(favIds *map[uuid.UUID]uuid.UUID, itemId uuid.UUID) bool {

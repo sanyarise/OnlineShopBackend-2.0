@@ -47,4 +47,5 @@ type ItemsQuantity struct {
 
 type ItemsList struct {
 	List []OutItem `json:"items" binding:"min=0" minimum:"0"`
+	Quantity int `json:"quantity" example:"10" default:"0" binding:"min=0" minimum:"0"`
 }
