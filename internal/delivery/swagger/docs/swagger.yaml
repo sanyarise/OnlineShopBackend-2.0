@@ -129,6 +129,20 @@ definitions:
         example: storage\files\categories\d0d3df2d-f6c8-4956-9d76-998ee1ec8a39\20221213125935.jpeg
         type: string
     type: object
+  item.AddFavItem:
+    properties:
+      itemId:
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        type: string
+      userId:
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        type: string
+    required:
+    - itemId
+    - userId
+    type: object
   item.InItem:
     properties:
       category:
@@ -992,22 +1006,18 @@ paths:
       summary: Get item by id
       tags:
       - items
-  /items/addFav/{userID}/{itemID}:
+  /items/addFavItem:
     post:
       consumes:
       - application/json
       description: Method provides add item in favourites.
       parameters:
-      - description: id of user
-        in: path
-        name: userID
+      - description: Data for add item to favourite
+        in: body
+        name: item
         required: true
-        type: string
-      - description: id of item
-        in: path
-        name: itemID
-        required: true
-        type: string
+        schema:
+          $ref: '#/definitions/item.AddFavItem'
       produces:
       - application/json
       responses:

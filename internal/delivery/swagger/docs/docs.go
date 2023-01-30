@@ -856,7 +856,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/items/addFav/{userID}/{itemID}": {
+        "/items/addFavItem": {
             "post": {
                 "description": "Method provides add item in favourites.",
                 "consumes": [
@@ -871,18 +871,13 @@ const docTemplate = `{
                 "summary": "Method provides add item in favourites",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "id of user",
-                        "name": "userID",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "id of item",
-                        "name": "itemID",
-                        "in": "path",
-                        "required": true
+                        "description": "Data for add item to favourite",
+                        "name": "item",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/item.AddFavItem"
+                        }
                     }
                 ],
                 "responses": {
@@ -2576,6 +2571,25 @@ const docTemplate = `{
                 "path": {
                     "type": "string",
                     "example": "storage\\files\\categories\\d0d3df2d-f6c8-4956-9d76-998ee1ec8a39\\20221213125935.jpeg"
+                }
+            }
+        },
+        "item.AddFavItem": {
+            "type": "object",
+            "required": [
+                "itemId",
+                "userId"
+            ],
+            "properties": {
+                "itemId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "example": "00000000-0000-0000-0000-000000000000"
+                },
+                "userId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "example": "00000000-0000-0000-0000-000000000000"
                 }
             }
         },
