@@ -556,10 +556,12 @@ func TestItemsList(t *testing.T) {
 	}
 	c.Request.URL, _ = url.Parse("?offset=0&limit=1&sortType=name&sortOrder=asc")
 
-	bytesRes, _ := json.Marshal(&testOutItems.List)
+	testOutItems.Quantity = 1
+	bytesRes, _ := json.Marshal(&testOutItems)
 	testLimitOptions := map[string]int{"offset": 0, "limit": 1}
 	testSortOptions := map[string]string{"sortType": "name", "sortOrder": "asc"}
 	itemUsecase.EXPECT().ItemsList(ctx, testLimitOptions, testSortOptions).Return(testItems, nil)
+	itemUsecase.EXPECT().ItemsQuantity(ctx).Return(1, nil)
 	delivery.ItemsList(c)
 	require.Equal(t, 200, w.Code)
 	require.Equal(t, bytesRes, w.Body.Bytes())
@@ -594,9 +596,11 @@ func TestItemsList(t *testing.T) {
 		Header: make(http.Header),
 	}
 
-	bytesRes, _ = json.Marshal(&testOutItems.List)
+	testOutItems.Quantity = 1
+	bytesRes, _ = json.Marshal(&testOutItems)
 	itemUsecase.EXPECT().ItemsQuantity(ctx).Return(1, nil)
 	itemUsecase.EXPECT().ItemsList(ctx, testLimitOptions, testSortOptions).Return(testItems, nil)
+	itemUsecase.EXPECT().ItemsQuantity(ctx).Return(1, nil)
 	delivery.ItemsList(c)
 	require.Equal(t, 200, w.Code)
 	require.Equal(t, bytesRes, w.Body.Bytes())
@@ -608,12 +612,34 @@ func TestItemsList(t *testing.T) {
 		Header: make(http.Header),
 	}
 
-	bytesRes, _ = json.Marshal(&testOutItems.List)
+	testOutItems.Quantity = 100
+	bytesRes, _ = json.Marshal(&testOutItems)
 	itemUsecase.EXPECT().ItemsQuantity(ctx).Return(100, nil)
 	itemUsecase.EXPECT().ItemsList(ctx, map[string]int{"offset": 0, "limit": 10}, testSortOptions).Return(testItems, nil)
+	itemUsecase.EXPECT().ItemsQuantity(ctx).Return(100, nil)
 	delivery.ItemsList(c)
 	require.Equal(t, 200, w.Code)
 	require.Equal(t, bytesRes, w.Body.Bytes())
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+
+	itemUsecase.EXPECT().ItemsQuantity(ctx).Return(100, nil)
+	itemUsecase.EXPECT().ItemsList(ctx, map[string]int{"offset": 0, "limit": 10}, testSortOptions).Return(testItems, nil)
+	itemUsecase.EXPECT().ItemsQuantity(ctx).Return(-1, err)
+	delivery.ItemsList(c)
+	require.Equal(t, 500, w.Code)
 
 	w = httptest.NewRecorder()
 	c, _ = gin.CreateTestContext(w)
@@ -690,8 +716,10 @@ func TestSearchLine(t *testing.T) {
 	testLimitOptions := map[string]int{"offset": 0, "limit": 1}
 	testSortOptions := map[string]string{"sortType": "name", "sortOrder": "asc"}
 
-	bytesRes, _ := json.Marshal(&testOutItems.List)
+	testOutItems.Quantity = 1
+	bytesRes, _ := json.Marshal(&testOutItems)
 	itemUsecase.EXPECT().SearchLine(ctx, "test", testLimitOptions, testSortOptions).Return(testItems, nil)
+	itemUsecase.EXPECT().ItemsQuantityInSearch(ctx, "test").Return(1, nil)
 	delivery.SearchLine(c)
 	require.Equal(t, 200, w.Code)
 	require.Equal(t, bytesRes, w.Body.Bytes())
@@ -739,9 +767,23 @@ func TestSearchLine(t *testing.T) {
 	c.Request.URL, _ = url.Parse("?param=test&offset=0&limit=0")
 
 	itemUsecase.EXPECT().SearchLine(ctx, "test", map[string]int{"offset": 0, "limit": 10}, testSortOptions).Return(testItems, nil)
+	itemUsecase.EXPECT().ItemsQuantityInSearch(ctx, "test").Return(1, nil)
 	delivery.SearchLine(c)
 	require.Equal(t, 200, w.Code)
 	require.Equal(t, bytesRes, w.Body.Bytes())
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Request.URL, _ = url.Parse("?param=test&offset=0&limit=0")
+
+	itemUsecase.EXPECT().SearchLine(ctx, "test", map[string]int{"offset": 0, "limit": 10}, testSortOptions).Return(testItems, nil)
+	itemUsecase.EXPECT().ItemsQuantityInSearch(ctx, "test").Return(-1, err)
+	delivery.SearchLine(c)
+	require.Equal(t, 500, w.Code)
 }
 
 func TestGetItemsByCategory(t *testing.T) {
@@ -767,8 +809,10 @@ func TestGetItemsByCategory(t *testing.T) {
 	testLimitOptions := map[string]int{"offset": 0, "limit": 1}
 	testSortOptions := map[string]string{"sortType": "name", "sortOrder": "asc"}
 
-	bytesRes, _ := json.Marshal(&testOutItems.List)
+	testOutItems.Quantity = 1
+	bytesRes, _ := json.Marshal(&testOutItems)
 	itemUsecase.EXPECT().GetItemsByCategory(ctx, "test", testLimitOptions, testSortOptions).Return(testItems, nil)
+	itemUsecase.EXPECT().ItemsQuantityInCategory(ctx, "test").Return(1, nil)
 	delivery.GetItemsByCategory(c)
 	require.Equal(t, 200, w.Code)
 	require.Equal(t, bytesRes, w.Body.Bytes())
@@ -816,9 +860,23 @@ func TestGetItemsByCategory(t *testing.T) {
 	c.Request.URL, _ = url.Parse("?param=test&offset=0&limit=0")
 
 	itemUsecase.EXPECT().GetItemsByCategory(ctx, "test", map[string]int{"offset": 0, "limit": 10}, testSortOptions).Return(testItems, nil)
+	itemUsecase.EXPECT().ItemsQuantityInCategory(ctx, "test").Return(1, nil)
 	delivery.GetItemsByCategory(c)
 	require.Equal(t, 200, w.Code)
 	require.Equal(t, bytesRes, w.Body.Bytes())
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+
+	c.Request = &http.Request{
+		Header: make(http.Header),
+	}
+	c.Request.URL, _ = url.Parse("?param=test&offset=0&limit=0")
+
+	itemUsecase.EXPECT().GetItemsByCategory(ctx, "test", map[string]int{"offset": 0, "limit": 10}, testSortOptions).Return(testItems, nil)
+	itemUsecase.EXPECT().ItemsQuantityInCategory(ctx, "test").Return(-1, err)
+	delivery.GetItemsByCategory(c)
+	require.Equal(t, 500, w.Code)
 }
 
 func TestUploadItemImage(t *testing.T) {
@@ -1457,6 +1515,7 @@ func TestGetFavouriteItems(t *testing.T) {
 	testSortOptions := map[string]string{"sortType": "name", "sortOrder": "asc"}
 
 	itemUsecase.EXPECT().GetFavouriteItems(ctx, testId, testLimitOptions, testSortOptions).Return(testItems, nil)
+	itemUsecase.EXPECT().ItemsQuantityInFavourite(ctx, testId).Return(1, nil)
 	delivery.GetFavouriteItems(c)
 	require.Equal(t, 200, w.Code)
 
@@ -1503,8 +1562,9 @@ func TestGetFavouriteItems(t *testing.T) {
 	c.Request.URL, _ = url.Parse(fmt.Sprintf("?param=%s&offset=0&limit=0", testId.String()))
 
 	itemUsecase.EXPECT().GetFavouriteItems(ctx, testId, map[string]int{"offset": 0, "limit": 10}, testSortOptions).Return(testItems, nil)
+	itemUsecase.EXPECT().ItemsQuantityInFavourite(ctx, testId).Return(-1, err)
 	delivery.GetFavouriteItems(c)
-	require.Equal(t, 200, w.Code)
+	require.Equal(t, 500, w.Code)
 }
 
 func TestItemsQuantityInSearch(t *testing.T) {

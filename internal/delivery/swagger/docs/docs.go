@@ -826,10 +826,7 @@ const docTemplate = `{
                     "200": {
                         "description": "List of items",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/item.OutItem"
-                            }
+                            "$ref": "#/definitions/item.ItemsList"
                         }
                     },
                     "400": {
@@ -1122,10 +1119,7 @@ const docTemplate = `{
                     "200": {
                         "description": "List of items",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/item.OutItem"
-                            }
+                            "$ref": "#/definitions/item.ItemsList"
                         }
                     },
                     "400": {
@@ -1326,10 +1320,7 @@ const docTemplate = `{
                     "200": {
                         "description": "List of items",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/item.OutItem"
-                            }
+                            "$ref": "#/definitions/item.ItemsList"
                         }
                     },
                     "400": {
@@ -1589,10 +1580,7 @@ const docTemplate = `{
                     "200": {
                         "description": "List of items",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/item.OutItem"
-                            }
+                            "$ref": "#/definitions/item.ItemsList"
                         }
                     },
                     "400": {
@@ -2650,6 +2638,24 @@ const docTemplate = `{
                     "type": "string",
                     "format": "uuid",
                     "example": "00000000-0000-0000-0000-000000000000"
+                }
+            }
+        },
+        "item.ItemsList": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "minItems": 0,
+                    "items": {
+                        "$ref": "#/definitions/item.OutItem"
+                    }
+                },
+                "quantity": {
+                    "type": "integer",
+                    "default": 0,
+                    "minimum": 0,
+                    "example": 10
                 }
             }
         },

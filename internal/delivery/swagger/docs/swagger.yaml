@@ -188,6 +188,19 @@ definitions:
     required:
     - id
     type: object
+  item.ItemsList:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/item.OutItem'
+        minItems: 0
+        type: array
+      quantity:
+        default: 0
+        example: 10
+        minimum: 0
+        type: integer
+    type: object
   item.ItemsQuantity:
     properties:
       quantity:
@@ -951,9 +964,7 @@ paths:
         "200":
           description: List of items
           schema:
-            items:
-              $ref: '#/definitions/item.OutItem'
-            type: array
+            $ref: '#/definitions/item.ItemsList'
         "400":
           description: Bad Request
           schema:
@@ -1182,9 +1193,7 @@ paths:
         "200":
           description: List of items
           schema:
-            items:
-              $ref: '#/definitions/item.OutItem'
-            type: array
+            $ref: '#/definitions/item.ItemsList'
         "400":
           description: Bad Request
           schema:
@@ -1319,9 +1328,7 @@ paths:
         "200":
           description: List of items
           schema:
-            items:
-              $ref: '#/definitions/item.OutItem'
-            type: array
+            $ref: '#/definitions/item.ItemsList'
         "400":
           description: Bad Request
           schema:
@@ -1494,9 +1501,7 @@ paths:
         "200":
           description: List of items
           schema:
-            items:
-              $ref: '#/definitions/item.OutItem'
-            type: array
+            $ref: '#/definitions/item.ItemsList'
         "400":
           description: Bad Request
           schema:
