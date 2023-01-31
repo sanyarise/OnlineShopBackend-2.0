@@ -1842,7 +1842,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "201": {
-                        "description": "Order id",
+                        "description": "Order id and new cart id",
                         "schema": {
                             "$ref": "#/definitions/order.OrderId"
                         }
@@ -2863,10 +2863,16 @@ const docTemplate = `{
         "order.OrderId": {
             "type": "object",
             "required": [
-                "value"
+                "id",
+                "newCartId"
             ],
             "properties": {
-                "value": {
+                "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "example": "00000000-0000-0000-0000-000000000000"
+                },
+                "newCartId": {
                     "type": "string",
                     "format": "uuid",
                     "example": "00000000-0000-0000-0000-000000000000"
