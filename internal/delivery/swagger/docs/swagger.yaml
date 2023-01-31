@@ -347,12 +347,17 @@ definitions:
     type: object
   order.OrderId:
     properties:
-      value:
+      id:
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        type: string
+      newCartId:
         example: 00000000-0000-0000-0000-000000000000
         format: uuid
         type: string
     required:
-    - value
+    - id
+    - newCartId
     type: object
   order.StatusWithUserAndId:
     properties:
@@ -1672,7 +1677,7 @@ paths:
       - application/json
       responses:
         "201":
-          description: Order id
+          description: Order id and new cart id
           schema:
             $ref: '#/definitions/order.OrderId'
         "400":
