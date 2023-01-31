@@ -21,7 +21,7 @@ import (
 //	@Accept			json
 //	@Produce		json
 //	@Param			cartAddressUser	body		order.CartAdressUser	true	"Data for creating order"
-//	@Success		201				{object}	order.OrderId			"Order id"
+//	@Success		201				{object}	order.OrderId			"Order id and new cart id"
 //	@Failure		400				{object}	ErrorResponse
 //	@Failure		403				"Forbidden"
 //	@Failure		404				{object}	ErrorResponse	"404 Not Found"
@@ -88,7 +88,24 @@ func (d *Delivery) CreateOrder(c *gin.Context) {
 		d.SetError(c, http.StatusInternalServerError, err)
 		return
 	}
-	c.JSON(http.StatusCreated, order.OrderId{Value: ordr.ID.String()})
+	err = d.cartUsecase.DeleteCart(ctx, cartModel.Id)
+	if err != nil {
+		d.logger.Sugar().Warnf("error when deleting cart with id: %v, err: %v", id, err)
+	}else{
+		d.logger.Sugar().Infof("Cart with id: %v delete success", cartModel.Id)
+	}
+	newCartId, err := d.cartUsecase.Create(ctx, user.ID)
+	if err != nil {
+		d.logger.Sugar().Warnf("error when creating new cart for user with id: %v, err: %v", user.ID, err)
+	}else{
+		d.logger.Sugar().Infof("New cart with id: %v for user with id: %v create success", newCartId, user.ID)
+	}
+
+
+	c.JSON(http.StatusCreated, order.OrderId{
+		Id: ordr.ID.String(),
+		NewCartId: newCartId.String(),
+	})
 }
 
 // GetOrder - get a specific order by id
