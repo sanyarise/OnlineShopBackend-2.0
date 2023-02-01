@@ -91,19 +91,18 @@ func (d *Delivery) CreateOrder(c *gin.Context) {
 	err = d.cartUsecase.DeleteCart(ctx, cartModel.Id)
 	if err != nil {
 		d.logger.Sugar().Warnf("error when deleting cart with id: %v, err: %v", id, err)
-	}else{
+	} else {
 		d.logger.Sugar().Infof("Cart with id: %v delete success", cartModel.Id)
 	}
 	newCartId, err := d.cartUsecase.Create(ctx, user.ID)
 	if err != nil {
 		d.logger.Sugar().Warnf("error when creating new cart for user with id: %v, err: %v", user.ID, err)
-	}else{
+	} else {
 		d.logger.Sugar().Infof("New cart with id: %v for user with id: %v create success", newCartId, user.ID)
 	}
 
-
 	c.JSON(http.StatusCreated, order.OrderId{
-		Id: ordr.ID.String(),
+		Id:        ordr.ID.String(),
 		NewCartId: newCartId.String(),
 	})
 }
@@ -165,6 +164,7 @@ func (d *Delivery) GetOrder(c *gin.Context) {
 		cartItem.Quantity.Quantity = oitem.Quantity
 		order.Items = append(order.Items, cartItem)
 	}
+	order.SortOrderItems()
 	c.JSON(http.StatusOK, order)
 }
 
@@ -227,6 +227,7 @@ func (d *Delivery) GetOrdersForUser(c *gin.Context) {
 			cartItem.Quantity.Quantity = oitem.Quantity
 			order.Items = append(order.Items, cartItem)
 		}
+		order.SortOrderItems()
 		orders = append(orders, order)
 	}
 	c.JSON(http.StatusOK, orders)
