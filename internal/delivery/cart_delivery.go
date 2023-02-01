@@ -78,6 +78,7 @@ func (delivery *Delivery) GetCart(c *gin.Context) {
 		UserId: modelCart.UserId.String(),
 		Items:  cartItems,
 	}
+	cart.SortCartItems()
 
 	c.JSON(http.StatusOK, cart)
 }
@@ -140,6 +141,7 @@ func (delivery *Delivery) GetCartByUserId(c *gin.Context) {
 		UserId: modelCart.UserId.String(),
 		Items:  cartItems,
 	}
+	cart.SortCartItems()
 
 	c.JSON(http.StatusOK, cart)
 }
