@@ -2,6 +2,7 @@ package order
 
 import (
 	"OnlineShopBackend/internal/delivery/cart"
+	"sort"
 	"time"
 )
 
@@ -12,6 +13,10 @@ type Order struct {
 	ShipmentTime time.Time       `json:"shipment_time" binding:"required" time_format:"2006-01-02"`
 	Address      OrderAddress    `json:"address" binding:"required"`
 	Status       string          `json:"status,omitempty"`
+}
+
+func (order *Order) SortOrderItems() {
+	sort.Slice(order.Items, func(i, j int) bool { return order.Items[i].Item.Title < order.Items[j].Item.Title })
 }
 
 type OrderAddress struct {
@@ -34,7 +39,7 @@ type CartAdressUser struct {
 }
 
 type OrderId struct {
-	Id string `json:"id" binding:"required,uuid"  example:"00000000-0000-0000-0000-000000000000" format:"uuid"`
+	Id        string `json:"id" binding:"required,uuid"  example:"00000000-0000-0000-0000-000000000000" format:"uuid"`
 	NewCartId string `json:"newCartId" binding:"required,uuid"  example:"00000000-0000-0000-0000-000000000000" format:"uuid"`
 }
 
