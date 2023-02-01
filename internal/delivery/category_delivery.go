@@ -368,13 +368,17 @@ func (delivery *Delivery) GetCategoryList(c *gin.Context) {
 	}
 	ctx := c.Request.Context()
 	categories := make([]category.Category, 0, len(list))
+	// NoCategory - a special category for items without a category
 	for _, cat := range list {
+		// If there is a NoCategory among the categories
 		if cat.Name == "NoCategory" {
+			// Requesting the number of items in this category
 			quantity, err := delivery.itemUsecase.ItemsQuantityInCategory(ctx, cat.Name)
 			if err != nil {
 				delivery.logger.Error(err.Error())
 				continue
 			}
+			// If there are no items, this category is not added to the final list
 			if quantity == 0 {
 				delivery.logger.Info("NoCategory is empty")
 				continue
@@ -420,6 +424,7 @@ func (delivery *Delivery) DeleteCategory(c *gin.Context) {
 		return
 	}
 	ctx := c.Request.Context()
+	// We get the deleted category, at the same time we check its existence
 	deletedCategory, err := delivery.categoryUsecase.GetCategory(ctx, uid)
 	if err != nil && errors.Is(err, models.ErrorNotFound{}) {
 		err = fmt.Errorf("category with id: %s not found", uid)
@@ -434,13 +439,15 @@ func (delivery *Delivery) DeleteCategory(c *gin.Context) {
 	}
 	delivery.logger.Debug(fmt.Sprintf("deletedCategory: %v", deletedCategory))
 
+	// NoCategory is a special category for items without a category that cannot be deleted
 	if deletedCategory.Name == "NoCategory" {
-		err = fmt.Errorf("category NoCategory protected by deleting")
+		err = fmt.Errorf("category NoCategory is a system category and it protected by deleting")
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusBadRequest, err)
 		return
 	}
 
+	// Requesting the number of items in the category to be deleted
 	quantity, err := delivery.itemUsecase.ItemsQuantityInCategory(ctx, deletedCategory.Name)
 	if err != nil {
 		delivery.logger.Error(err.Error())
@@ -448,6 +455,7 @@ func (delivery *Delivery) DeleteCategory(c *gin.Context) {
 		return
 	}
 	var items []models.Item
+	// If the quantity is greater than zero, we request a list of products from this category
 	if quantity > 0 {
 		limitOptions := map[string]int{"offset": 0, "limit": quantity}
 		sortOptions := map[string]string{"sortType": "name", "sortOrder": "asc"}
@@ -459,6 +467,7 @@ func (delivery *Delivery) DeleteCategory(c *gin.Context) {
 		}
 	}
 
+	// Deleting a category
 	err = delivery.categoryUsecase.DeleteCategory(ctx, uid)
 	if err != nil {
 		delivery.logger.Error(err.Error())
@@ -466,11 +475,13 @@ func (delivery *Delivery) DeleteCategory(c *gin.Context) {
 		return
 	}
 
+	// Deleting the cache of the list of products from this category
 	err = delivery.categoryUsecase.DeleteCategoryCash(ctx, deletedCategory.Name)
 	if err != nil {
 		delivery.logger.Error(fmt.Sprintf("error on delete category cash: %v", err))
 	}
 
+	// If the category has a picture, delete this picture
 	if deletedCategory.Image != "" {
 		err = delivery.filestorage.DeleteCategoryImageById(id)
 		if err != nil {
@@ -478,14 +489,18 @@ func (delivery *Delivery) DeleteCategory(c *gin.Context) {
 		}
 	}
 
+	// If there were no items in the category, we terminate the function
 	if quantity == 0 {
 		delivery.logger.Sugar().Infof("Category with id: %s deleted success", id)
 		c.JSON(http.StatusOK, gin.H{})
 		return
 	}
+
+	// We are clarifying whether the NoCategory category exists in the database
 	noCategory, err := delivery.categoryUsecase.GetCategoryByName(ctx, "NoCategory")
 	if err != nil && errors.Is(err, models.ErrorNotFound{}) {
 		delivery.logger.Error("NoCategory is not exists")
+		// If such a category does not exist, create it
 		noCategory := models.Category{
 			Name:        "NoCategory",
 			Description: "Category for items from deleting categories",
@@ -497,12 +512,16 @@ func (delivery *Delivery) DeleteCategory(c *gin.Context) {
 			return
 		}
 		noCategory.Id = noCategoryId
+		// We iterate through the items from the category being deleted in the cycle
 		for _, item := range items {
+			// In each item, we change the deleted category to NoCategory
 			item.Category = noCategory
+			// Updating the item in the database
 			err := delivery.itemUsecase.UpdateItem(ctx, &item)
 			if err != nil {
 				delivery.logger.Error(fmt.Sprintf("error on update item: %v", err))
 			}
+			// Updating the cache of the list of items in the category
 			err = delivery.itemUsecase.UpdateItemsInCategoryCash(ctx, &item, "create")
 			if err != nil {
 				delivery.logger.Error(fmt.Sprintf("error on update cash of no category: %v", err))
@@ -517,7 +536,7 @@ func (delivery *Delivery) DeleteCategory(c *gin.Context) {
 		delivery.SetError(c, http.StatusInternalServerError, err)
 		return
 	}
-
+	// We perform the same operations with items if the NoCategory already exists in the database
 	for _, item := range items {
 		item.Category = *noCategory
 		err := delivery.itemUsecase.UpdateItem(ctx, &item)
