@@ -126,11 +126,22 @@ func TestGetCategoryList(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, res, categories)
 
+	testChan0 := make(chan models.Category, 1)
+	testChan0 <- *testModelCategoryWithId
+	close(testChan0)
 	cash.EXPECT().CheckCash(ctx, categoriesListKey).Return(true)
 	cash.EXPECT().GetCategoriesListCash(ctx, categoriesListKey).Return(nil, fmt.Errorf("error"))
+	categoryRepo.EXPECT().GetCategoryList(ctx).Return(testChan0, fmt.Errorf("error"))
 	res, err = usecase.GetCategoryList(ctx)
 	require.Error(t, err)
 	require.Nil(t, res)
+
+	cash.EXPECT().CheckCash(ctx, categoriesListKey).Return(true)
+	cash.EXPECT().GetCategoriesListCash(ctx, categoriesListKey).Return(nil, fmt.Errorf("error"))
+	categoryRepo.EXPECT().GetCategoryList(ctx).Return(testChan0, nil)
+	res, err = usecase.GetCategoryList(ctx)
+	require.NoError(t, err)
+	require.Equal(t, res, categories)
 
 	testChan <- *testModelCategoryWithId
 	close(testChan)
@@ -154,17 +165,6 @@ func TestGetCategoryList(t *testing.T) {
 	cash.EXPECT().CheckCash(ctx, categoriesListKey).Return(false)
 	categoryRepo.EXPECT().GetCategoryList(ctx).Return(testChan2, nil)
 	cash.EXPECT().CreateCategoriesListCash(ctx, categories, categoriesListKey).Return(fmt.Errorf("error"))
-	res, err = usecase.GetCategoryList(ctx)
-	require.Error(t, err)
-	require.Nil(t, res)
-
-	testChan3 := make(chan models.Category, 1)
-	testChan3 <- *testModelCategoryWithId
-	close(testChan3)
-	cash.EXPECT().CheckCash(ctx, categoriesListKey).Return(false)
-	categoryRepo.EXPECT().GetCategoryList(ctx).Return(testChan3, nil)
-	cash.EXPECT().CreateCategoriesListCash(ctx, categories, categoriesListKey).Return(nil)
-	cash.EXPECT().GetCategoriesListCash(ctx, categoriesListKey).Return(nil, fmt.Errorf("error"))
 	res, err = usecase.GetCategoryList(ctx)
 	require.Error(t, err)
 	require.Nil(t, res)
