@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"OnlineShopBackend/internal/delivery/user"
 	"OnlineShopBackend/internal/models"
 	"context"
 
@@ -25,6 +26,9 @@ type IItemUsecase interface {
 	ItemsQuantityInFavourite(ctx context.Context, userId uuid.UUID) (int, error)
 	UpdateFavouriteItemsCash(ctx context.Context, userId uuid.UUID, itemId uuid.UUID, op string)
 	SortItems(items []models.Item, sortType string, sortOrder string)
+	ItemsQuantityInSearch(ctx context.Context, search string) (int, error)
+	GetFavouriteItemsId(ctx context.Context, userId uuid.UUID) (*map[uuid.UUID]uuid.UUID, error)
+	UpdateFavIdsCash(ctx context.Context, userId, itemId uuid.UUID, op string)
 }
 
 type ICategoryUsecase interface {
@@ -38,6 +42,14 @@ type ICategoryUsecase interface {
 	DeleteCategoryCash(ctx context.Context, name string) error
 }
 
+type IOrderUsecase interface {
+	PlaceOrder(ctx context.Context, cart *models. Cart, user models.User, address models.UserAddress) (*models.Order, error)
+	ChangeStatus(ctx context.Context, order *models.Order, newStatus models.Status) error
+	GetOrdersForUser(ctx context.Context, user *models.User) ([]models.Order, error)
+	DeleteOrder(ctx context.Context, order *models.Order) error
+	ChangeAddress(ctx context.Context, order *models.Order, newAddress models.UserAddress) error
+	GetOrder(ctx context.Context, id uuid.UUID) (*models.Order, error)
+}
 type ICartUsecase interface {
 	GetCart(ctx context.Context, cartId uuid.UUID) (*models.Cart, error)
 	DeleteItemFromCart(ctx context.Context, cartId uuid.UUID, itemId uuid.UUID) error
@@ -49,10 +61,11 @@ type ICartUsecase interface {
 }
 
 type IUserUsecase interface {
-	CreateUser(ctx context.Context, user *models.User) (*models.User, error)
+	CreateUser(ctx context.Context, user *user.CreateUserData) (*models.User, error)
 	GetUserByEmail(ctx context.Context, email string) (*models.User, error)
 	GetRightsId(ctx context.Context, name string) (*models.Rights, error)
-	UpdateUserData(ctx context.Context, id uuid.UUID, user *models.User) (*models.User, error)
+	UpdateUserData(ctx context.Context, id uuid.UUID, user *user.CreateUserData) (*models.User, error)
 	UpdateUserRole(ctx context.Context, roleId uuid.UUID, email string) error
 	GetRightsList(ctx context.Context) ([]models.Rights, error)
+	CreateRights(ctx context.Context, rights *models.Rights) (uuid.UUID, error)
 }

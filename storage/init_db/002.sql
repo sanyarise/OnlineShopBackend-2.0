@@ -96,6 +96,7 @@ CREATE TABLE orders (
 CREATE TABLE order_items (
     order_id UUID,
     item_id UUID,
+    item_quantity INTEGER NOT NULL, 
     PRIMARY KEY(order_id, item_id),
     CONSTRAINT fk_order_id
         FOREIGN KEY(order_id) REFERENCES orders(id),
@@ -115,9 +116,10 @@ INSERT INTO items(id, name, category, description, price, vendor, pictures) VALU
 INSERT INTO items(id, name, category, description, price, vendor, pictures) VALUES ('223ba075-8c96-4760-8620-f0adbe3f2e7e', 'smartphone bq', 'd0d3df2d-f6c8-4956-9d76-998ee1ec8a39', 'best smartphone', 6990, 'samsung', '{"http://localhost:8000/files/items/223ba075-8c96-4760-8620-f0adbe3f2e7e/20221213132809.jpeg"}');
 INSERT INTO items(id, name, category, description, price, vendor, pictures) VALUES ('3f05a859-1806-4851-a457-c9cb69b22846', 'smartphone techno', 'd0d3df2d-f6c8-4956-9d76-998ee1ec8a39', 'best smartphone', 9990, 'samsung', '{"http://localhost:8000/files/items/3f05a859-1806-4851-a457-c9cb69b22846/20221213132821.jpeg"}');
 INSERT INTO items(id, name, category, description, price, vendor, pictures) VALUES ('7eb10fc6-20e8-4b3b-95a3-0f55cf0145d6', 'smartphone techno', 'd0d3df2d-f6c8-4956-9d76-998ee1ec8a39', 'best smartphone', 8990, 'samsung', '{"http://localhost:8000/files/items/7eb10fc6-20e8-4b3b-95a3-0f55cf0145d6/20221213132833.jpeg"}');
-INSERT INTO rights(name, rules) VALUES ('Customer', '{profile}, {cart}');
-INSERT INTO rights(id, name, rules) VALUES ('fa9c4027-b2d4-4468-8cf5-beae213ab46d', 'Admin', '{change categories}, {change items} ');
-INSERT INTO users(name, password, email, rights) VALUES ('admin', '736a64686b61736864737738323372676665674e17a448e043206801b95de317e07c839770c8b8', 'admin@gmail.com', 'fa9c4027-b2d4-4468-8cf5-beae213ab46d');
+
+--INSERT INTO rights(id, name, rules) VALUES ('32bec035-e1d0-4de6-bdd2-d6bc9379ecad','Customer', '{"profile", "cart"}');
+--INSERT INTO rights(id, name, rules) VALUES ('fa9c4027-b2d4-4468-8cf5-beae213ab46d', 'Admin', '{"change categories","change items"}');
+--INSERT INTO users(id, name, password, email, rights) VALUES ('785cd95d-c99f-4527-96d0-7098636af1c7','admin', '736a64686b61736864737738323372676665674e17a448e043206801b95de317e07c839770c8b8', 'admin@gmail.com', 'fa9c4027-b2d4-4468-8cf5-beae213ab46d');
 
 
 

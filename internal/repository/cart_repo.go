@@ -4,6 +4,7 @@ import (
 	"OnlineShopBackend/internal/models"
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4"
@@ -105,6 +106,10 @@ func (c *cart) DeleteCart(ctx context.Context, cartId uuid.UUID) error {
 			return fmt.Errorf("can't delete cart items from cart: %w", err)
 		}
 		_, err = tx.Exec(ctx, `DELETE FROM carts WHERE id=$1`, cartId)
+		if err != nil && strings.Contains(err.Error(), "no rows in result set") {
+			c.logger.Errorf("can't delete cart: %s", err)
+			return models.ErrorNotFound{}
+		}
 		if err != nil {
 			c.logger.Errorf("can't delete cart: %s", err)
 			return fmt.Errorf("can't delete cart: %w", err)
@@ -146,7 +151,7 @@ func (c *cart) DeleteItemFromCart(ctx context.Context, cartId uuid.UUID, itemId 
 }
 
 func (c *cart) GetCart(ctx context.Context, cartId uuid.UUID) (*models.Cart, error) {
-	c.logger.Debug("Enter in repository cart SelectItemsFromCart() with args: ctx, cartId: %v", cartId)
+	c.logger.Debug("Enter in repository cart GetCart() with args: ctx, cartId: %v", cartId)
 	select {
 	case <-ctx.Done():
 		return nil, fmt.Errorf("context closed")
@@ -155,6 +160,10 @@ func (c *cart) GetCart(ctx context.Context, cartId uuid.UUID) (*models.Cart, err
 		var userId uuid.UUID
 		row := pool.QueryRow(ctx, `SELECT user_id FROM carts WHERE id = $1`, cartId)
 		err := row.Scan(&userId)
+		if err != nil && strings.Contains(err.Error(), "no rows in result set") {
+			c.logger.Error(err.Error())
+			return nil, models.ErrorNotFound{}
+		}
 		if err != nil {
 			c.logger.Error(err)
 			return nil, fmt.Errorf("can't read user id: %w", err)
@@ -173,7 +182,7 @@ func (c *cart) GetCart(ctx context.Context, cartId uuid.UUID) (*models.Cart, err
 		c.logger.Debug("read info from db in pool.Query success")
 		items := make([]models.ItemWithQuantity, 0, 100)
 		for rows.Next() {
-			if err := rows.Scan(
+			err := rows.Scan(
 				&item.Id,
 				&item.Title,
 				&item.Description,
@@ -185,7 +194,12 @@ func (c *cart) GetCart(ctx context.Context, cartId uuid.UUID) (*models.Cart, err
 				&item.Vendor,
 				&item.Images,
 				&item.Quantity,
-			); err != nil {
+			)
+			if err != nil && strings.Contains(err.Error(), "no rows in result set") {
+				c.logger.Error(err.Error())
+				return nil, models.ErrorNotFound{}
+			}
+			if err != nil {
 				c.logger.Error(err.Error())
 				return nil, err
 			}
@@ -203,7 +217,7 @@ func (c *cart) GetCart(ctx context.Context, cartId uuid.UUID) (*models.Cart, err
 }
 
 func (c *cart) GetCartByUserId(ctx context.Context, userId uuid.UUID) (*models.Cart, error) {
-	c.logger.Debug("Enter in repository cart SelectItemsFromCart() with args: ctx, userId: %v", userId)
+	c.logger.Debug("Enter in repository cart GetCartByUserId() with args: ctx, userId: %v", userId)
 	select {
 	case <-ctx.Done():
 		return nil, fmt.Errorf("context closed")
@@ -212,6 +226,10 @@ func (c *cart) GetCartByUserId(ctx context.Context, userId uuid.UUID) (*models.C
 		var cartId uuid.UUID
 		row := pool.QueryRow(ctx, `SELECT id FROM carts WHERE user_id = $1`, userId)
 		err := row.Scan(&cartId)
+		if err != nil && strings.Contains(err.Error(), "no rows in result set") {
+			c.logger.Error(err.Error())
+			return nil, models.ErrorNotFound{}
+		}
 		if err != nil {
 			c.logger.Error(err)
 			return nil, fmt.Errorf("can't read cart id: %w", err)
@@ -230,7 +248,7 @@ func (c *cart) GetCartByUserId(ctx context.Context, userId uuid.UUID) (*models.C
 		c.logger.Debug("read info from db in pool.Query success")
 		items := make([]models.ItemWithQuantity, 0, 100)
 		for rows.Next() {
-			if err := rows.Scan(
+			err := rows.Scan(
 				&item.Id,
 				&item.Title,
 				&item.Description,
@@ -242,7 +260,12 @@ func (c *cart) GetCartByUserId(ctx context.Context, userId uuid.UUID) (*models.C
 				&item.Vendor,
 				&item.Images,
 				&item.Quantity,
-			); err != nil {
+			)
+			if err != nil && strings.Contains(err.Error(), "no rows in result set") {
+				c.logger.Error(err.Error())
+				return nil, models.ErrorNotFound{}
+			}
+			if err != nil {
 				c.logger.Error(err.Error())
 				return nil, err
 			}

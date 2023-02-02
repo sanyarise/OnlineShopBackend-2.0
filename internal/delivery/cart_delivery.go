@@ -11,6 +11,8 @@ package delivery
 
 import (
 	"OnlineShopBackend/internal/delivery/cart"
+	"OnlineShopBackend/internal/models"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -44,6 +46,12 @@ func (delivery *Delivery) GetCart(c *gin.Context) {
 	}
 
 	modelCart, err := delivery.cartUsecase.GetCart(ctx, cartId)
+	if err != nil && errors.Is(err, models.ErrorNotFound{}) {
+		err := fmt.Errorf("cart with id: %v not found", cartId)
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusNotFound, err)
+		return
+	}
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusInternalServerError, err)
@@ -70,6 +78,7 @@ func (delivery *Delivery) GetCart(c *gin.Context) {
 		UserId: modelCart.UserId.String(),
 		Items:  cartItems,
 	}
+	cart.SortCartItems()
 
 	c.JSON(http.StatusOK, cart)
 }
@@ -100,6 +109,12 @@ func (delivery *Delivery) GetCartByUserId(c *gin.Context) {
 	}
 
 	modelCart, err := delivery.cartUsecase.GetCartByUserId(ctx, userId)
+	if err != nil && errors.Is(err, models.ErrorNotFound{}) {
+		err := fmt.Errorf("cart with user id: %v not found", userId)
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusNotFound, err)
+		return
+	}
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusInternalServerError, err)
@@ -126,6 +141,7 @@ func (delivery *Delivery) GetCartByUserId(c *gin.Context) {
 		UserId: modelCart.UserId.String(),
 		Items:  cartItems,
 	}
+	cart.SortCartItems()
 
 	c.JSON(http.StatusOK, cart)
 }

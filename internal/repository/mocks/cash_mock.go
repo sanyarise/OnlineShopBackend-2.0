@@ -10,6 +10,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+	uuid "github.com/google/uuid"
 )
 
 // MockIItemsCash is a mock of IItemsCash interface.
@@ -49,6 +50,20 @@ func (mr *MockIItemsCashMockRecorder) CheckCash(ctx, key interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckCash", reflect.TypeOf((*MockIItemsCash)(nil).CheckCash), ctx, key)
 }
 
+// CreateFavouriteItemsIdCash mocks base method.
+func (m *MockIItemsCash) CreateFavouriteItemsIdCash(ctx context.Context, res map[uuid.UUID]uuid.UUID, key string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateFavouriteItemsIdCash", ctx, res, key)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateFavouriteItemsIdCash indicates an expected call of CreateFavouriteItemsIdCash.
+func (mr *MockIItemsCashMockRecorder) CreateFavouriteItemsIdCash(ctx, res, key interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateFavouriteItemsIdCash", reflect.TypeOf((*MockIItemsCash)(nil).CreateFavouriteItemsIdCash), ctx, res, key)
+}
+
 // CreateItemsCash mocks base method.
 func (m *MockIItemsCash) CreateItemsCash(ctx context.Context, res []models.Item, key string) error {
 	m.ctrl.T.Helper()
@@ -75,6 +90,21 @@ func (m *MockIItemsCash) CreateItemsQuantityCash(ctx context.Context, value int,
 func (mr *MockIItemsCashMockRecorder) CreateItemsQuantityCash(ctx, value, key interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateItemsQuantityCash", reflect.TypeOf((*MockIItemsCash)(nil).CreateItemsQuantityCash), ctx, value, key)
+}
+
+// GetFavouriteItemsIdCash mocks base method.
+func (m *MockIItemsCash) GetFavouriteItemsIdCash(ctx context.Context, key string) (*map[uuid.UUID]uuid.UUID, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetFavouriteItemsIdCash", ctx, key)
+	ret0, _ := ret[0].(*map[uuid.UUID]uuid.UUID)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetFavouriteItemsIdCash indicates an expected call of GetFavouriteItemsIdCash.
+func (mr *MockIItemsCashMockRecorder) GetFavouriteItemsIdCash(ctx, key interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFavouriteItemsIdCash", reflect.TypeOf((*MockIItemsCash)(nil).GetFavouriteItemsIdCash), ctx, key)
 }
 
 // GetItemsCash mocks base method.

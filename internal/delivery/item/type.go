@@ -11,6 +11,11 @@ type ShortItem struct {
 	Images      []string `json:"image,omitempty"`
 }
 
+type AddFavItem struct {
+	UserId string `json:"userId" binding:"required,uuid" example:"00000000-0000-0000-0000-000000000000" format:"uuid"`
+	ItemId string `json:"itemId" binding:"required,uuid" example:"00000000-0000-0000-0000-000000000000" format:"uuid"`
+}
+
 type ItemId struct {
 	Value string `json:"id" uri:"itemID" binding:"required,uuid" example:"00000000-0000-0000-0000-000000000000" format:"uuid"`
 }
@@ -23,6 +28,7 @@ type OutItem struct {
 	Price       int32             `json:"price" example:"1990" default:"10" binding:"required" minimum:"0"`
 	Vendor      string            `json:"vendor" binding:"required" example:"Витязь"`
 	Images      []string          `json:"image,omitempty"`
+	IsFavourite bool              `json:"isFavourite" example:"false"`
 }
 
 type InItem struct {
@@ -41,4 +47,5 @@ type ItemsQuantity struct {
 
 type ItemsList struct {
 	List []OutItem `json:"items" binding:"min=0" minimum:"0"`
+	Quantity int `json:"quantity" example:"10" default:"0" binding:"min=0" minimum:"0"`
 }

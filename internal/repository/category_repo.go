@@ -4,6 +4,7 @@ import (
 	"OnlineShopBackend/internal/models"
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -135,6 +136,10 @@ func (repo *categoryRepo) UpdateCategory(ctx context.Context, category *models.C
 		category.Description,
 		category.Image,
 		category.Id)
+	if err != nil && strings.Contains(err.Error(), "no rows in result set") {
+		repo.logger.Errorf("Error on update category %s: %s", category.Id, err)
+		return models.ErrorNotFound{}
+	}
 	if err != nil {
 		repo.logger.Errorf("Error on update category %s: %s", category.Id, err)
 		return fmt.Errorf("error on update category %s: %w", category.Id, err)
@@ -155,6 +160,10 @@ func (repo *categoryRepo) GetCategory(ctx context.Context, id uuid.UUID) (*model
 		&category.Description,
 		&category.Image,
 	)
+	if err != nil && strings.Contains(err.Error(), "no rows in result set") {
+		repo.logger.Errorf("Error in rows scan get category by id: %s", err)
+		return &models.Category{}, models.ErrorNotFound{}
+	}
 	if err != nil {
 		repo.logger.Errorf("Error in rows scan get category by id: %s", err)
 		return &models.Category{}, fmt.Errorf("error in rows scan get category by id: %w", err)
@@ -175,6 +184,10 @@ func (repo *categoryRepo) GetCategoryByName(ctx context.Context, name string) (*
 		&category.Description,
 		&category.Image,
 	)
+	if err != nil && strings.Contains(err.Error(), "no rows in result set") {
+		repo.logger.Errorf("Error in rows scan get category by name: %s", err)
+		return &models.Category{}, models.ErrorNotFound{}
+	}
 	if err != nil {
 		repo.logger.Errorf("Error in rows scan get category by name: %s", err)
 		return &models.Category{}, fmt.Errorf("error in rows scan get category by name: %w", err)
@@ -241,6 +254,10 @@ func (repo *categoryRepo) DeleteCategory(ctx context.Context, id uuid.UUID) erro
 	}()
 	_, err = tx.Exec(ctx, `UPDATE categories SET deleted_at=$1 WHERE id=$2`,
 		time.Now(), id)
+	if err != nil && strings.Contains(err.Error(), "no rows in result set") {
+		repo.logger.Errorf("Error on delete category %s: %s", id, err)
+		return models.ErrorNotFound{}
+	}
 	if err != nil {
 		repo.logger.Errorf("Error on delete category %s: %s", id, err)
 		return fmt.Errorf("error on delete category %s: %w", id, err)

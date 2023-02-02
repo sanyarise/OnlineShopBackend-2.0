@@ -10,11 +10,14 @@
 package delivery
 
 import (
+	"OnlineShopBackend/internal/delivery/user"
 	"OnlineShopBackend/internal/delivery/user/googleOauth2"
 	"OnlineShopBackend/internal/delivery/user/jwtauth"
 	"OnlineShopBackend/internal/delivery/user/password"
 	"OnlineShopBackend/internal/models"
 	"OnlineShopBackend/internal/usecase"
+	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/dghubble/gologin/v2"
@@ -37,33 +40,35 @@ const (
 //	@Tags			user
 //	@Accept			json
 //	@Produce		json
-//	@Param			user	body		password.User	true	"User data"
-//	@Success		201		{object}	jwtauth.Token
-//	@Failure		400		"Bad Request"
-//	@Failure		404		{object}	ErrorResponse	"404 Not Found"
-//	@Failure		500		{object}	ErrorResponse
+//	@Param			user	body	user.CreateUserData	true	"User data"
+//	@Success		201
+//	@Failure		400	{object}	ErrorResponse
+//	@Failure		100	{object}	ErrorResponse
 //	@Router			/user/create [post]
 func (delivery *Delivery) CreateUser(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery CreateUser()")
 	ctx := c.Request.Context()
 	//var newUser *models.User
-	var newUser *models.User
+	var newUser *user.CreateUserData
 	if err := c.ShouldBindJSON(&newUser); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
 		return
 	}
 
 	// Check user in database
 	if existedUser, err := delivery.userUsecase.GetUserByEmail(ctx, newUser.Email); err == nil && existedUser.ID != uuid.Nil {
-		c.JSON(http.StatusContinue, gin.H{"error": err.Error()})
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusContinue, err)
 		return
 	}
 
 	// Password validation check
-	if err := password.ValidationCheck(*newUser); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
+	//if err := password.ValidationCheck(*newUser); err != nil {
+	//	delivery.logger.Error(err.Error())
+	//	delivery.SetError(c, http.StatusBadRequest, err)
+	//	return
+	//}
 
 	hashPassword := password.GeneratePasswordHash(newUser.Password)
 	newUser.Password = hashPassword
@@ -71,11 +76,13 @@ func (delivery *Delivery) CreateUser(c *gin.Context) {
 	// Create a user
 	createdUser, err := delivery.userUsecase.CreateUser(ctx, newUser)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
+		return
 	}
-	delivery.logger.Info("success: user was created")
+	delivery.logger.Info(createdUser.ID.String())
 
-	c.JSON(http.StatusCreated, gin.H{"userId": createdUser.ID})
+	c.JSON(http.StatusCreated, gin.H{"message": "success: user was created"})
 
 }
 
@@ -87,7 +94,7 @@ func (delivery *Delivery) CreateUser(c *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			user	body		password.Credentials	true	"Login"
-//	@Success		200		{object}	jwtauth.Token
+//	@Success		200		{object}	user.LoginResponseData
 //	@Failure		404		"Bad Request"
 //	@Failure		404		{object}	ErrorResponse	"404 Not Found"
 //	@Failure		500		{object}	ErrorResponse
@@ -95,30 +102,59 @@ func (delivery *Delivery) CreateUser(c *gin.Context) {
 func (delivery *Delivery) LoginUser(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery LoginUser()")
 	var userCredentials *usecase.Credentials
+	ctx := c.Request.Context()
 	if err := c.ShouldBindJSON(&userCredentials); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusNotFound, err)
 		return
 	}
 
-	userExist, err := delivery.userUsecase.GetUserByEmail(c.Request.Context(), userCredentials.Email) //TODO check password
+	userExist, err := delivery.userUsecase.GetUserByEmail(ctx, userCredentials.Email)
 	if err != nil || userExist.Password != password.GeneratePasswordHash(userCredentials.Password) {
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusUnauthorized, fmt.Errorf("incorrect email or password"))
 		return
 	}
 
 	if userExist.Email == "" {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusUnauthorized, err)
 		return
 	}
 
-	token, err := jwtauth.CreateSessionJWT(c.Request.Context(), userExist)
+	cartExist, err := delivery.cartUsecase.GetCartByUserId(ctx, userExist.ID)
+	if err != nil && errors.Is(err, models.ErrorNotFound{}) {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusContinue, err)
+	}
+
+	var cartId uuid.UUID
+	if cartExist != nil {
+		cartId = cartExist.Id
+	} else {
+		cartId, err = delivery.cartUsecase.Create(ctx, userExist.ID)
+		if err != nil {
+			delivery.logger.Error(err.Error())
+			delivery.SetError(c, http.StatusNotFound, err)
+		}
+	}
+
+	token, err := jwtauth.CreateSessionJWT(ctx, userExist)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusNotFound, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, token)
+	res := user.LoginResponseData{
+		CartId: cartId,
+		Token: jwtauth.Token{
+			AccessToken:  token.AccessToken,
+			RefreshToken: token.RefreshToken,
+		},
+	}
 
+	c.JSON(http.StatusOK, res)
 }
 
 // UserProfile user profile
@@ -129,39 +165,62 @@ func (delivery *Delivery) LoginUser(c *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Security		ApiKeyAuth || firebase
-//	@Success		200	{object}	password.User	//TODO
-//	@Failure		404	"Bad Request"
+//	@Success		201	{object}	user.CreateUserData
 //	@Failure		404	{object}	ErrorResponse	"404 Not Found"
-//	@Failure		500	{object}	ErrorResponse
 //	@Router			/user/profile [get]
 func (delivery *Delivery) UserProfile(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery UserProfile()")
-	userCr, ok := c.MustGet("claims").(*jwtauth.Payload); if !ok {
-		c.JSON(http.StatusNotFound, gin.H{"error": "claims error"})
+	userCr, ok := c.MustGet("claims").(*jwtauth.Payload)
+	if !ok {
+		delivery.logger.Error("claims error")
+		delivery.SetError(c, http.StatusNotFound, nil)
+		return
 	}
 	userData, err := delivery.userUsecase.GetUserByEmail(c.Request.Context(), userCr.Email)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusNotFound, err)
+		return
 	}
 
 	password.SanitizePassword(userData)
 	c.JSON(http.StatusCreated, userData)
 }
 
+// UserProfileUpdate user profile update
+//
+//	@Summary		User profile update
+//	@Description	Method provides to update profile info
+//	@Tags			user
+//	@Accept			json
+//	@Produce		json
+//	@Param			user	body	user.CreateUserData	true	"User data"
+//	@Security		ApiKeyAuth || firebase
+//	@Success		201	{object}	user.CreateUserData
+//	@Failure		404	{object}	ErrorResponse	"404 Not Found"
+//	@Router			/user/profile/edit [put]
 func (delivery *Delivery) UserProfileUpdate(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery UserProfileUpdate()")
 
-	userCr := c.MustGet("claims").(*jwtauth.Payload)
+	userCr, ok := c.MustGet("claims").(*jwtauth.Payload)
+	if !ok {
+		delivery.logger.Error("claims error")
+		delivery.SetError(c, http.StatusNotFound, nil)
+		return
+	}
 
-	var newInfoUser *models.User
+	var newInfoUser *user.CreateUserData
 	if err := c.ShouldBindJSON(&newInfoUser); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusNotFound, err)
 		return
 	}
 
 	userUpdated, err := delivery.userUsecase.UpdateUserData(c.Request.Context(), userCr.UserId, newInfoUser)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusNotFound, err)
+		return
 	}
 
 	userUpdated.Email = userCr.Email
@@ -187,7 +246,9 @@ func (delivery *Delivery) LoginUserGoogle(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery LoginUserGoogle()")
 	cfg, err := googleOauth2.NewUserConfig()
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusNotFound, err)
+		return
 	}
 
 	oauth2Config := &oauth2.Config{
@@ -217,7 +278,9 @@ func (delivery *Delivery) CallbackGoogle(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery CallbackGoogle()")
 	cfg, err := googleOauth2.NewUserConfig()
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusNotFound, err)
+		return
 	}
 
 	oauth2Config := &oauth2.Config{
@@ -229,7 +292,7 @@ func (delivery *Delivery) CallbackGoogle(c *gin.Context) {
 	}
 
 	stateConfig := gologin.DefaultCookieConfig
-	gg.StateHandler(stateConfig, gg.CallbackHandler(oauth2Config, delivery.success(c), failure(c))).ServeHTTP(c.Writer, c.Request)
+	gg.StateHandler(stateConfig, gg.CallbackHandler(oauth2Config, delivery.success(c), delivery.failure(c))).ServeHTTP(c.Writer, c.Request)
 }
 
 func (delivery *Delivery) success(c *gin.Context) http.HandlerFunc {
@@ -238,29 +301,33 @@ func (delivery *Delivery) success(c *gin.Context) http.HandlerFunc {
 		ctx := req.Context()
 		googleUser, err := gg.UserFromContext(ctx)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			delivery.logger.Error(err.Error())
+			delivery.SetError(c, http.StatusNotFound, err)
 			return
 		}
 		if googleUser.Email == "" {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			delivery.logger.Error(err.Error())
+			delivery.SetError(c, http.StatusNotFound, err)
 			return
 		}
 		u, err := delivery.userUsecase.GetUserByEmail(req.Context(), googleUser.Email)
 		if err != nil {
-			var NewUserCred = models.User{
+			var NewUserCred = user.CreateUserData{
 				Firstname: googleUser.GivenName,
 				Lastname:  googleUser.FamilyName,
 				Email:     googleUser.Email,
 			}
 			u, err = delivery.userUsecase.CreateUser(req.Context(), &NewUserCred)
 			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
+				delivery.logger.Error(err.Error())
+				delivery.SetError(c, http.StatusNotFound, err)
 				return
 			}
 		}
 		token, err := jwtauth.CreateSessionJWT(c.Request.Context(), u)
 		if err != nil {
-			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			delivery.logger.Error(err.Error())
+			delivery.SetError(c, http.StatusNotFound, err)
 			return
 		}
 
@@ -270,8 +337,9 @@ func (delivery *Delivery) success(c *gin.Context) http.HandlerFunc {
 	return fn
 }
 
-func failure(c *gin.Context) http.HandlerFunc {
+func (delivery *Delivery) failure(c *gin.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		delivery.logger.Error("google callback failure")
 		c.JSON(http.StatusNotFound, gin.H{"error": "google callback failure"})
 	}
 }
@@ -304,14 +372,17 @@ func (delivery *Delivery) LogoutUser(c *gin.Context) {
 //	@Router			/user/callbackGoogle [put]
 func (delivery *Delivery) ChangeRole(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery ChangeRights()")
-	userCr, ok := c.MustGet("claims").(*jwtauth.Payload); if !ok {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "incorrect claims"})
+	userCr, ok := c.MustGet("claims").(*jwtauth.Payload)
+	if !ok {
+		delivery.logger.Error("claims error")
+		delivery.SetError(c, http.StatusNotFound, nil)
 		return
 	}
 
 	var newInfoUser *models.User
 	if err := c.ShouldBindJSON(&newInfoUser); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		delivery.logger.Error("claims error")
+		delivery.SetError(c, http.StatusNotFound, nil)
 		return
 	}
 
@@ -319,17 +390,18 @@ func (delivery *Delivery) ChangeRole(c *gin.Context) {
 		c.JSON(http.StatusUnavailableForLegalReasons, gin.H{"error": "change your own rights is prohibited"})
 		return
 	}
-		roleId, _ := delivery.userUsecase.GetRightsId(c.Request.Context(), newInfoUser.Rights.Name)
+	roleId, _ := delivery.userUsecase.GetRightsId(c.Request.Context(), newInfoUser.Rights.Name)
 
 	err := delivery.userUsecase.UpdateUserRole(c.Request.Context(), roleId.ID, newInfoUser.Email)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err})
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusNotFound, err)
+		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "new user role"})
 
 }
-
 
 // RolesList List of Rights
 //
@@ -339,7 +411,7 @@ func (delivery *Delivery) ChangeRole(c *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Success		200
-//	@Failure		500 {object}	ErrorResponse
+//	@Failure		500	{object}	ErrorResponse
 //	@Failure		401	{object}	ErrorResponse
 //	@Router			/user/rights/list [get]
 func (delivery *Delivery) RolesList(c *gin.Context) {
@@ -351,7 +423,54 @@ func (delivery *Delivery) RolesList(c *gin.Context) {
 	}
 	roles, err := delivery.userUsecase.GetRightsList(c.Request.Context())
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err})
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusNotFound, err)
+		return
 	}
 	c.JSON(http.StatusOK, roles)
+}
+
+// CreateRights
+//
+//	@Summary		Method provides to create rights
+//	@Description	Method provides to create rights.
+//	@Tags			user
+//	@Accept			json
+//	@Produce		json
+//	@Param			rights	body		user.ShortRights	true	"Data for creating rights"
+//	@Success		201		{object}	user.RightsId
+//	@Failure		400		{object}	ErrorResponse
+//	@Failure		403		"Forbidden"
+//	@Failure		404		{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500		{object}	ErrorResponse
+//	@Router			/user/createRights/ [post]
+func (delivery *Delivery) CreateRights(c *gin.Context) {
+	delivery.logger.Sugar().Debugf("Enter in delivery CreateRights()")
+
+	var createdRights user.ShortRights
+	if err := c.ShouldBindJSON(&createdRights); err != nil {
+		delivery.logger.Sugar().Errorf("error on bind json from request: %v", err)
+		delivery.SetError(c, http.StatusBadRequest, err)
+		return
+	}
+	if createdRights.Name == "" {
+		err := fmt.Errorf("empty name is not correct")
+		if err != nil {
+			delivery.logger.Error(err.Error())
+			delivery.SetError(c, http.StatusBadRequest, err)
+			return
+		}
+	}
+	ctx := c.Request.Context()
+	id, err := delivery.userUsecase.CreateRights(ctx, &models.Rights{
+		Name:  createdRights.Name,
+		Rules: createdRights.Rules,
+	})
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusInternalServerError, err)
+		return
+	}
+
+	c.JSON(http.StatusCreated, user.RightsId{Value: id.String()})
 }

@@ -5,6 +5,7 @@ import (
 	"OnlineShopBackend/internal/repository"
 	"OnlineShopBackend/internal/repository/cash"
 	"context"
+	"errors"
 	"fmt"
 	"sort"
 	"strings"
@@ -146,7 +147,10 @@ func (usecase *ItemUsecase) ItemsQuantity(ctx context.Context) (int, error) {
 		}
 	}
 	quantity, err := usecase.itemCash.GetItemsQuantityCash(ctx, itemsQuantityKey)
-	return quantity, err
+	if err != nil {
+		return -1, err
+	}
+	return quantity, nil
 }
 
 func (usecase *ItemUsecase) ItemsQuantityInCategory(ctx context.Context, categoryName string) (int, error) {
@@ -174,7 +178,10 @@ func (usecase *ItemUsecase) ItemsQuantityInCategory(ctx context.Context, categor
 		}
 	}
 	quantity, err := usecase.itemCash.GetItemsQuantityCash(ctx, categoryName+"Quantity")
-	return quantity, err
+	if err != nil {
+		return -1, err
+	}
+	return quantity, nil
 }
 
 // SearchLine call database method and returns chan with all models.Item with given params or error
@@ -192,6 +199,12 @@ func (usecase *ItemUsecase) SearchLine(ctx context.Context, param string, limitO
 		items := make([]models.Item, 0, 100)
 		for item := range itemIncomingChan {
 			items = append(items, item)
+		}
+		err = usecase.itemCash.CreateItemsQuantityCash(ctx, len(items), param+"Quantity")
+		if err != nil {
+			usecase.logger.Warn("can't create items quantity cash: %v", zap.Error(err))
+		} else {
+			usecase.logger.Info("Items quantity cash create success")
 		}
 		usecase.SortItems(items, sortType, sortOrder)
 		err = usecase.itemCash.CreateItemsCash(ctx, items, param+sortType+sortOrder)
@@ -217,6 +230,37 @@ func (usecase *ItemUsecase) SearchLine(ctx context.Context, param string, limitO
 		counter++
 	}
 	return itemsWithLimit, nil
+}
+
+func (usecase *ItemUsecase) ItemsQuantityInSearch(ctx context.Context, search string) (int, error) {
+	usecase.logger.Sugar().Debugf("Enter in usecase ItemsQuantityInCategory() with args: ctx, search: %s", search)
+	if ok := usecase.itemCash.CheckCash(ctx, search+"Quantity"); !ok {
+		if ok := usecase.itemCash.CheckCash(ctx, search+"nameasc"); !ok {
+			limitOptions := map[string]int{"offset": 0, "limit": 1}
+			sortOptions := map[string]string{"sortType": "name", "sortOrder": "asc"}
+			_, err := usecase.SearchLine(ctx, search, limitOptions, sortOptions)
+			if err != nil {
+				return -1, fmt.Errorf("error on create items list: %w", err)
+			}
+		} else {
+			items, err := usecase.itemCash.GetItemsCash(ctx, search+"nameasc")
+			if err != nil {
+				return -1, fmt.Errorf("error on get items list cash: %w", err)
+			}
+			if items == nil {
+				items = make([]models.Item, 0)
+			}
+			err = usecase.itemCash.CreateItemsQuantityCash(ctx, len(items), search+"Quantity")
+			if err != nil {
+				return -1, fmt.Errorf("error on create items quantity cash: %w", err)
+			}
+		}
+	}
+	quantity, err := usecase.itemCash.GetItemsQuantityCash(ctx, search+"Quantity")
+	if err != nil {
+		return -1, err
+	}
+	return quantity, nil
 }
 
 // GetItemsByCategory call database method and returns chan with all models.Item in category or error
@@ -458,6 +502,7 @@ func (usecase *ItemUsecase) AddFavouriteItem(ctx context.Context, userId uuid.UU
 		return err
 	}
 	usecase.UpdateFavouriteItemsCash(ctx, userId, itemId, "add")
+	usecase.UpdateFavIdsCash(ctx, userId, itemId, "add")
 	return nil
 }
 
@@ -468,6 +513,7 @@ func (usecase *ItemUsecase) DeleteFavouriteItem(ctx context.Context, userId uuid
 		return err
 	}
 	usecase.UpdateFavouriteItemsCash(ctx, userId, itemId, "delete")
+	usecase.UpdateFavIdsCash(ctx, userId, itemId, "delete")
 	return nil
 }
 
@@ -611,4 +657,69 @@ func (usecase *ItemUsecase) UpdateFavouriteItemsCash(ctx context.Context, userId
 		}
 	}
 	usecase.logger.Info("Update favourite items list cash success")
+}
+
+func (usecase *ItemUsecase) GetFavouriteItemsId(ctx context.Context, userId uuid.UUID) (*map[uuid.UUID]uuid.UUID, error) {
+	usecase.logger.Sugar().Debugf("Enter in usecase GetFavouriteItemsId() with args: ctx, userId: %v", userId)
+	if !usecase.itemCash.CheckCash(ctx, userId.String()+"Fav") {
+		quantity, err := usecase.ItemsQuantityInFavourite(ctx, userId)
+		if err != nil && quantity == -1 {
+			usecase.logger.Warn(err.Error())
+			return nil, err
+		}
+		if quantity == 0 {
+			return nil, models.ErrorNotFound{}
+		}
+		favUids, err := usecase.itemStore.GetFavouriteItemsId(ctx, userId)
+		if err != nil && errors.Is(err, models.ErrorNotFound{}) {
+			return nil, models.ErrorNotFound{}
+		}
+		if err != nil {
+			return nil, err
+		}
+		err = usecase.itemCash.CreateFavouriteItemsIdCash(ctx, *favUids, userId.String()+"Fav")
+		if err != nil {
+			usecase.logger.Sugar().Errorf("error on create favourite items id cash: %v", err)
+			return favUids, nil
+		}
+	}
+	favUids, err := usecase.itemCash.GetFavouriteItemsIdCash(ctx, userId.String()+"Fav")
+	if err != nil {
+		usecase.logger.Sugar().Errorf("error on get favourite items id cash: %v", err)
+		return nil, err
+	}
+	return favUids, nil
+}
+
+func (usecase *ItemUsecase) UpdateFavIdsCash(ctx context.Context, userId, itemId uuid.UUID, op string) {
+	usecase.logger.Sugar().Debugf("Enter in usecase UpdateFavIdsCash() with args userId: %v, itemId: %v", userId, itemId)
+	if !usecase.itemCash.CheckCash(ctx, userId.String()+"Fav") {
+		favMap := make(map[uuid.UUID]uuid.UUID)
+		favMap[itemId] = userId
+		err := usecase.itemCash.CreateFavouriteItemsIdCash(ctx, favMap, userId.String()+"Fav")
+		if err != nil {
+			usecase.logger.Sugar().Warnf("error on create favourite items id cash: %v", err)
+			return
+		}
+		usecase.logger.Info("create favourite items id cash success")
+		return
+	}
+	favMapLink, err := usecase.itemCash.GetFavouriteItemsIdCash(ctx, userId.String()+"Fav")
+	if err != nil {
+		usecase.logger.Sugar().Warn("error on get favourite items id cash with key: %v, err: %v", userId.String()+"Fav", err)
+		return
+	}
+	favMap := *favMapLink
+	if op == "add" {
+		favMap[itemId] = userId
+	}
+	if op == "delete" {
+		delete(favMap, itemId)
+	}
+	err = usecase.itemCash.CreateFavouriteItemsIdCash(ctx, favMap, userId.String()+"Fav")
+	if err != nil {
+		usecase.logger.Sugar().Warn("error on create favourite items id cash: %v", err)
+		return
+	}
+	usecase.logger.Info("Create favourite items id cash success")
 }

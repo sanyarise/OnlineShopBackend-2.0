@@ -12,15 +12,18 @@ package delivery
 import (
 	"OnlineShopBackend/internal/delivery/category"
 	"OnlineShopBackend/internal/delivery/item"
+	"OnlineShopBackend/internal/delivery/user/jwtauth"
 	"OnlineShopBackend/internal/metrics"
 	"OnlineShopBackend/internal/models"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt"
 	"github.com/golang-module/carbon/v2"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
@@ -74,7 +77,12 @@ func (delivery *Delivery) CreateItem(c *gin.Context) {
 
 	if deliveryItem.Category == "" {
 		noCategory, err := delivery.categoryUsecase.GetCategoryByName(ctx, "NoCategory")
-		if err != nil {
+		if err != nil && !errors.Is(err, models.ErrorNotFound{}) {
+			delivery.logger.Error(err.Error())
+			delivery.SetError(c, http.StatusInternalServerError, err)
+			return
+		}
+		if err != nil && errors.Is(err, models.ErrorNotFound{}) {
 			delivery.logger.Sugar().Errorf("NoCategory is not exists: %v", err)
 			noCategory := models.Category{
 				Name:        "NoCategory",
@@ -87,10 +95,11 @@ func (delivery *Delivery) CreateItem(c *gin.Context) {
 				return
 			}
 			deliveryItem.Category = noCategoryId.String()
-		} else {
+		} else if err == nil {
 			deliveryItem.Category = noCategory.Id.String()
 		}
 	}
+
 	categoryId, err := uuid.Parse(deliveryItem.Category)
 	if err != nil {
 		delivery.logger.Error(err.Error())
@@ -151,13 +160,28 @@ func (delivery *Delivery) GetItem(c *gin.Context) {
 	}
 	ctx := c.Request.Context()
 	modelsItem, err := delivery.itemUsecase.GetItem(ctx, uid)
+	if err != nil && errors.Is(err, models.ErrorNotFound{}) {
+		delivery.logger.Sugar().Errorf("item with id: %v not found", uid)
+		err = fmt.Errorf("item with id: %v not found", uid)
+		delivery.SetError(c, http.StatusNotFound, err)
+		return
+	}
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusInternalServerError, err)
 		return
 	}
-
-	c.JSON(http.StatusOK, item.OutItem{
+	var favItems *map[uuid.UUID]uuid.UUID
+	if !delivery.IsAuthorize(c) {
+		favItems = nil
+	} else {
+		fav, err := delivery.GetFavouriteIds(c)
+		if err != nil {
+			delivery.logger.Warn(err.Error())
+		}
+		favItems = fav
+	}
+	result := item.OutItem{
 		Id:          modelsItem.Id.String(),
 		Title:       modelsItem.Title,
 		Description: modelsItem.Description,
@@ -167,10 +191,12 @@ func (delivery *Delivery) GetItem(c *gin.Context) {
 			Description: modelsItem.Category.Description,
 			Image:       modelsItem.Category.Image,
 		},
-		Price:  modelsItem.Price,
-		Vendor: modelsItem.Vendor,
-		Images: modelsItem.Images,
-	})
+		Price:       modelsItem.Price,
+		Vendor:      modelsItem.Vendor,
+		Images:      modelsItem.Images,
+		IsFavourite: delivery.IsFavourite(favItems, modelsItem.Id),
+	}
+	c.JSON(http.StatusOK, result)
 }
 
 // UpdateItem - update an item
@@ -219,9 +245,15 @@ func (delivery *Delivery) UpdateItem(c *gin.Context) {
 		}
 	}
 	itemBeforUpdate, err := delivery.itemUsecase.GetItem(ctx, uid)
+	if err != nil && errors.Is(err, models.ErrorNotFound{}) {
+		delivery.logger.Sugar().Errorf("item with id: %v not found", uid)
+		err = fmt.Errorf("item with id: %v not found", uid)
+		delivery.SetError(c, http.StatusNotFound, err)
+		return
+	}
 	if err != nil {
 		delivery.logger.Error(err.Error())
-		delivery.SetError(c, http.StatusBadRequest, err)
+		delivery.SetError(c, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -237,39 +269,49 @@ func (delivery *Delivery) UpdateItem(c *gin.Context) {
 		Images: deliveryItem.Images,
 	}
 
-	err = delivery.itemUsecase.UpdateItem(ctx, updatingItem)
-	if err != nil {
-		delivery.logger.Error(err.Error())
-		delivery.SetError(c, http.StatusInternalServerError, err)
-		return
-	}
-
 	if itemBeforUpdate.Category.Id != categoryUid {
 		updCategory, err := delivery.categoryUsecase.GetCategory(ctx, categoryUid)
+		if err != nil && errors.Is(err, models.ErrorNotFound{}) {
+			delivery.logger.Sugar().Errorf("category with id: %v not found", categoryUid)
+			err = fmt.Errorf("category with id: %v not found", categoryUid)
+			delivery.SetError(c, http.StatusNotFound, err)
+			return
+		}
 		if err != nil {
 			delivery.logger.Error(err.Error())
 			delivery.SetError(c, http.StatusInternalServerError, err)
 			return
 		}
 		updatingItem.Category = *updCategory
-		err = delivery.itemUsecase.UpdateItemsInCategoryCash(ctx, updatingItem, "create")
-		if err != nil {
-			delivery.logger.Error(err.Error())
-			delivery.SetError(c, http.StatusInternalServerError, err)
-			return
-		} else {
-			delivery.logger.Info("Category cash of updating item updated success")
-		}
+	}
+
+	err = delivery.itemUsecase.UpdateItem(ctx, updatingItem)
+	if err != nil && errors.Is(err, models.ErrorNotFound{}) {
+		delivery.logger.Sugar().Errorf("item with id: %v not found", updatingItem.Id)
+		err = fmt.Errorf("item with id: %v not found", updatingItem.Id)
+		delivery.SetError(c, http.StatusNotFound, err)
+		return
+	}
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusInternalServerError, err)
+		return
+	}
+
+	err = delivery.itemUsecase.UpdateItemsInCategoryCash(ctx, updatingItem, "create")
+	if err != nil {
+		delivery.logger.Warn(err.Error())
+	} else {
+		delivery.logger.Info("Category cash of updating item updated success")
+	}
+	if itemBeforUpdate.Category.Id != categoryUid {
 		err = delivery.itemUsecase.UpdateItemsInCategoryCash(ctx, itemBeforUpdate, "delete")
 		if err != nil {
-			delivery.logger.Error(err.Error())
-			delivery.SetError(c, http.StatusInternalServerError, err)
-			return
+			delivery.logger.Warn(err.Error())
 		} else {
 			delivery.logger.Info("Category cash of old item updated success")
 		}
 	}
-
 	c.JSON(http.StatusOK, gin.H{})
 }
 
@@ -284,7 +326,7 @@ func (delivery *Delivery) UpdateItem(c *gin.Context) {
 //	@Param			limit		query		int				false	"Quantity of recordings"		default(10)	minimum(0)
 //	@Param			sortType	query		string			false	"Sort type (name or price)"		default("name")
 //	@Param			sortOrder	query		string			false	"Sort order (asc or desc)"		default("asc")
-//	@Success		200			array		item.OutItem	"List of items"
+//	@Success		200			{object}	item.ItemsList	"List of items"
 //	@Failure		400			{object}	ErrorResponse
 //	@Failure		403			"Forbidden"
 //	@Failure		404			{object}	ErrorResponse	"404 Not Found"
@@ -292,6 +334,7 @@ func (delivery *Delivery) UpdateItem(c *gin.Context) {
 //	@Router			/items/list [get]
 func (delivery *Delivery) ItemsList(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery ItemsList()")
+	ctx := c.Request.Context()
 	var options Options
 	err := c.Bind(&options)
 	if err != nil {
@@ -300,7 +343,6 @@ func (delivery *Delivery) ItemsList(c *gin.Context) {
 		return
 	}
 	delivery.logger.Debug(fmt.Sprintf("options is %v", options))
-	ctx := c.Request.Context()
 	if options.Limit == 0 {
 		quantity, err := delivery.itemUsecase.ItemsQuantity(ctx)
 		if err != nil {
@@ -333,6 +375,23 @@ func (delivery *Delivery) ItemsList(c *gin.Context) {
 		delivery.SetError(c, http.StatusInternalServerError, err)
 		return
 	}
+	var favItems *map[uuid.UUID]uuid.UUID
+	if !delivery.IsAuthorize(c) {
+		favItems = nil
+	} else {
+		fav, err := delivery.GetFavouriteIds(c)
+		if err != nil {
+			delivery.logger.Warn(err.Error())
+		}
+		favItems = fav
+	}
+	quantity, err := delivery.itemUsecase.ItemsQuantity(ctx)
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusInternalServerError, err)
+		return
+	}
+
 	items := make([]item.OutItem, len(list))
 	for idx, modelsItem := range list {
 		items[idx] = item.OutItem{
@@ -345,12 +404,16 @@ func (delivery *Delivery) ItemsList(c *gin.Context) {
 				Description: modelsItem.Category.Description,
 				Image:       modelsItem.Category.Image,
 			},
-			Price:  modelsItem.Price,
-			Vendor: modelsItem.Vendor,
-			Images: modelsItem.Images,
+			Price:       modelsItem.Price,
+			Vendor:      modelsItem.Vendor,
+			Images:      modelsItem.Images,
+			IsFavourite: delivery.IsFavourite(favItems, modelsItem.Id),
 		}
 	}
-	c.JSON(http.StatusOK, items)
+	c.JSON(http.StatusOK, item.ItemsList{
+		List:     items,
+		Quantity: quantity,
+	})
 }
 
 // ItemsQuantity returns quantity of all items
@@ -443,6 +506,39 @@ func (delivery *Delivery) ItemsQuantityInFavourite(c *gin.Context) {
 	c.JSON(http.StatusOK, itemsQuantity)
 }
 
+// ItemsQuantityInSearch returns quantity of items in search request
+//
+//	@Summary		Get quantity of items in search request
+//	@Description	Method provides to get quantity of items in search request
+//	@Tags			items
+//	@Accept			json
+//	@Produce		json
+//	@Param			searchRequest	path		string				true	"Search request"
+//	@Success		200				{object}	item.ItemsQuantity	"Quantity of items"
+//	@Failure		403				"Forbidden"
+//	@Failure		404				{object}	ErrorResponse	"404 Not Found"
+//	@Failure		500				{object}	ErrorResponse
+//	@Router			/items/quantitySearch/{searchRequest} [get]
+func (delivery *Delivery) ItemsQuantityInSearch(c *gin.Context) {
+	delivery.logger.Debug("Enter in delivery ItemsQuantityInSearch()")
+	searchRequest := c.Param("searchRequest")
+	if searchRequest == "" {
+		err := fmt.Errorf("empty  searchRequest is not correct")
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
+		return
+	}
+	ctx := c.Request.Context()
+	quantity, err := delivery.itemUsecase.ItemsQuantityInSearch(ctx, searchRequest)
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusInternalServerError, err)
+		return
+	}
+	itemsQuantity := item.ItemsQuantity{Quantity: quantity}
+	c.JSON(http.StatusOK, itemsQuantity)
+}
+
 // SearchLine - returns list of items with parameters
 //
 //	@Summary		Get list of items by search parameters
@@ -455,7 +551,7 @@ func (delivery *Delivery) ItemsQuantityInFavourite(c *gin.Context) {
 //	@Param			limit		query		int				false	"Quantity of recordings"		default(10)	minimum(0)
 //	@Param			sortType	query		string			false	"Sort type (name or price)"		default("name")
 //	@Param			sortOrder	query		string			false	"Sort order (asc or desc)"		default("asc")
-//	@Success		200			array		item.OutItem	"List of items"
+//	@Success		200			{object}	item.ItemsList	"List of items"
 //	@Failure		400			{object}	ErrorResponse
 //	@Failure		403			"Forbidden"
 //	@Failure		404			{object}	ErrorResponse	"404 Not Found"
@@ -497,6 +593,23 @@ func (delivery *Delivery) SearchLine(c *gin.Context) {
 		delivery.SetError(c, http.StatusInternalServerError, err)
 		return
 	}
+	var favItems *map[uuid.UUID]uuid.UUID
+	if !delivery.IsAuthorize(c) {
+		favItems = nil
+	} else {
+		fav, err := delivery.GetFavouriteIds(c)
+		if err != nil {
+			delivery.logger.Warn(err.Error())
+		}
+		favItems = fav
+	}
+	quantity, err := delivery.itemUsecase.ItemsQuantityInSearch(ctx, options.Param)
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusInternalServerError, err)
+		return
+	}
+
 	items := make([]item.OutItem, len(list))
 	for idx, modelsItem := range list {
 		items[idx] = item.OutItem{
@@ -509,12 +622,16 @@ func (delivery *Delivery) SearchLine(c *gin.Context) {
 				Description: modelsItem.Category.Description,
 				Image:       modelsItem.Category.Image,
 			},
-			Price:  modelsItem.Price,
-			Vendor: modelsItem.Vendor,
-			Images: modelsItem.Images,
+			Price:       modelsItem.Price,
+			Vendor:      modelsItem.Vendor,
+			Images:      modelsItem.Images,
+			IsFavourite: delivery.IsFavourite(favItems, modelsItem.Id),
 		}
 	}
-	c.JSON(http.StatusOK, items)
+	c.JSON(http.StatusOK, item.ItemsList{
+		List:     items,
+		Quantity: quantity,
+	})
 }
 
 // GetItemsByCategory returns list of items in category
@@ -529,7 +646,7 @@ func (delivery *Delivery) SearchLine(c *gin.Context) {
 //	@Param			limit		query		int				false	"Quantity of recordings"		default(10)	minimum(0)
 //	@Param			sortType	query		string			false	"Sort type (name or price)"		default("name")
 //	@Param			sortOrder	query		string			false	"Sort order (asc or desc)"		default("asc")
-//	@Success		200			array		item.OutItem	"List of items"
+//	@Success		200			{object}	item.ItemsList	"List of items"
 //	@Failure		400			{object}	ErrorResponse
 //	@Failure		403			"Forbidden"
 //	@Failure		404			{object}	ErrorResponse	"404 Not Found"
@@ -570,6 +687,22 @@ func (delivery *Delivery) GetItemsByCategory(c *gin.Context) {
 		delivery.SetError(c, http.StatusInternalServerError, err)
 		return
 	}
+	var favItems *map[uuid.UUID]uuid.UUID
+	if !delivery.IsAuthorize(c) {
+		favItems = nil
+	} else {
+		fav, err := delivery.GetFavouriteIds(c)
+		if err != nil {
+			delivery.logger.Warn(err.Error())
+		}
+		favItems = fav
+	}
+	quantity, err := delivery.itemUsecase.ItemsQuantityInCategory(ctx, options.Param)
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusInternalServerError, err)
+		return
+	}
 	items := make([]item.OutItem, len(list))
 	for idx, modelsItem := range list {
 		items[idx] = item.OutItem{
@@ -582,12 +715,16 @@ func (delivery *Delivery) GetItemsByCategory(c *gin.Context) {
 				Description: modelsItem.Category.Description,
 				Image:       modelsItem.Category.Image,
 			},
-			Price:  modelsItem.Price,
-			Vendor: modelsItem.Vendor,
-			Images: modelsItem.Images,
+			Price:       modelsItem.Price,
+			Vendor:      modelsItem.Vendor,
+			Images:      modelsItem.Images,
+			IsFavourite: delivery.IsFavourite(favItems, modelsItem.Id),
 		}
 	}
-	c.JSON(http.StatusOK, items)
+	c.JSON(http.StatusOK, item.ItemsList{
+		List:     items,
+		Quantity: quantity,
+	})
 }
 
 // UploadItemImage - upload an image
@@ -646,6 +783,20 @@ func (delivery *Delivery) UploadItemImage(c *gin.Context) {
 
 	delivery.logger.Info("Read id", zap.String("id", id))
 	delivery.logger.Info("File len=", zap.Int32("len", int32(len(file))))
+
+	item, err := delivery.itemUsecase.GetItem(ctx, uid)
+	if err != nil && errors.Is(err, models.ErrorNotFound{}) {
+		delivery.logger.Sugar().Errorf("item with id: %v not found", uid)
+		err = fmt.Errorf("item with id: %v not found", uid)
+		delivery.SetError(c, http.StatusNotFound, err)
+		return
+	}
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusInternalServerError, err)
+		return
+	}
+
 	path, err := delivery.filestorage.PutItemImage(id, name, file)
 	if err != nil {
 		delivery.logger.Error(err.Error())
@@ -653,12 +804,6 @@ func (delivery *Delivery) UploadItemImage(c *gin.Context) {
 		return
 	}
 
-	item, err := delivery.itemUsecase.GetItem(ctx, uid)
-	if err != nil {
-		delivery.logger.Error(err.Error())
-		delivery.SetError(c, http.StatusInternalServerError, err)
-		return
-	}
 	item.Images = append(item.Images, path)
 	for i, v := range item.Images {
 		if v == "" {
@@ -713,6 +858,22 @@ func (delivery *Delivery) DeleteItemImage(c *gin.Context) {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusBadRequest, err)
 	}
+
+	ctx := c.Request.Context()
+
+	item, err := delivery.itemUsecase.GetItem(ctx, uid)
+	if err != nil && errors.Is(err, models.ErrorNotFound{}) {
+		delivery.logger.Sugar().Errorf("item with id: %v not found", uid)
+		err = fmt.Errorf("item with id: %v not found", uid)
+		delivery.SetError(c, http.StatusNotFound, err)
+		return
+	}
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusInternalServerError, err)
+		return
+	}
+
 	err = delivery.filestorage.DeleteItemImage(imageOptions.Id, imageOptions.Name)
 	if err != nil {
 		delivery.logger.Error(err.Error())
@@ -720,13 +881,7 @@ func (delivery *Delivery) DeleteItemImage(c *gin.Context) {
 		return
 
 	}
-	ctx := c.Request.Context()
-	item, err := delivery.itemUsecase.GetItem(ctx, uid)
-	if err != nil {
-		delivery.logger.Error(err.Error())
-		delivery.SetError(c, http.StatusInternalServerError, err)
-		return
-	}
+
 	for idx, imagePath := range item.Images {
 		if strings.Contains(imagePath, imageOptions.Name) {
 			item.Images = append(item.Images[:idx], item.Images[idx+1:]...)
@@ -776,6 +931,12 @@ func (delivery *Delivery) DeleteItem(c *gin.Context) {
 	}
 	ctx := c.Request.Context()
 	deletedItem, err := delivery.itemUsecase.GetItem(ctx, uid)
+	if err != nil && errors.Is(err, models.ErrorNotFound{}) {
+		delivery.logger.Sugar().Errorf("item with id: %v not found", uid)
+		err = fmt.Errorf("item with id: %v not found", uid)
+		delivery.SetError(c, http.StatusNotFound, err)
+		return
+	}
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusInternalServerError, err)
@@ -784,6 +945,12 @@ func (delivery *Delivery) DeleteItem(c *gin.Context) {
 	delivery.logger.Debug(fmt.Sprintf("deletedItem: %v", deletedItem))
 
 	err = delivery.itemUsecase.DeleteItem(ctx, uid)
+	if err != nil && errors.Is(err, models.ErrorNotFound{}) {
+		delivery.logger.Sugar().Errorf("item with id: %v not found", uid)
+		err = fmt.Errorf("item with id: %v not found", uid)
+		delivery.SetError(c, http.StatusNotFound, err)
+		return
+	}
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusInternalServerError, err)
@@ -814,23 +981,28 @@ func (delivery *Delivery) DeleteItem(c *gin.Context) {
 //	@Tags			items
 //	@Accept			json
 //	@Produce		json
-//	@Param			userID	path	string	true	"id of user"
-//	@Param			itemID	path	string	true	"id of item"
+//	@Param			item	body	item.AddFavItem	true	"Data for add item to favourite"
 //	@Success		200
 //	@Failure		400	{object}	ErrorResponse
 //	@Failure		403	"Forbidden"
 //	@Failure		404	{object}	ErrorResponse	"404 Not Found"
 //	@Failure		500	{object}	ErrorResponse
-//	@Router			/items/addFav/{userID}/{itemID} [post]
+//	@Router			/items/addFavItem [post]
 func (delivery *Delivery) AddFavouriteItem(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery AddFavouriteItem()")
-	userId, err := uuid.Parse(c.Param("userID"))
+	var addFavItem item.AddFavItem
+	if err := c.ShouldBindJSON(&addFavItem); err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusBadRequest, err)
+		return
+	}
+	userId, err := uuid.Parse(addFavItem.UserId)
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusBadRequest, err)
 		return
 	}
-	itemId, err := uuid.Parse(c.Param("itemID"))
+	itemId, err := uuid.Parse(addFavItem.ItemId)
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusBadRequest, err)
@@ -838,6 +1010,12 @@ func (delivery *Delivery) AddFavouriteItem(c *gin.Context) {
 	}
 	ctx := c.Request.Context()
 	err = delivery.itemUsecase.AddFavouriteItem(ctx, userId, itemId)
+	if err != nil && errors.Is(err, models.ErrorNotFound{}) {
+		delivery.logger.Sugar().Errorf("user with id: %v or item with id: %v not found", userId, itemId)
+		err = fmt.Errorf("user with id: %v or item with id: %v not found", userId, itemId)
+		delivery.SetError(c, http.StatusNotFound, err)
+		return
+	}
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusInternalServerError, err)
@@ -877,6 +1055,12 @@ func (delivery *Delivery) DeleteFavouriteItem(c *gin.Context) {
 	}
 	ctx := c.Request.Context()
 	err = delivery.itemUsecase.DeleteFavouriteItem(ctx, userId, itemId)
+	if err != nil && errors.Is(err, models.ErrorNotFound{}) {
+		delivery.logger.Sugar().Errorf("user with id: %v or item with id: %v not found", userId, itemId)
+		err = fmt.Errorf("user with id: %v or item with id: %v not found", userId, itemId)
+		delivery.SetError(c, http.StatusNotFound, err)
+		return
+	}
 	if err != nil {
 		delivery.logger.Error(err.Error())
 		delivery.SetError(c, http.StatusInternalServerError, err)
@@ -897,7 +1081,7 @@ func (delivery *Delivery) DeleteFavouriteItem(c *gin.Context) {
 //	@Param			offset		query		int				false	"Offset when receiving records"	default(0)	mininum(0)
 //	@Param			sortType	query		string			false	"Sort type (name or price)"
 //	@Param			sortOrder	query		string			false	"Sort order (asc or desc)"
-//	@Success		200			array		item.OutItem	"List of items"
+//	@Success		200			{object}	item.ItemsList	"List of items"
 //	@Failure		400			{object}	ErrorResponse
 //	@Failure		403			"Forbidden"
 //	@Failure		404			{object}	ErrorResponse	"404 Not Found"
@@ -946,6 +1130,12 @@ func (delivery *Delivery) GetFavouriteItems(c *gin.Context) {
 		delivery.SetError(c, http.StatusInternalServerError, err)
 		return
 	}
+	quantity, err := delivery.itemUsecase.ItemsQuantityInFavourite(ctx, userId)
+	if err != nil {
+		delivery.logger.Error(err.Error())
+		delivery.SetError(c, http.StatusInternalServerError, err)
+		return
+	}
 	items := make([]item.OutItem, len(list))
 	for idx, modelsItem := range list {
 		items[idx] = item.OutItem{
@@ -958,10 +1148,95 @@ func (delivery *Delivery) GetFavouriteItems(c *gin.Context) {
 				Description: modelsItem.Category.Description,
 				Image:       modelsItem.Category.Image,
 			},
-			Price:  modelsItem.Price,
-			Vendor: modelsItem.Vendor,
-			Images: modelsItem.Images,
+			Price:       modelsItem.Price,
+			Vendor:      modelsItem.Vendor,
+			Images:      modelsItem.Images,
+			IsFavourite: true,
 		}
 	}
-	c.JSON(http.StatusOK, items)
+	c.JSON(http.StatusOK, item.ItemsList{
+		List:     items,
+		Quantity: quantity,
+	})
+}
+
+func (delivery *Delivery) IsFavourite(favIds *map[uuid.UUID]uuid.UUID, itemId uuid.UUID) bool {
+	delivery.logger.Debug("Enter in delivery IsFavourite()")
+	if favIds == nil {
+		return false
+	}
+	favMap := *favIds
+	_, ok := favMap[itemId]
+	return ok
+}
+
+func (delivery *Delivery) GetFavouriteIds(c *gin.Context) (*map[uuid.UUID]uuid.UUID, error) {
+	delivery.logger.Debug("Enter in delivery IsFavourite()")
+	userId := delivery.GetUserId(c)
+	if userId != uuid.Nil {
+		ctx := c.Request.Context()
+		favIds, err := delivery.itemUsecase.GetFavouriteItemsId(ctx, userId)
+		if err != nil && errors.Is(err, models.ErrorNotFound{}) {
+			delivery.logger.Debug("User haven't favourite items")
+			return nil, fmt.Errorf("user haven't favourite items")
+		}
+		if err != nil {
+			delivery.logger.Error(err.Error())
+			return nil, err
+		}
+		return favIds, nil
+	}
+	return nil, models.ErrorNotFound{}
+}
+
+func (delivery *Delivery) IsAuthorize(c *gin.Context) bool {
+	delivery.logger.Debug("Enter in delivery item IsAuthorize()")
+
+	tokenString := c.GetHeader(authorizationHeader)
+
+	if tokenString == "" {
+		delivery.logger.Debug("Token sting is empty, user not authorized")
+		return false
+	}
+
+	headerSplit := strings.Split(tokenString, " ")
+	if len(headerSplit) != 2 || headerSplit[0] != "Bearer" {
+		delivery.logger.Debug("Header[0] is not Bearer")
+		return false
+	}
+	if len(headerSplit[1]) == 0 {
+		delivery.logger.Debug("Header[1] is empty")
+		return false
+	}
+	return true
+}
+
+func (delivery *Delivery) GetUserId(c *gin.Context) uuid.UUID {
+	delivery.logger.Debug("Enter in delivery GetUserId()")
+
+	tokenString := c.GetHeader(authorizationHeader)
+	headerSplit := strings.Split(tokenString, " ")
+	jwtKey, err := jwtauth.NewJWTKeyConfig()
+	if err != nil {
+		delivery.logger.Warn("Empty JWTKeyConfig")
+		return uuid.Nil
+	}
+
+	claims := &jwtauth.Payload{}
+	token, err := jwt.ParseWithClaims(headerSplit[1], claims, func(token *jwt.Token) (interface{}, error) {
+		return []byte(jwtKey.Key), nil
+	})
+
+	if err != nil {
+		if err == jwt.ErrSignatureInvalid {
+			delivery.logger.Warn("Invalid signature of token")
+			return uuid.Nil
+		}
+	}
+
+	if !token.Valid {
+		delivery.logger.Warn("Invalid token")
+		return uuid.Nil
+	}
+	return claims.UserId
 }

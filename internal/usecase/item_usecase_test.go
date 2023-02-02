@@ -52,6 +52,7 @@ var (
 		Vendor:      "test",
 	}
 	testCategoryName          = "testName"
+	testSearch                = "testSearch"
 	err                       = errors.New("error")
 	testLimitOptionsItemsList = map[string]int{
 		"offset": 0,
@@ -64,6 +65,9 @@ var (
 	testSortOptionsItemsList = map[string]string{
 		"sortType":  "name",
 		"sortOrder": "asc",
+	}
+	testFavUids = map[uuid.UUID]uuid.UUID{
+		testItemId: testId,
 	}
 )
 
@@ -236,6 +240,7 @@ func TestSearchLine(t *testing.T) {
 
 	cash.EXPECT().CheckCash(ctx, param+"nameasc").Return(false)
 	itemRepo.EXPECT().SearchLine(ctx, param).Return(testItemChan, nil)
+	cash.EXPECT().CreateItemsQuantityCash(ctx, 1, param+"Quantity").Return(nil)
 	cash.EXPECT().CreateItemsCash(ctx, items, param+"nameasc").Return(nil)
 	cash.EXPECT().GetItemsCash(ctx, param+"nameasc").Return(items, nil)
 	res, err := usecase.SearchLine(ctx, param, testLimitOptionsItemsList, testSortOptionsItemsList)
@@ -276,6 +281,7 @@ func TestSearchLine(t *testing.T) {
 
 	cash.EXPECT().CheckCash(ctx, param+"nameasc").Return(false)
 	itemRepo.EXPECT().SearchLine(ctx, param).Return(testChan2, nil)
+	cash.EXPECT().CreateItemsQuantityCash(ctx, 1, param+"Quantity").Return(err)
 	cash.EXPECT().CreateItemsCash(ctx, items, param+"nameasc").Return(err)
 	res, err = usecase.SearchLine(ctx, param, testLimitOptionsItemsList, testSortOptionsItemsList)
 	require.Error(t, err)
@@ -286,6 +292,7 @@ func TestSearchLine(t *testing.T) {
 	close(testChan3)
 	cash.EXPECT().CheckCash(ctx, param+"nameasc").Return(false)
 	itemRepo.EXPECT().SearchLine(ctx, param).Return(testChan3, nil)
+	cash.EXPECT().CreateItemsQuantityCash(ctx, 1, param+"Quantity").Return(nil)
 	cash.EXPECT().CreateItemsCash(ctx, items, param+"nameasc").Return(nil)
 	cash.EXPECT().GetItemsCash(ctx, param+"nameasc").Return(nil, err)
 	res, err = usecase.SearchLine(ctx, param, testLimitOptionsItemsList, testSortOptionsItemsList)
@@ -523,6 +530,79 @@ func TestItemsQuantityInCategory(t *testing.T) {
 	require.Equal(t, res, 0)
 }
 
+func TestItemsQuantityInSearch(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	logger := zap.L()
+	itemRepo := mocks.NewMockItemStore(ctrl)
+	cash := mocks.NewMockIItemsCash(ctrl)
+	usecase := NewItemUsecase(itemRepo, cash, logger)
+	ctx := context.Background()
+
+	q := "Quantity"
+	cash.EXPECT().CheckCash(ctx, testSearch+q).Return(true)
+	cash.EXPECT().GetItemsQuantityCash(ctx, testSearch+q).Return(1, nil)
+	res, err := usecase.ItemsQuantityInSearch(ctx, testSearch)
+	require.NoError(t, err)
+	require.Equal(t, res, 1)
+
+	cash.EXPECT().CheckCash(ctx, testSearch+q).Return(true)
+	cash.EXPECT().GetItemsQuantityCash(ctx, testSearch+q).Return(-1, fmt.Errorf("error on get items quantity cash"))
+	res, err = usecase.ItemsQuantityInSearch(ctx, testSearch)
+	require.Error(t, err)
+	require.Equal(t, res, -1)
+
+	cash.EXPECT().CheckCash(ctx, testSearch+q).Return(false)
+	cash.EXPECT().CheckCash(ctx, testSearch+"nameasc").Return(true)
+	cash.EXPECT().GetItemsCash(ctx, testSearch+"nameasc").Return([]models.Item{{Title: "testTitle"}}, nil)
+	cash.EXPECT().CreateItemsQuantityCash(ctx, 1, testSearch+q).Return(nil)
+	cash.EXPECT().GetItemsQuantityCash(ctx, testSearch+q).Return(1, nil)
+	res, err = usecase.ItemsQuantityInSearch(ctx, testSearch)
+	require.NoError(t, err)
+	require.Equal(t, res, 1)
+
+	cash.EXPECT().CheckCash(ctx, testSearch+q).Return(false)
+	cash.EXPECT().CheckCash(ctx, testSearch+"nameasc").Return(true)
+	cash.EXPECT().GetItemsCash(ctx, testSearch+"nameasc").Return(nil, fmt.Errorf("error on get items list cash"))
+	res, err = usecase.ItemsQuantityInSearch(ctx, testSearch)
+	require.Error(t, err)
+	require.Equal(t, res, -1)
+
+	cash.EXPECT().CheckCash(ctx, testSearch+q).Return(false)
+	cash.EXPECT().CheckCash(ctx, testSearch+"nameasc").Return(true)
+	cash.EXPECT().GetItemsCash(ctx, testSearch+"nameasc").Return([]models.Item{{Title: "testTitle"}}, nil)
+	cash.EXPECT().CreateItemsQuantityCash(ctx, 1, testSearch+q).Return(fmt.Errorf("error on create items quantity cash"))
+	res, err = usecase.ItemsQuantityInSearch(ctx, testSearch)
+	require.Error(t, err)
+	require.Equal(t, res, -1)
+
+	cash.EXPECT().CheckCash(ctx, testSearch+q).Return(false)
+	cash.EXPECT().CheckCash(ctx, testSearch+"nameasc").Return(false)
+	cash.EXPECT().CheckCash(ctx, testSearch+"nameasc").Return(true)
+	cash.EXPECT().GetItemsCash(ctx, testSearch+"nameasc")
+	cash.EXPECT().GetItemsQuantityCash(ctx, testSearch+q).Return(1, nil)
+	res, err = usecase.ItemsQuantityInSearch(ctx, testSearch)
+	require.NoError(t, err)
+	require.Equal(t, res, 1)
+
+	cash.EXPECT().CheckCash(ctx, testSearch+q).Return(false)
+	cash.EXPECT().CheckCash(ctx, testSearch+"nameasc").Return(false)
+	cash.EXPECT().CheckCash(ctx, testSearch+"nameasc").Return(false)
+	itemRepo.EXPECT().SearchLine(ctx, testSearch).Return(nil, fmt.Errorf("error"))
+	res, err = usecase.ItemsQuantityInSearch(ctx, testSearch)
+	require.Error(t, err)
+	require.Equal(t, res, -1)
+
+	cash.EXPECT().CheckCash(ctx, testSearch+q).Return(false)
+	cash.EXPECT().CheckCash(ctx, testSearch+"nameasc").Return(true)
+	cash.EXPECT().GetItemsCash(ctx, testSearch+"nameasc").Return(nil, nil)
+	cash.EXPECT().CreateItemsQuantityCash(ctx, 0, testSearch+q).Return(nil)
+	cash.EXPECT().GetItemsQuantityCash(ctx, testSearch+q).Return(0, nil)
+	res, err = usecase.ItemsQuantityInSearch(ctx, testSearch)
+	require.NoError(t, err)
+	require.Equal(t, res, 0)
+}
+
 func TestUpdateCash(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -690,6 +770,8 @@ func TestAddFavouriteItem(t *testing.T) {
 	cash.EXPECT().CheckCash(ctx, testId.String()+"namedesc").Return(false)
 	cash.EXPECT().CheckCash(ctx, testId.String()+"priceasc").Return(false)
 	cash.EXPECT().CheckCash(ctx, testId.String()+"pricedesc").Return(false)
+	cash.EXPECT().CheckCash(ctx, testId.String()+"Fav").Return(true)
+	cash.EXPECT().GetFavouriteItemsIdCash(ctx, testId.String()+"Fav").Return(nil, err)
 	err = usecase.AddFavouriteItem(ctx, testId, testItemId)
 	require.NoError(t, err)
 }
@@ -712,6 +794,8 @@ func TestDeleteFavouriteItem(t *testing.T) {
 	cash.EXPECT().CheckCash(ctx, testId.String()+"namedesc").Return(false)
 	cash.EXPECT().CheckCash(ctx, testId.String()+"priceasc").Return(false)
 	cash.EXPECT().CheckCash(ctx, testId.String()+"pricedesc").Return(false)
+	cash.EXPECT().CheckCash(ctx, testId.String()+"Fav").Return(true)
+	cash.EXPECT().GetFavouriteItemsIdCash(ctx, testId.String()+"Fav").Return(nil, err)
 	err = usecase.DeleteFavouriteItem(ctx, testId, testItemId)
 	require.NoError(t, err)
 }
@@ -995,4 +1079,104 @@ func TestSortItems(t *testing.T) {
 		{Price: 10},
 	})
 	usecase.SortItems(testItems, "pricee", "desc")
+}
+
+func TestGetFavouriteItemsId(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	logger := zap.L()
+	itemRepo := mocks.NewMockItemStore(ctrl)
+	cash := mocks.NewMockIItemsCash(ctrl)
+	usecase := NewItemUsecase(itemRepo, cash, logger)
+	ctx := context.Background()
+
+	cash.EXPECT().CheckCash(ctx, testId.String()+"Fav").Return(false)
+	cash.EXPECT().CheckCash(ctx, testId.String()+"Quantity").Return(true)
+	cash.EXPECT().GetItemsQuantityCash(ctx, testId.String()+"Quantity").Return(-1, err)
+	res, err := usecase.GetFavouriteItemsId(ctx, testId)
+	require.Error(t, err)
+	require.Nil(t, res)
+
+	cash.EXPECT().CheckCash(ctx, testId.String()+"Fav").Return(false)
+	cash.EXPECT().CheckCash(ctx, testId.String()+"Quantity").Return(true)
+	cash.EXPECT().GetItemsQuantityCash(ctx, testId.String()+"Quantity").Return(0, nil)
+	res, err = usecase.GetFavouriteItemsId(ctx, testId)
+	require.Error(t, err)
+	require.ErrorIs(t, err, models.ErrorNotFound{})
+	require.Nil(t, res)
+
+	cash.EXPECT().CheckCash(ctx, testId.String()+"Fav").Return(false)
+	cash.EXPECT().CheckCash(ctx, testId.String()+"Quantity").Return(true)
+	cash.EXPECT().GetItemsQuantityCash(ctx, testId.String()+"Quantity").Return(1, nil)
+	itemRepo.EXPECT().GetFavouriteItemsId(ctx, testId).Return(nil, models.ErrorNotFound{})
+	res, err = usecase.GetFavouriteItemsId(ctx, testId)
+	require.Error(t, err)
+	require.ErrorIs(t, err, models.ErrorNotFound{})
+	require.Nil(t, res)
+
+	cash.EXPECT().CheckCash(ctx, testId.String()+"Fav").Return(false)
+	cash.EXPECT().CheckCash(ctx, testId.String()+"Quantity").Return(true)
+	cash.EXPECT().GetItemsQuantityCash(ctx, testId.String()+"Quantity").Return(1, nil)
+	itemRepo.EXPECT().GetFavouriteItemsId(ctx, testId).Return(nil, err)
+	res, err = usecase.GetFavouriteItemsId(ctx, testId)
+	require.Error(t, err)
+	require.Nil(t, res)
+
+	cash.EXPECT().CheckCash(ctx, testId.String()+"Fav").Return(false)
+	cash.EXPECT().CheckCash(ctx, testId.String()+"Quantity").Return(true)
+	cash.EXPECT().GetItemsQuantityCash(ctx, testId.String()+"Quantity").Return(1, nil)
+	itemRepo.EXPECT().GetFavouriteItemsId(ctx, testId).Return(&testFavUids, nil)
+	cash.EXPECT().CreateFavouriteItemsIdCash(ctx, testFavUids, testId.String()+"Fav").Return(err)
+	res, err = usecase.GetFavouriteItemsId(ctx, testId)
+	require.NoError(t, err)
+	require.Equal(t, res, &testFavUids)
+
+	cash.EXPECT().CheckCash(ctx, testId.String()+"Fav").Return(false)
+	cash.EXPECT().CheckCash(ctx, testId.String()+"Quantity").Return(true)
+	cash.EXPECT().GetItemsQuantityCash(ctx, testId.String()+"Quantity").Return(1, nil)
+	itemRepo.EXPECT().GetFavouriteItemsId(ctx, testId).Return(&testFavUids, nil)
+	cash.EXPECT().CreateFavouriteItemsIdCash(ctx, testFavUids, testId.String()+"Fav").Return(nil)
+	cash.EXPECT().GetFavouriteItemsIdCash(ctx, testId.String()+"Fav").Return(nil, models.ErrorNotFound{})
+	res, err = usecase.GetFavouriteItemsId(ctx, testId)
+	require.Error(t, err)
+	require.Nil(t, res)
+
+	cash.EXPECT().CheckCash(ctx, testId.String()+"Fav").Return(true)
+	cash.EXPECT().GetFavouriteItemsIdCash(ctx, testId.String()+"Fav").Return(&testFavUids, nil)
+	res, err = usecase.GetFavouriteItemsId(ctx, testId)
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	require.Equal(t, res, &testFavUids)
+}
+
+func TestUpdateFavIdsCash(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	logger := zap.L()
+	itemRepo := mocks.NewMockItemStore(ctrl)
+	cash := mocks.NewMockIItemsCash(ctrl)
+	usecase := NewItemUsecase(itemRepo, cash, logger)
+	ctx := context.Background()
+
+	cash.EXPECT().CheckCash(ctx, testId.String()+"Fav").Return(false)
+	cash.EXPECT().CreateFavouriteItemsIdCash(ctx, testFavUids, testId.String()+"Fav").Return(err)
+	usecase.UpdateFavIdsCash(ctx, testId, testItemId, "add")
+
+	cash.EXPECT().CheckCash(ctx, testId.String()+"Fav").Return(false)
+	cash.EXPECT().CreateFavouriteItemsIdCash(ctx, testFavUids, testId.String()+"Fav").Return(nil)
+	usecase.UpdateFavIdsCash(ctx, testId, testItemId, "add")
+
+	cash.EXPECT().CheckCash(ctx, testId.String()+"Fav").Return(true)
+	cash.EXPECT().GetFavouriteItemsIdCash(ctx, testId.String()+"Fav").Return(nil, err)
+	usecase.UpdateFavIdsCash(ctx, testId, testItemId, "add")
+
+	cash.EXPECT().CheckCash(ctx, testId.String()+"Fav").Return(true)
+	cash.EXPECT().GetFavouriteItemsIdCash(ctx, testId.String()+"Fav").Return(&testFavUids, nil)
+	cash.EXPECT().CreateFavouriteItemsIdCash(ctx, testFavUids, testId.String()+"Fav").Return(err)
+	usecase.UpdateFavIdsCash(ctx, testId, testItemId, "add")
+
+	cash.EXPECT().CheckCash(ctx, testId.String()+"Fav").Return(true)
+	cash.EXPECT().GetFavouriteItemsIdCash(ctx, testId.String()+"Fav").Return(&testFavUids, nil)
+	cash.EXPECT().CreateFavouriteItemsIdCash(ctx, testFavUids, testId.String()+"Fav").Return(nil)
+	usecase.UpdateFavIdsCash(ctx, testId, testItemId, "delete")
 }

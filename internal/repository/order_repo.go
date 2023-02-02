@@ -26,6 +26,7 @@ func NewOrderRepo(store *PGres, log *zap.SugaredLogger) OrderStore {
 }
 
 func (o *order) Create(ctx context.Context, order *models.Order) (*models.Order, error) {
+	o.logger.Debug("Enter in repository order Create with args: ctx, order: %v", order)
 	select {
 	case <-ctx.Done():
 		return nil, fmt.Errorf("stopped with context")
@@ -52,22 +53,18 @@ func (o *order) Create(ctx context.Context, order *models.Order) (*models.Order,
 		}()
 		row := tx.QueryRow(ctx, `INSERT INTO orders (shipment_time, user_id, status, address) 
 		VALUES ($1, $2, $3, $4) RETURNING id`, order.ShipmentTime, order.User.ID, order.Status,
-			fmt.Sprintf("%s -> %s -> %s -> %s", order.User.Address.Zipcode, order.User.Address.Country, order.User.Address.City, order.User.Address.Street))
+			fmt.Sprintf("%s -> %s -> %s -> %s", order.Address.Zipcode, order.Address.Country, order.Address.City, order.Address.Street))
 		err = row.Scan(&order.ID)
 		if err != nil {
 			o.logger.Errorf("can't add new order: %w", err)
 			return nil, fmt.Errorf("can't add new order: %w", err)
 		}
-		query := `INSERT INTO order_items (order_id, item_id) VALUES`
+		query := `INSERT INTO order_items (order_id, item_id, item_quantity) VALUES`
 		itemsString := ""
-		// items := make([]interface{}, 0, len(order.Items))
-		// items = append(items, order.ID)
 		for _, item := range order.Items {
-			itemsString += fmt.Sprintf("('%s', '%s'),", order.ID.String(), item.Id.String())
-			// items = append(items, item.Id.String())
+			itemsString += fmt.Sprintf("('%s', '%s', '%d'),", order.ID.String(), item.Id.String(), item.Quantity)
 		}
 		itemsString = itemsString[:len(itemsString)-1]
-		o.logger.Debug(fmt.Sprintf("%s %s;", query, itemsString))
 		_, err = tx.Exec(ctx, fmt.Sprintf("%s %s;", query, itemsString))
 		if err != nil {
 			o.logger.Errorf("can't add items to order: %s", err)
@@ -78,6 +75,7 @@ func (o *order) Create(ctx context.Context, order *models.Order) (*models.Order,
 }
 
 func (o *order) DeleteOrder(ctx context.Context, order *models.Order) error {
+	o.logger.Debug("Enter in repository DeleteOrder() with args: ctx, order: %v", order)
 	select {
 	case <-ctx.Done():
 		return fmt.Errorf("context closed")
@@ -112,13 +110,14 @@ func (o *order) DeleteOrder(ctx context.Context, order *models.Order) error {
 	}
 }
 func (o *order) ChangeAddress(ctx context.Context, order *models.Order, address models.UserAddress) error {
+	o.logger.Debug("Enter in repository order ChangeAddress() with args: ctx, order: %v, address: %v", order, address)
 	select {
 	case <-ctx.Done():
 		return fmt.Errorf("context closed")
 	default:
 		pool := o.storage.GetPool()
 		_, err := pool.Exec(ctx, `UPDATE orders SET address=$1 WHERE id=$2`,
-			fmt.Sprintf("%s %s %s %s", address.Zipcode, address.Country, address.City, address.Street), order.ID)
+			fmt.Sprintf("%s -> %s -> %s -> %s", address.Zipcode, address.Country, address.City, address.Street), order.ID)
 		if err != nil {
 			o.logger.Errorf("can't update address: %s", err)
 			return fmt.Errorf("can't update address: %w", err)
@@ -127,6 +126,7 @@ func (o *order) ChangeAddress(ctx context.Context, order *models.Order, address 
 	}
 }
 func (o *order) ChangeStatus(ctx context.Context, order *models.Order, status models.Status) error {
+	o.logger.Debug("Enter in repository order ChangeStatus() with args: ctx, order: %v, status: %v", order, status)
 	select {
 	case <-ctx.Done():
 		return fmt.Errorf("context closed")
@@ -141,6 +141,7 @@ func (o *order) ChangeStatus(ctx context.Context, order *models.Order, status mo
 	}
 }
 func (o *order) GetOrderByID(ctx context.Context, id uuid.UUID) (models.Order, error) {
+	o.logger.Debug("Enter in repository GetOrderByID() with args: ctx, id: %v", id)
 	select {
 	case <-ctx.Done():
 		o.logger.Errorf("context closed")
@@ -148,11 +149,11 @@ func (o *order) GetOrderByID(ctx context.Context, id uuid.UUID) (models.Order, e
 	default:
 		pool := o.storage.GetPool()
 		ordr := models.Order{
-			Items: make([]models.Item, 0),
+			Items: make([]models.ItemWithQuantity, 0),
 		}
-		rows, err := pool.Query(ctx, `SELECT items.id, items.name, categories.id, categories.name, categories.description,
-				items.description, items.price, items.vendor, orders.id, orders.shipment_time,
-				orders.status, orders.address from items INNER JOIN categories ON categories.id=category  INNER JOIN order_items ON
+		rows, err := pool.Query(ctx, `SELECT items.id, items.name, categories.id, categories.name, categories.description, categories.picture,
+				items.description, items.price, items.vendor, items.pictures, orders.id, orders.user_id, orders.status, orders.shipment_time,
+				orders.status, orders.address, order_items.item_quantity from items INNER JOIN categories ON categories.id=category  INNER JOIN order_items ON
 				items.id=order_items.item_id INNER JOIN orders ON orders.id=order_items.order_id and orders.id = $1 ORDER BY order_id ASC`, id)
 		if err != nil {
 			o.logger.Errorf("can't get order from db: %s", err)
@@ -161,9 +162,9 @@ func (o *order) GetOrderByID(ctx context.Context, id uuid.UUID) (models.Order, e
 		defer rows.Close()
 		var address string
 		for rows.Next() {
-			item := models.Item{}
-			if err := rows.Scan(&item.Id, &item.Title, &item.Category.Id, &item.Category.Name, &item.Category.Description,
-				&item.Description, &item.Price, &item.Vendor, &ordr.ID, &ordr.ShipmentTime, &ordr.Status, &address); err != nil {
+			item := models.ItemWithQuantity{}
+			if err := rows.Scan(&item.Id, &item.Title, &item.Category.Id, &item.Category.Name, &item.Category.Description, &item.Category.Image,
+				&item.Description, &item.Price, &item.Vendor, &item.Images, &ordr.ID, &ordr.User.ID, &ordr.Status, &ordr.ShipmentTime, &ordr.Status, &address, &item.Quantity); err != nil {
 				o.logger.Errorf("can't scan data to order object: %w", err)
 				return models.Order{}, err
 			}
@@ -183,6 +184,7 @@ func (o *order) GetOrderByID(ctx context.Context, id uuid.UUID) (models.Order, e
 }
 
 func (o *order) GetOrdersForUser(ctx context.Context, user *models.User) (chan models.Order, error) {
+	o.logger.Debug("Enter in repository GetOrdersForUser() with args: ctx, user: %v", user)
 	select {
 	case <-ctx.Done():
 		o.logger.Errorf("context closed")
@@ -192,9 +194,9 @@ func (o *order) GetOrdersForUser(ctx context.Context, user *models.User) (chan m
 		resChan := make(chan models.Order, 1)
 		go func() {
 			defer close(resChan)
-			rows, err := pool.Query(ctx, `SELECT items.id, items.name, categories.id, categories.name, categories.description,
-			items.description, items.price, items.vendor, orders.id, orders.shipment_time,
-			orders.status, orders.address from items INNER JOIN categories ON categories.id=category  INNER JOIN order_items ON
+			rows, err := pool.Query(ctx, `SELECT items.id, items.name, categories.id, categories.name, categories.description, categories.picture,
+			items.description, items.price, items.vendor, items.pictures, orders.id, orders.user_id, orders.status, orders.shipment_time,
+			orders.status, orders.address, order_items.item_quantity from items INNER JOIN categories ON categories.id=category  INNER JOIN order_items ON
 			items.id=order_items.item_id INNER JOIN orders ON orders.id=order_items.order_id and orders.user_id = $1 ORDER BY order_id ASC`, user.ID)
 			if err != nil {
 				o.logger.Errorf("can't get order from db: %s", err)
@@ -202,14 +204,14 @@ func (o *order) GetOrdersForUser(ctx context.Context, user *models.User) (chan m
 			}
 			defer rows.Close()
 			prevOrder := models.Order{
-				Items: make([]models.Item, 0),
+				Items: make([]models.ItemWithQuantity, 0),
 			}
 			for rows.Next() {
 				var address string
-				item := models.Item{}
+				item := models.ItemWithQuantity{}
 				order := models.Order{}
-				if err := rows.Scan(&item.Id, &item.Title, &item.Category.Id, &item.Category.Name, &item.Category.Description,
-					&item.Description, &item.Price, &item.Vendor, &order.ID, &order.ShipmentTime, &order.Status, &address); err != nil {
+				if err := rows.Scan(&item.Id, &item.Title, &item.Category.Id, &item.Category.Name, &item.Category.Description, &item.Category.Image,
+					&item.Description, &item.Price, &item.Vendor, &item.Images, &order.ID, &order.User.ID, &order.Status, &order.ShipmentTime, &order.Status, &address, &item.Quantity); err != nil {
 					o.logger.Errorf("can't scan data to order object: %w", err)
 					return
 				}

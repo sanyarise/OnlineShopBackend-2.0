@@ -27,6 +27,7 @@ type Delivery struct {
 	cartUsecase     usecase.ICartUsecase
 	logger          *zap.Logger
 	filestorage     filestorage.FileStorager
+	orderUsecase    usecase.IOrderUsecase
 }
 
 // NewDelivery initialize delivery layer
@@ -36,6 +37,7 @@ func NewDelivery(
 	categoryUsecase usecase.ICategoryUsecase,
 	cartUsecase usecase.ICartUsecase,
 	logger *zap.Logger, fs filestorage.FileStorager,
+	orderUsecase usecase.IOrderUsecase,
 ) *Delivery {
 	logger.Debug("Enter in NewDelivery()")
 	metrics.DeliveryMetrics.NewDeliveryTotal.Inc()
@@ -46,6 +48,7 @@ func NewDelivery(
 		cartUsecase:     cartUsecase,
 		userUsecase: userUsecase,
 		logger:          logger, filestorage: fs,
+		orderUsecase: orderUsecase,
 	}
 }
 

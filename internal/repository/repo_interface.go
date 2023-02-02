@@ -18,6 +18,7 @@ type ItemStore interface {
 	AddFavouriteItem(ctx context.Context, userId uuid.UUID, itemId uuid.UUID) error
 	DeleteFavouriteItem(ctx context.Context, userId uuid.UUID, itemId uuid.UUID) error
 	GetFavouriteItems(ctx context.Context, userId uuid.UUID) (chan models.Item, error)
+	GetFavouriteItemsId(ctx context.Context, userId uuid.UUID) (*map[uuid.UUID]uuid.UUID, error)
 }
 
 type CategoryStore interface {
@@ -37,6 +38,7 @@ type UserStore interface {
 	SaveSession(ctx context.Context, token string, t int64) error
 	UpdateUserRole(ctx context.Context, roleId uuid.UUID, email string) error
 	GetRightsList(ctx context.Context) (chan models.Rights, error)
+	CreateRights(ctx context.Context, rights *models.Rights) (uuid.UUID, error)
 }
 
 type CartStore interface {
