@@ -1,6 +1,8 @@
 package item
 
-import "OnlineShopBackend/internal/delivery/category"
+import (
+	"OnlineShopBackend/internal/delivery/category"
+)
 
 // ShortItem is a structure for create new item
 type ShortItem struct {
@@ -53,6 +55,6 @@ type ItemsQuantity struct {
 
 // ItemsList is a structure for items list query results
 type ItemsList struct {
-	List []OutItem `json:"items" binding:"min=0" minimum:"0"`
-	Quantity int `json:"quantity" example:"10" default:"0" binding:"min=0" minimum:"0"`
+	List     []OutItem `json:"items" binding:"min=0" minimum:"0"`
+	Quantity int       `json:"quantity" example:"10" default:"0" binding:"min=0" minimum:"0"`
 }
