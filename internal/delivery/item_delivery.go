@@ -20,6 +20,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// Options is the structure for parsing offset and sort parameters
 type Options struct {
 	Offset    int    `form:"offset"`
 	Limit     int    `form:"limit"`
@@ -27,11 +28,14 @@ type Options struct {
 	SortOrder string `form:"sortOrder"`
 }
 
+// SearchOptions is the structure for search 
+// items and get items by category
 type SearchOptions struct {
 	Param string `form:"param"`
 	Options
 }
 
+// ImageOptions is the structure for deleting item image
 type ImageOptions struct {
 	Id   string `form:"id"`
 	Name string `form:"name"`
