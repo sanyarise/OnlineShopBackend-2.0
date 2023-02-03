@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"time"
 
 	"github.com/google/uuid"
 	"go.uber.org/zap"
@@ -74,8 +75,13 @@ func (usecase *CategoryUsecase) GetCategory(ctx context.Context, id uuid.UUID) (
 // GetCategoryList call database method and returns chan with all models.Category or error
 func (usecase *CategoryUsecase) GetCategoryList(ctx context.Context) ([]models.Category, error) {
 	usecase.logger.Debug("Enter in usecase GetCategoryList() with args: ctx")
+
+	// Context with timeout so as not to wait for an answer from the cache for too long
+	ctxT, cancel := context.WithTimeout(ctx, 100*time.Millisecond)
+	defer cancel()
+
 	// Сheck whether there is a cache with a list of categories
-	if ok := usecase.categoriesCash.CheckCash(ctx, categoriesListKey); !ok {
+	if ok := usecase.categoriesCash.CheckCash(ctxT, categoriesListKey); !ok {
 		// If cache does not exist, request a list of categories from the database
 		categoryIncomingChan, err := usecase.categoryStore.GetCategoryList(ctx)
 		if err != nil {
@@ -86,16 +92,16 @@ func (usecase *CategoryUsecase) GetCategoryList(ctx context.Context) ([]models.C
 			categories = append(categories, category)
 		}
 		// Create a cache with a list of categories
-		err = usecase.categoriesCash.CreateCategoriesListCash(ctx, categories, categoriesListKey)
+		err = usecase.categoriesCash.CreateCategoriesListCash(ctxT, categories, categoriesListKey)
 		if err != nil {
 			usecase.logger.Sugar().Warnf("error on create categories list cash with key: %s, error: %v", categoriesListKey, err)
-		}else{
+		} else {
 			usecase.logger.Sugar().Infof("Create categories list cash with key: %s success", categoriesListKey)
 		}
 	}
 
 	// Get a list of categories from cache
-	categories, err := usecase.categoriesCash.GetCategoriesListCash(ctx, categoriesListKey)
+	categories, err := usecase.categoriesCash.GetCategoriesListCash(ctxT, categoriesListKey)
 	if err != nil {
 		usecase.logger.Sugar().Warnf("error on get cash with key: %s, err: %v", categoriesListKey, err)
 		// If error on get cache, request a list of categories from the database
@@ -103,9 +109,10 @@ func (usecase *CategoryUsecase) GetCategoryList(ctx context.Context) ([]models.C
 		if err != nil {
 			return nil, err
 		}
-		categories := make([]models.Category, 0, 100)
+		dbCategories := make([]models.Category, 0, 100)
 		for category := range categoryIncomingChan {
-			categories = append(categories, category)
+			dbCategories = append(dbCategories, category)
+			categories = dbCategories
 		}
 		usecase.logger.Info("Get category list from db success")
 		return categories, nil
