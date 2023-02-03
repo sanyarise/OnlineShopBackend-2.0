@@ -357,10 +357,9 @@ func (delivery *Delivery) ItemsList(c *gin.Context) {
 		} else {
 			// Otherwise, set the value of items equal to 10
 			options.Limit = 10
+			delivery.logger.Sugar().Debugf("options limit is set in default value: %d", options.Limit)
 		}
 	}
-
-	delivery.logger.Sugar().Debugf("options limit is set in default value: %d", options.Limit)
 
 	// If the sorting parameters are not set, we set the sorting by name in alphabetical order
 	if options.SortType == "" {
@@ -1194,7 +1193,7 @@ func (delivery *Delivery) IsAuthorize(c *gin.Context) bool {
 	tokenString := c.GetHeader(authorizationHeader)
 
 	if tokenString == "" {
-		delivery.logger.Debug("Token sting is empty, user not authorized")
+		delivery.logger.Debug("Token string is empty, user not authorized")
 		return false
 	}
 
