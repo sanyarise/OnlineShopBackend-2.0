@@ -17,14 +17,6 @@ type categoryRepo struct {
 	logger  *zap.SugaredLogger
 }
 
-type Category struct {
-	Id          uuid.UUID
-	Name        string
-	Description string
-	Image       string
-	DeletedAt   *time.Time
-}
-
 var _ CategoryStore = (*categoryRepo)(nil)
 
 func NewCategoryRepo(store *PGres, log *zap.SugaredLogger) CategoryStore {
@@ -34,27 +26,14 @@ func NewCategoryRepo(store *PGres, log *zap.SugaredLogger) CategoryStore {
 	}
 }
 
+// CreateCategory create new category in database
 func (repo *categoryRepo) CreateCategory(ctx context.Context, category *models.Category) (uuid.UUID, error) {
 	repo.logger.Debugf("Enter in repository CreateCategory() with args: ctx, category: %v", category)
-	repoCategory := &Category{
-		Name:        category.Name,
-		Description: category.Description,
-		Image:       category.Image,
-	}
+
 	pool := repo.storage.GetPool()
 
-	if id, ok := repo.isDeletedCategory(ctx, repoCategory.Name); ok {
-		_, err := pool.Exec(ctx, `UPDATE categories SET description=$1, picture=$2, deleted_at=null WHERE name=$3`,
-			repoCategory.Description,
-			repoCategory.Image,
-			repoCategory.Name)
-		if err != nil {
-			repo.logger.Debug(err.Error())
-			return uuid.Nil, err
-		}
-		return id, nil
-	}
 	var id uuid.UUID
+	// Recording operations need transaction
 	tx, err := pool.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		repo.logger.Errorf("Can't create transaction: %s", err)
@@ -75,11 +54,27 @@ func (repo *categoryRepo) CreateCategory(ctx context.Context, category *models.C
 			}
 		}
 	}()
+	// If name of created category = name of deleted category, update deleted category
+	// and set deleted_at = null and return id of deleted category
+	if id, ok := repo.isDeletedCategory(ctx, category.Name); ok {
+		repo.logger.Debug("Category with name: %s is deleted", category.Name)
+		_, err := pool.Exec(ctx, `UPDATE categories SET description=$1, picture=$2, deleted_at=null WHERE name=$3`,
+			category.Description,
+			category.Image,
+			category.Name)
+		if err != nil {
+			repo.logger.Debug(err.Error())
+			return uuid.Nil, err
+		}
+		repo.logger.Debug("Category recreated from deleted category success")
+		repo.logger.Debugf("Category id is %v\n", id)
+		return id, nil
+	}
 	row := tx.QueryRow(ctx, `INSERT INTO categories(name, description, picture, deleted_at)
 	values ($1, $2, $3, $4) RETURNING id`,
-		repoCategory.Name,
-		repoCategory.Description,
-		repoCategory.Image,
+		category.Name,
+		category.Description,
+		category.Image,
 		nil,
 	)
 	if err := row.Scan(&id); err != nil {
@@ -87,10 +82,12 @@ func (repo *categoryRepo) CreateCategory(ctx context.Context, category *models.C
 		return uuid.Nil, fmt.Errorf("can't scan %w", err)
 	}
 	repo.logger.Debug("Category created success")
-	repo.logger.Debugf("Id is %v\n", id)
+	repo.logger.Debugf("Category id is %v\n", id)
 	return id, nil
 }
 
+// isDeletedCategory check created category name and if it is a deleted category name, returns 
+// uid of deleted category and true 
 func (repo *categoryRepo) isDeletedCategory(ctx context.Context, name string) (uuid.UUID, bool) {
 	repo.logger.Debug("Enter in repository is DeletedCategory() with args: ctx, name: %s", name)
 	pool := repo.storage.GetPool()
@@ -107,9 +104,11 @@ func (repo *categoryRepo) isDeletedCategory(ctx context.Context, name string) (u
 	return uuid.Nil, false
 }
 
+// UpdateCategory сhanges the existing category
 func (repo *categoryRepo) UpdateCategory(ctx context.Context, category *models.Category) error {
 	repo.logger.Debugf("Enter in repository UpdateCategory() with args: ctx, category: %v", category)
 	pool := repo.storage.GetPool()
+	// Recording operations need transaction
 	tx, err := pool.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		repo.logger.Errorf("Can't create transaction: %s", err)
@@ -148,10 +147,14 @@ func (repo *categoryRepo) UpdateCategory(ctx context.Context, category *models.C
 	return nil
 }
 
+// GetCategory returns *models.Category by id or error
 func (repo *categoryRepo) GetCategory(ctx context.Context, id uuid.UUID) (*models.Category, error) {
 	repo.logger.Debugf("Enter in repository GetCategory() with args: ctx, id: %v", id)
-	category := models.Category{}
+
 	pool := repo.storage.GetPool()
+
+	category := models.Category{}
+	
 	row := pool.QueryRow(ctx,
 		`SELECT id, name, description, picture FROM categories WHERE deleted_at is null AND id = $1`, id)
 	err := row.Scan(
@@ -172,6 +175,7 @@ func (repo *categoryRepo) GetCategory(ctx context.Context, id uuid.UUID) (*model
 	return &category, nil
 }
 
+// GetCategory returns *models.Category by name or error
 func (repo *categoryRepo) GetCategoryByName(ctx context.Context, name string) (*models.Category, error) {
 	repo.logger.Debugf("Enter in repository GetCategoryByName() with args: ctx, name: %s", name)
 	category := models.Category{}
@@ -196,6 +200,8 @@ func (repo *categoryRepo) GetCategoryByName(ctx context.Context, name string) (*
 	return &category, nil
 }
 
+// GetCategoryList reads all the items from the database and writes it to the 
+// output channel and returns this channel or error
 func (repo *categoryRepo) GetCategoryList(ctx context.Context) (chan models.Category, error) {
 	repo.logger.Debug("Enter in repository GetCategoryList() with args: ctx")
 	categoryChan := make(chan models.Category, 100)
@@ -229,9 +235,11 @@ func (repo *categoryRepo) GetCategoryList(ctx context.Context) (chan models.Cate
 	return categoryChan, nil
 }
 
+// DeleteCategory changes the value of the deleted_at attribute in the deleted category for the current time
 func (repo *categoryRepo) DeleteCategory(ctx context.Context, id uuid.UUID) error {
 	repo.logger.Debugf("Enter in repository DeleteCategory() with args: ctx, id: %v", id)
 	pool := repo.storage.GetPool()
+	// Removal operation is carried out in transaction
 	tx, err := pool.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		repo.logger.Errorf("Can't create transaction: %s", err)
