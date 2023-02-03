@@ -165,9 +165,10 @@ func TestGetCategoryList(t *testing.T) {
 	cash.EXPECT().CheckCash(ctx, categoriesListKey).Return(false)
 	categoryRepo.EXPECT().GetCategoryList(ctx).Return(testChan2, nil)
 	cash.EXPECT().CreateCategoriesListCash(ctx, categories, categoriesListKey).Return(fmt.Errorf("error"))
+	cash.EXPECT().GetCategoriesListCash(ctx, categoriesListKey).Return(categories, nil)
 	res, err = usecase.GetCategoryList(ctx)
-	require.Error(t, err)
-	require.Nil(t, res)
+	require.NoError(t, err)
+	require.NotNil(t, res)
 }
 
 func TestUpdateCategoryCash(t *testing.T) {

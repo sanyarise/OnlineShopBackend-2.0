@@ -88,7 +88,9 @@ func (usecase *CategoryUsecase) GetCategoryList(ctx context.Context) ([]models.C
 		// Create a cache with a list of categories
 		err = usecase.categoriesCash.CreateCategoriesListCash(ctx, categories, categoriesListKey)
 		if err != nil {
-			return nil, fmt.Errorf("error on create categories list cash: %w", err)
+			usecase.logger.Sugar().Warnf("error on create categories list cash with key: %s, error: %v", categoriesListKey, err)
+		}else{
+			usecase.logger.Sugar().Infof("Create categories list cash with key: %s success", categoriesListKey)
 		}
 	}
 
