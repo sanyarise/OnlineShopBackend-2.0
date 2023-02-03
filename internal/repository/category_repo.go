@@ -32,7 +32,6 @@ func (repo *categoryRepo) CreateCategory(ctx context.Context, category *models.C
 
 	pool := repo.storage.GetPool()
 
-	var id uuid.UUID
 	// Recording operations need transaction
 	tx, err := pool.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
@@ -70,6 +69,7 @@ func (repo *categoryRepo) CreateCategory(ctx context.Context, category *models.C
 		repo.logger.Debugf("Category id is %v\n", id)
 		return id, nil
 	}
+	var id uuid.UUID
 	row := tx.QueryRow(ctx, `INSERT INTO categories(name, description, picture, deleted_at)
 	values ($1, $2, $3, $4) RETURNING id`,
 		category.Name,
@@ -200,7 +200,7 @@ func (repo *categoryRepo) GetCategoryByName(ctx context.Context, name string) (*
 	return &category, nil
 }
 
-// GetCategoryList reads all the items from the database and writes it to the 
+// GetCategoryList reads all the categories from the database and writes it to the 
 // output channel and returns this channel or error
 func (repo *categoryRepo) GetCategoryList(ctx context.Context) (chan models.Category, error) {
 	repo.logger.Debug("Enter in repository GetCategoryList() with args: ctx")

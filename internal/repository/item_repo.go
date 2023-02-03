@@ -27,11 +27,13 @@ func NewItemRepo(storage *PGres, logger *zap.SugaredLogger) ItemStore {
 
 var _ ItemStore = (*itemRepo)(nil)
 
+// CreateItem insert new item in database
 func (repo *itemRepo) CreateItem(ctx context.Context, item *models.Item) (uuid.UUID, error) {
 	repo.logger.Debugf("Enter in repository CreateItem() with args: ctx, item: %v", item)
-	var id uuid.UUID
+	
 	pool := repo.storage.GetPool()
 
+	// Recording operations need transaction
 	tx, err := pool.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		repo.logger.Errorf("Can't create transaction: %s", err)
@@ -52,6 +54,7 @@ func (repo *itemRepo) CreateItem(ctx context.Context, item *models.Item) (uuid.U
 			}
 		}
 	}()
+	var id uuid.UUID
 	row := tx.QueryRow(ctx, `INSERT INTO items(name, category, description, price, vendor, pictures, deleted_at)
 	values ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
 		item.Title,
@@ -72,10 +75,13 @@ func (repo *itemRepo) CreateItem(ctx context.Context, item *models.Item) (uuid.U
 	return id, nil
 }
 
+// UpdateItem сhanges the existing item
 func (repo *itemRepo) UpdateItem(ctx context.Context, item *models.Item) error {
 	repo.logger.Debugf("Enter in repository UpdateItem() with args: ctx, item: %v", item)
+
 	pool := repo.storage.GetPool()
 
+	// Recording operations need transaction
 	tx, err := pool.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		repo.logger.Errorf("Can't create transaction: %s", err)
@@ -115,10 +121,13 @@ func (repo *itemRepo) UpdateItem(ctx context.Context, item *models.Item) error {
 	return nil
 }
 
+// GetItem returns *models.Item by id or error
 func (repo *itemRepo) GetItem(ctx context.Context, id uuid.UUID) (*models.Item, error) {
 	repo.logger.Debug("Enter in repository GetItem() with args: ctx, id: %v", id)
-	item := models.Item{}
+
 	pool := repo.storage.GetPool()
+
+	item := models.Item{}
 	row := pool.QueryRow(ctx,
 		`SELECT items.id, items.name, category, categories.name, categories.description, categories.picture, items.description, price, vendor, pictures FROM items INNER JOIN categories ON category=categories.id and items.id = $1 WHERE items.deleted_at is null AND categories.deleted_at is null`, id)
 	err := row.Scan(
@@ -144,14 +153,16 @@ func (repo *itemRepo) GetItem(ctx context.Context, id uuid.UUID) (*models.Item, 
 	return &item, nil
 }
 
+// ItemsList reads all the items from the database and writes it to the 
+// output channel and returns this channel or error
 func (repo *itemRepo) ItemsList(ctx context.Context) (chan models.Item, error) {
 	repo.logger.Debug("Enter in repository ItemsList() with args: ctx")
 	itemChan := make(chan models.Item, 100)
 	go func() {
 		defer close(itemChan)
-		item := &models.Item{}
-
 		pool := repo.storage.GetPool()
+
+		item := &models.Item{}
 		rows, err := pool.Query(ctx, `
 		SELECT items.id, items.name, category, categories.name, categories.description, categories.picture, items.description, price, vendor, pictures FROM items INNER JOIN categories ON category=categories.id WHERE items.deleted_at is null AND categories.deleted_at is null`)
 		if err != nil {
@@ -183,8 +194,10 @@ func (repo *itemRepo) ItemsList(ctx context.Context) (chan models.Item, error) {
 	return itemChan, nil
 }
 
+// SearchLine allows to find all the items that satisfy the parameters from the search query and writes them to the output channel
 func (repo *itemRepo) SearchLine(ctx context.Context, param string) (chan models.Item, error) {
 	repo.logger.Debugf("Enter in repository SearchLine() with args: ctx, param: %s", param)
+
 	itemChan := make(chan models.Item, 100)
 	go func() {
 		defer close(itemChan)
@@ -223,6 +236,7 @@ func (repo *itemRepo) SearchLine(ctx context.Context, param string) (chan models
 	return itemChan, nil
 }
 
+// GetItemsByCategory finds in the database all the items with a certain name of the category and writes them in the outgoing channel
 func (repo *itemRepo) GetItemsByCategory(ctx context.Context, categoryName string) (chan models.Item, error) {
 	repo.logger.Debugf("Enter in repository GetItemsByCategory() with args: ctx, categoryName: %s", categoryName)
 	itemChan := make(chan models.Item, 100)
@@ -262,9 +276,12 @@ func (repo *itemRepo) GetItemsByCategory(ctx context.Context, categoryName strin
 	return itemChan, nil
 }
 
+// DeleteItem changes the value of the deleted_at attribute in the deleted item for the current time
 func (repo *itemRepo) DeleteItem(ctx context.Context, id uuid.UUID) error {
 	repo.logger.Debugf("Enter in repository DeleteItem() with args: ctx, id: %v", id)
 	pool := repo.storage.GetPool()
+
+	// Removal operation is carried out in transaction
 	tx, err := pool.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		repo.logger.Errorf("Can't create transaction: %s", err)
@@ -298,6 +315,7 @@ func (repo *itemRepo) DeleteItem(ctx context.Context, id uuid.UUID) error {
 	return nil
 }
 
+// AddFavouriteItem adds item to the list of favourites for a specific user
 func (repo *itemRepo) AddFavouriteItem(ctx context.Context, userId uuid.UUID, itemId uuid.UUID) error {
 	repo.logger.Debug("Enter in repository AddFavouriteItem() with args: ctx, userid: %v, itemId: %v", userId, itemId)
 	pool := repo.storage.GetPool()
@@ -312,6 +330,7 @@ func (repo *itemRepo) AddFavouriteItem(ctx context.Context, userId uuid.UUID, it
 	return nil
 }
 
+// DeleteFavouriteItem deletes item from the list of favourites for a specific user
 func (repo *itemRepo) DeleteFavouriteItem(ctx context.Context, userId uuid.UUID, itemId uuid.UUID) error {
 	repo.logger.Debug("Enter in repository DeleteFavouriteItem() with args: ctx, userid: %v, itemId: %v", userId, itemId)
 	pool := repo.storage.GetPool()
@@ -327,8 +346,11 @@ func (repo *itemRepo) DeleteFavouriteItem(ctx context.Context, userId uuid.UUID,
 	return nil
 }
 
+// GetItemsFavouriteItems finds in the database all the items in list of favourites for current user
+// and writes them in the output channel
 func (repo *itemRepo) GetFavouriteItems(ctx context.Context, userId uuid.UUID) (chan models.Item, error) {
 	repo.logger.Debug("Enter in repository GetFavouriteItems() with args: ctx, userId: %v", userId)
+
 	itemChan := make(chan models.Item, 100)
 	go func() {
 		defer close(itemChan)
@@ -367,10 +389,13 @@ func (repo *itemRepo) GetFavouriteItems(ctx context.Context, userId uuid.UUID) (
 	return itemChan, nil
 }
 
+// GetFavouriteItemsId returns list of identificators of favourite items for current user
 func (repo *itemRepo) GetFavouriteItemsId(ctx context.Context, userId uuid.UUID) (*map[uuid.UUID]uuid.UUID, error) {
-	repo.logger.Debug("Enter in repository GetFavouribeItemsId() with args: ctx, userId: %v", userId)
-	result := make(map[uuid.UUID]uuid.UUID)
+	repo.logger.Debug("Enter in repository GetFavouriteItemsId() with args: ctx, userId: %v", userId)
+
 	pool := repo.storage.GetPool()
+
+	result := make(map[uuid.UUID]uuid.UUID)
 	item := models.Item{}
 	rows, err := pool.Query(ctx, `
 		SELECT 	i.id FROM favourite_items f, items i WHERE f.user_id=$1 and i.id = f.item_id`, userId)
