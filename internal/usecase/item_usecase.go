@@ -296,7 +296,7 @@ func (usecase *ItemUsecase) ItemsQuantityInFavourite(ctx context.Context, userId
 			sortOptions := map[string]string{"sortType": "name", "sortOrder": "asc"}
 			_, err := usecase.GetFavouriteItems(ctx, userId, limitOptions, sortOptions)
 			if err != nil {
-				return -1, fmt.Errorf("error on create items list: %w", err)
+				usecase.logger.Sugar().Warnf("error on create items list in favourite cache: %v", err)
 			}
 		} else {
 			// If cache with list of items in favourite already exists
