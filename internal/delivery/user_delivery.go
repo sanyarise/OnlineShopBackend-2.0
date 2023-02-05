@@ -224,6 +224,7 @@ func (delivery *Delivery) UserProfileUpdate(c *gin.Context) {
 	}
 
 	userUpdated.Email = userCr.Email
+	userUpdated.ID = userCr.UserId
 
 	c.JSON(http.StatusCreated, userUpdated)
 }

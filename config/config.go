@@ -12,14 +12,14 @@ import (
 
 type Config struct {
 	IsProd            bool   `toml:"is_prod" env:"IS_PROD" envDefault:"false"`
-	DNS               string `toml:"dns" env:"DNS" envDefault:"postgres://shopteam:123@104.248.44.156:5432/shop?sslmode=disable"` //localhost
+	DNS               string `toml:"dns" env:"DNS" envDefault:"postgres://shopteam:123@104.248.44.156:5432/shop?sslmode=disable"`
 	AdminMail         string `toml:"admin_mail" env:"ADMIN_MAIL" envDefault:"admin@mail.ru"`
-	AdminPass         string `toml:"admin_pass" env:"ADMIN_PASS" envDefault:"12345678" json:"-"` //
-	Port              string `toml:"port" env:"PORT" envDefault:":8080"` //80 8000
+	AdminPass         string `toml:"admin_pass" env:"ADMIN_PASS" envDefault:"12345678" json:"-"`
+	Port              string `toml:"port" env:"PORT" envDefault:":8080"`
 	FsPath            string `toml:"fs_path" env:"FS_PATH" envDefault:"./static/files/"`
-	ServerURL         string `toml:"server_url" env:"SERVER_URL" envDefault:"http://104.248.44.156"` // cozydragon.online localhost:8000
+	ServerURL         string `toml:"server_url" env:"SERVER_URL" envDefault:"http://104.248.44.156"`
 	Timeout           int    `toml:"timeout" env:"TIMEOUT" envDefault:"5"`
-	CashHost          string `toml:"cash_host" env:"CASH_HOST" envDefault:"104.248.44.156"` //localhost
+	CashHost          string `toml:"cash_host" env:"CASH_HOST" envDefault:"104.248.44.156"`
 	CashPort          string `toml:"cash_port" env:"CASH_PORT" envDefault:"6379"`
 	CashTTL           int    `toml:"cash_ttl" env:"CASH_TTL" envDefault:"30"`
 	LogLevel          string `toml:"log_level" env:"LOG_LEVEL" envDefault:"debug"`
