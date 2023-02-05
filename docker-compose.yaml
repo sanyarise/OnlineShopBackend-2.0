@@ -1,20 +1,20 @@
 version: '3.5'
 
 services:
-#  shop:
-#    build: .
-#    image: shop
-#    container_name: shop
-#    hostname: shop
-#    restart: always
-#    depends_on:
-#      - redis
-#    ports:
-#      - 8000:8000
-#    environment:
-#      PORT: ":8000"
-#      DNS: "postgres://shopteam:123@postgres:5432/shop?sslmode=disable"
-#      CASH_HOST: "redis"
+  shop:
+    build: .
+    image: shop
+    container_name: shop
+    hostname: shop
+    restart: always
+    depends_on:
+      - redis
+    ports:
+      - 8000:8000
+    environment:
+      PORT: ":8000"
+      DNS: "postgres://shopteam:123@postgres:5432/shop?sslmode=disable"
+      CASH_HOST: "redis"
 
   postgres:
     image: postgres:14.6-alpine
@@ -30,25 +30,25 @@ services:
     volumes:
       - ./storage/init_db:/docker-entrypoint-initdb.d
 
-#  redis:
-#    image: redis:6.2.8-alpine
-#    container_name: redis
-#    hostname: redis
-#    restart: always
-#    ports:
-#      - 6379:6379
-#    depends_on:
-#      - postgres
+  redis:
+    image: redis:6.2.8-alpine
+    container_name: redis
+    hostname: redis
+    restart: always
+    ports:
+      - 6379:6379
+    depends_on:
+      - postgres
 
-#  frontend:
-#    image: front:latest
-#    container_name: frontend
-#    hostname: frontend
-#    restart: always
-#    ports:
-#      - 3000:3000
-#    depends_on:
-#      - shop
+  frontend:
+    image: front:latest
+    container_name: frontend
+    hostname: frontend
+    restart: always
+    ports:
+      - 3000:3000
+    depends_on:
+      - shop
 
 #  Observability
   prometheus:
@@ -74,9 +74,9 @@ services:
       - ./deployment/grafana/go-metrics_rev1.json:/var/lib/grafana/dashboards/go-metrics_rev1.json
     restart: unless-stopped
 
-#networks:
-#  default:
-#    name: shop
-#    driver: bridge
+networks:
+  default:
+    name: shop
+    driver: bridge
 
 
