@@ -19,7 +19,7 @@ type Config struct {
 	FsPath            string `toml:"fs_path" env:"FS_PATH" envDefault:"./static/files/"`
 	ServerURL         string `toml:"server_url" env:"SERVER_URL" envDefault:"http://cozydragon.online"` // cozydragon.online localhost:8000
 	Timeout           int    `toml:"timeout" env:"TIMEOUT" envDefault:"5"`
-	CashHost          string `toml:"cash_host" env:"CASH_HOST" envDefault:"localhost"`
+	CashHost          string `toml:"cash_host" env:"CASH_HOST" envDefault:"104.248.44.156"` //localhost
 	CashPort          string `toml:"cash_port" env:"CASH_PORT" envDefault:"6379"`
 	CashTTL           int    `toml:"cash_ttl" env:"CASH_TTL" envDefault:"30"`
 	LogLevel          string `toml:"log_level" env:"LOG_LEVEL" envDefault:"debug"`
