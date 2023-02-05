@@ -139,6 +139,7 @@ func (d *Delivery) GetOrder(c *gin.Context) {
 	order := order.Order{
 		Id:           modelOrder.ID.String(),
 		UserId:       modelOrder.User.ID.String(),
+		CreatedAt:    modelOrder.CreatedAt,
 		ShipmentTime: modelOrder.ShipmentTime,
 		Address:      order.OrderAddress(modelOrder.Address),
 		Status:       string(modelOrder.Status),
@@ -202,6 +203,7 @@ func (d *Delivery) GetOrdersForUser(c *gin.Context) {
 		order := order.Order{
 			Id:           modelOrder.ID.String(),
 			UserId:       modelOrder.User.ID.String(),
+			CreatedAt:    modelOrder.CreatedAt,
 			ShipmentTime: modelOrder.ShipmentTime,
 			Address:      order.OrderAddress(modelOrder.Address),
 			Status:       string(modelOrder.Status),

@@ -79,10 +79,8 @@ var (
 		Description: 6,
 	}
 	testList    = []models.Category{*testModelsCategoryWithId}
-	testOutList = category.CategoriesList{
-		List: []category.Category{
-			testCategoryWithId,
-		},
+	testOutList = []category.Category{
+		testCategoryWithId,
 	}
 	testCategoryWithImage = models.Category{
 		Id:          testId,
@@ -369,7 +367,7 @@ func TestGetCategoryList(t *testing.T) {
 		Header: make(http.Header),
 	}
 
-	testBytes, _ := json.Marshal(&testOutList.List)
+	testBytes, _ := json.Marshal(&testOutList)
 	categoryUsecase.EXPECT().GetCategoryList(ctx).Return(testList, nil)
 	delivery.GetCategoryList(c)
 	require.Equal(t, 200, w.Code)

@@ -2806,12 +2806,16 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "address",
+                "created_at",
                 "id",
                 "shipment_time"
             ],
             "properties": {
                 "address": {
                     "$ref": "#/definitions/order.OrderAddress"
+                },
+                "created_at": {
+                    "type": "string"
                 },
                 "id": {
                     "type": "string",

@@ -35,6 +35,7 @@ func (o *order) PlaceOrder(ctx context.Context, cart *models.Cart, user models.U
 			User:         user,
 			Address:      address,
 			Status:       models.StatusCreated,
+			CreatedAt:    time.Now(),
 			ShipmentTime: time.Now().Add(models.ProlongedShipmentPeriod),
 			Items:        append([]models.ItemWithQuantity{}[:0:0], cart.Items...),
 		}
