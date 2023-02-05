@@ -12,7 +12,7 @@ import (
 
 type Config struct {
 	IsProd            bool   `toml:"is_prod" env:"IS_PROD" envDefault:"false"`
-	DNS               string `toml:"dns" env:"DNS" envDefault:"postgres://shopteam:123@localhost:5432/shop?sslmode=disable"`
+	DNS               string `toml:"dns" env:"DNS" envDefault:"postgres://shopteam:123@104.248.44.156:5432/shop?sslmode=disable"` //localhost
 	AdminMail         string `toml:"admin_mail" env:"ADMIN_MAIL" envDefault:"admin@mail.ru"`
 	AdminPass         string `toml:"admin_pass" env:"ADMIN_PASS" envDefault:"12345678" json:"-"` 
 	Port              string `toml:"port" env:"PORT" envDefault:":8080"` //80 8000
