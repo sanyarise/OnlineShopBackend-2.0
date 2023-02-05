@@ -37,9 +37,10 @@ jobs:
     needs: build_and_push
     steps:
       - name: Deploy to Digital Ocean droplet via SSH action
-        uses: appleboy/ssh-action@v0.1.3
+        uses: appleboy/ssh-action@v0.1.7
         with:
           host: ${{ secrets.SERVER_URL }}
+          username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSHKEY }}
           envs: IMAGE_NAME,REGISTRY,GITHUB_SHA,CONTAINER_NAME
           script: |

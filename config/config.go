@@ -15,7 +15,7 @@ type Config struct {
 	DNS               string `toml:"dns" env:"DNS" envDefault:"postgres://shopteam:123@localhost:5432/shop?sslmode=disable"`
 	AdminMail         string `toml:"admin_mail" env:"ADMIN_MAIL" envDefault:"admin@mail.ru"`
 	AdminPass         string `toml:"admin_pass" env:"ADMIN_PASS" envDefault:"12345678" json:"-"` 
-	Port              string `toml:"port" env:"PORT" envDefault:":8000"` //80 8000
+	Port              string `toml:"port" env:"PORT" envDefault:":8080"` //80 8000
 	FsPath            string `toml:"fs_path" env:"FS_PATH" envDefault:"./static/files/"`
 	ServerURL         string `toml:"server_url" env:"SERVER_URL" envDefault:"http://cozydragon.online"` // cozydragon.online localhost:8000
 	Timeout           int    `toml:"timeout" env:"TIMEOUT" envDefault:"5"`
