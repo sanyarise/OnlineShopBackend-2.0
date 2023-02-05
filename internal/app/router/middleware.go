@@ -2,12 +2,12 @@ package router
 
 import (
 	"OnlineShopBackend/internal/delivery/user/jwtauth"
-	"github.com/google/uuid"
 	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
+	"github.com/google/uuid"
 )
 
 const (

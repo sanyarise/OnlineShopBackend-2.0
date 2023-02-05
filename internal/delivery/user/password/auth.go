@@ -4,8 +4,9 @@ import (
 	"OnlineShopBackend/internal/models"
 	"crypto/sha1"
 	"fmt"
-	"github.com/caarlos0/env/v6"
 	"log"
+
+	"github.com/caarlos0/env/v6"
 )
 
 type SaltSHA struct {

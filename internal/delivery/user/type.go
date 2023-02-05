@@ -3,6 +3,7 @@ package user
 import (
 	"OnlineShopBackend/internal/delivery/user/jwtauth"
 	"OnlineShopBackend/internal/models"
+
 	"github.com/google/uuid"
 )
 
