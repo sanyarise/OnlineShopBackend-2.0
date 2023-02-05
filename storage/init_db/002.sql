@@ -84,7 +84,8 @@ CREATE TABLE favourite_items (
 
 CREATE TABLE orders (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    shipment_time timestamp not NULL,
+    created_at timestamptz not NULL,
+    shipment_time timestamptz not NULL,
     user_id UUID,
     status VARCHAR(256),
     address TEXT,

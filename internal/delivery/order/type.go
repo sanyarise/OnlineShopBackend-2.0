@@ -10,6 +10,7 @@ type Order struct {
 	Id           string          `json:"id" binding:"required,uuid"  example:"00000000-0000-0000-0000-000000000000" format:"uuid"`
 	Items        []cart.CartItem `json:"items,omitempty" binding:"min=0" minimum:"0"`
 	UserId       string          `json:"user_id,omitempty"  example:"00000000-0000-0000-0000-000000000000" format:"uuid"`
+	CreatedAt    time.Time       `json:"created_at" binding:"required" time_format:"2006-01-02"`
 	ShipmentTime time.Time       `json:"shipment_time" binding:"required" time_format:"2006-01-02"`
 	Address      OrderAddress    `json:"address" binding:"required"`
 	Status       string          `json:"status,omitempty"`
