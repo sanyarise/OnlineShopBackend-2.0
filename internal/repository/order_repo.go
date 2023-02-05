@@ -51,8 +51,8 @@ func (o *order) Create(ctx context.Context, order *models.Order) (*models.Order,
 				}
 			}
 		}()
-		row := tx.QueryRow(ctx, `INSERT INTO orders (shipment_time, user_id, status, address) 
-		VALUES ($1, $2, $3, $4) RETURNING id`, order.ShipmentTime, order.User.ID, order.Status,
+		row := tx.QueryRow(ctx, `INSERT INTO orders (created_at, shipment_time, user_id, status, address) 
+		VALUES ($1, $2, $3, $4, $5) RETURNING id`, order.CreatedAt, order.ShipmentTime, order.User.ID, order.Status,
 			fmt.Sprintf("%s -> %s -> %s -> %s", order.Address.Zipcode, order.Address.Country, order.Address.City, order.Address.Street))
 		err = row.Scan(&order.ID)
 		if err != nil {
@@ -152,7 +152,7 @@ func (o *order) GetOrderByID(ctx context.Context, id uuid.UUID) (models.Order, e
 			Items: make([]models.ItemWithQuantity, 0),
 		}
 		rows, err := pool.Query(ctx, `SELECT items.id, items.name, categories.id, categories.name, categories.description, categories.picture,
-				items.description, items.price, items.vendor, items.pictures, orders.id, orders.user_id, orders.status, orders.shipment_time,
+				items.description, items.price, items.vendor, items.pictures, orders.id, orders.user_id, orders.status, orders.created_at, orders.shipment_time,
 				orders.status, orders.address, order_items.item_quantity from items INNER JOIN categories ON categories.id=category  INNER JOIN order_items ON
 				items.id=order_items.item_id INNER JOIN orders ON orders.id=order_items.order_id and orders.id = $1 ORDER BY order_id ASC`, id)
 		if err != nil {
@@ -164,7 +164,7 @@ func (o *order) GetOrderByID(ctx context.Context, id uuid.UUID) (models.Order, e
 		for rows.Next() {
 			item := models.ItemWithQuantity{}
 			if err := rows.Scan(&item.Id, &item.Title, &item.Category.Id, &item.Category.Name, &item.Category.Description, &item.Category.Image,
-				&item.Description, &item.Price, &item.Vendor, &item.Images, &ordr.ID, &ordr.User.ID, &ordr.Status, &ordr.ShipmentTime, &ordr.Status, &address, &item.Quantity); err != nil {
+				&item.Description, &item.Price, &item.Vendor, &item.Images, &ordr.ID, &ordr.User.ID, &ordr.Status, &ordr.CreatedAt, &ordr.ShipmentTime, &ordr.Status, &address, &item.Quantity); err != nil {
 				o.logger.Errorf("can't scan data to order object: %w", err)
 				return models.Order{}, err
 			}
@@ -195,7 +195,7 @@ func (o *order) GetOrdersForUser(ctx context.Context, user *models.User) (chan m
 		go func() {
 			defer close(resChan)
 			rows, err := pool.Query(ctx, `SELECT items.id, items.name, categories.id, categories.name, categories.description, categories.picture,
-			items.description, items.price, items.vendor, items.pictures, orders.id, orders.user_id, orders.status, orders.shipment_time,
+			items.description, items.price, items.vendor, items.pictures, orders.id, orders.user_id, orders.status, orders.created_at, orders.shipment_time,
 			orders.status, orders.address, order_items.item_quantity from items INNER JOIN categories ON categories.id=category  INNER JOIN order_items ON
 			items.id=order_items.item_id INNER JOIN orders ON orders.id=order_items.order_id and orders.user_id = $1 ORDER BY order_id ASC`, user.ID)
 			if err != nil {
@@ -211,7 +211,7 @@ func (o *order) GetOrdersForUser(ctx context.Context, user *models.User) (chan m
 				item := models.ItemWithQuantity{}
 				order := models.Order{}
 				if err := rows.Scan(&item.Id, &item.Title, &item.Category.Id, &item.Category.Name, &item.Category.Description, &item.Category.Image,
-					&item.Description, &item.Price, &item.Vendor, &item.Images, &order.ID, &order.User.ID, &order.Status, &order.ShipmentTime, &order.Status, &address, &item.Quantity); err != nil {
+					&item.Description, &item.Price, &item.Vendor, &item.Images, &order.ID, &order.User.ID, &order.Status, &order.CreatedAt, &order.ShipmentTime, &order.Status, &address, &item.Quantity); err != nil {
 					o.logger.Errorf("can't scan data to order object: %w", err)
 					return
 				}
