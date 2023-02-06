@@ -112,7 +112,7 @@ func (delivery *Delivery) LoginUser(c *gin.Context) {
 	userExist, err := delivery.userUsecase.GetUserByEmail(ctx, userCredentials.Email)
 	if err != nil || userExist.Password != password.GeneratePasswordHash(userCredentials.Password) {
 		delivery.logger.Error(err.Error())
-		delivery.SetError(c, http.StatusNotFound, err)
+		delivery.SetError(c, http.StatusUnauthorized, fmt.Errorf("incorrect email or password"))
 		return
 	}
 
@@ -224,6 +224,7 @@ func (delivery *Delivery) UserProfileUpdate(c *gin.Context) {
 	}
 
 	userUpdated.Email = userCr.Email
+	userUpdated.ID = userCr.UserId
 
 	c.JSON(http.StatusCreated, userUpdated)
 }
