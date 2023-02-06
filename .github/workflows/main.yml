@@ -3,7 +3,7 @@ name: CI
 on:
   push:
     branches:
-      - Auth3
+      - Develop
 
 env:
   REGISTRY: "registry.digitalocean.com/cozy"
