@@ -105,7 +105,7 @@ CREATE TABLE order_items (
         FOREIGN KEY(item_id) REFERENCES items(id)
 );
 
-INSERT INTO categories(id, name, description, picture) VALUES ('d0d3df2d-f6c8-4956-9d76-998ee1ec8a39', 'electronics', 'electronics for life', 'http://localhost:8000/files/categories/d0d3df2d-f6c8-4956-9d76-998ee1ec8a39/20221213125935.jpeg');
+INSERT INTO categories(id, name, description, picture) VALUES ('d0d3df2d-f6c8-4956-9d76-998ee1ec8a39', 'electronics', 'electronics for life', 'http://cozydragon.online:8080/files/categories/d0d3df2d-f6c8-4956-9d76-998ee1ec8a39/20221213125935.jpeg');
 
 INSERT INTO items(id, name, category, description, price, vendor, pictures) VALUES ('0b74b0ac-68aa-462b-8609-4bf5eac3f9f7', 'smartphone samsung', 'd0d3df2d-f6c8-4956-9d76-998ee1ec8a39', 'best smartphone', 10000, 'samsung', '{"http://cozydragon.online:8080/files/items/0b74b0ac-68aa-462b-8609-4bf5eac3f9f7/20221213132612.jpeg"}');
 INSERT INTO items(id, name, category, description, price, vendor, pictures) VALUES ('692a759d-a993-45ea-b3bd-6cd523db74b4', 'smartphone xiaomi', 'd0d3df2d-f6c8-4956-9d76-998ee1ec8a39', 'best smartphone', 8900, 'xiaomi', '{"http://cozydragon.online:8080/files/items/692a759d-a993-45ea-b3bd-6cd523db74b4/20221213132650.jpeg"}');
