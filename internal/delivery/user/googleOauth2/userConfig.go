@@ -13,7 +13,7 @@ type UserConfig struct {
 }
 
 func NewUserConfig() (*UserConfig, error) {
-	var configPathGoogle = "./internal/delivery/user/googleOauth2/clientSecretGoogle.json"
+	var configPathGoogle = "./static/config/clientSecretGoogle.json"
 
 	var cfg = UserConfig{}
 
