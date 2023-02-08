@@ -11,7 +11,7 @@ RUN go build -o /bin/shop ./cmd/onlineShopBackend/.
 RUN mkdir /bin/static
 
 COPY ./static /bin/static
-COPY ./internal/delivery/user/googleOauth2/ /bin/internal/delivery/user/googleOauth2/
+COPY ./internal/delivery/user/googleOauth2 /bin/internal/delivery/user/googleOauth2
 
 FROM alpine:latest
 
