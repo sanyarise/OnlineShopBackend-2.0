@@ -9,6 +9,7 @@ RUN go get -d -v ./...
 RUN go build -o /bin/shop ./cmd/onlineShopBackend/.
 
 RUN mkdir /bin/static
+RUN mkdir /bin/internal/delivery/user/googleOauth2
 
 COPY ./static /bin/static
 COPY ./internal/delivery/user/googleOauth2 /bin/internal/delivery/user/googleOauth2
