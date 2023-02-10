@@ -1,0 +1,82 @@
+version: '3.5'
+
+services:
+  shop:
+    build: .
+    image: shop
+    container_name: shop
+    hostname: shop
+    restart: always
+    depends_on:
+      - redis
+    ports:
+      - 8000:8000
+    environment:
+      PORT: ":8000"
+      DNS: "postgres://shopteam:123@postgres:5432/shop?sslmode=disable"
+      CASH_HOST: "redis"
+
+  postgres:
+    image: postgres:14.6-alpine
+    container_name: postgres
+    hostname: postgres
+    restart: always
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_DB: shop
+      POSTGRES_USER: shopteam
+      POSTGRES_PASSWORD: 123
+    volumes:
+      - ./storage/init_db:/docker-entrypoint-initdb.d
+
+  redis:
+    image: redis:6.2.8-alpine
+    container_name: redis
+    hostname: redis
+    restart: always
+    ports:
+      - 6379:6379
+    depends_on:
+      - postgres
+
+  frontend:
+    image: front:latest
+    container_name: frontend
+    hostname: frontend
+    restart: always
+    ports:
+      - 3000:3000
+    depends_on:
+      - shop
+
+#  Observability
+  prometheus:
+    image: prom/prometheus:v2.41.0
+    volumes:
+      - ./deployment/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - 9091:9090
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:9.3.2
+    ports:
+      - 3001:3000
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./deployment/grafana/dashboard.yaml:/etc/grafana/provisioning/dashboards/main.yaml
+      - ./deployment/grafana/datasource.yaml:/etc/grafana/provisioning/datasources/main.yaml
+      - ./deployment/grafana/dashboard.json:/var/lib/grafana/dashboards/dashboard.json
+      - ./deployment/grafana/go-metrics_rev1.json:/var/lib/grafana/dashboards/go-metrics_rev1.json
+    restart: unless-stopped
+
+networks:
+  default:
+    name: shop
+    driver: bridge
+
+

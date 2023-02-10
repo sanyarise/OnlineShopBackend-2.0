@@ -1,0 +1,1998 @@
+basePath: /
+definitions:
+  cart.Cart:
+    properties:
+      id:
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/cart.CartItem'
+        minItems: 0
+        type: array
+      userId:
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        type: string
+    required:
+    - id
+    type: object
+  cart.CartId:
+    properties:
+      id:
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        type: string
+    required:
+    - id
+    type: object
+  cart.CartItem:
+    properties:
+      item:
+        $ref: '#/definitions/item.OutItem'
+      quantity:
+        default: 1
+        example: 3
+        minimum: 1
+        type: integer
+    required:
+    - quantity
+    type: object
+  cart.ShortCart:
+    properties:
+      cartId:
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        type: string
+      itemId:
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        type: string
+    required:
+    - cartId
+    - itemId
+    type: object
+  category.Category:
+    properties:
+      description:
+        example: Электротехнические товары для дома
+        type: string
+      id:
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        type: string
+      image:
+        type: string
+      name:
+        example: Электротехника
+        type: string
+    required:
+    - description
+    - id
+    - name
+    type: object
+  category.CategoryId:
+    properties:
+      id:
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        type: string
+    required:
+    - id
+    type: object
+  category.ShortCategory:
+    properties:
+      description:
+        example: Электротехнические товары для дома
+        type: string
+      image:
+        type: string
+      name:
+        example: Электротехника
+        type: string
+    required:
+    - description
+    - name
+    type: object
+  delivery.ErrorResponse:
+    properties:
+      errors:
+        items:
+          type: string
+        type: array
+      id:
+        type: string
+      info: {}
+      message:
+        type: string
+    type: object
+  file.FileListResponse:
+    properties:
+      files:
+        items:
+          $ref: '#/definitions/file.FilesInfo'
+        type: array
+    type: object
+  file.FilesInfo:
+    properties:
+      createdDate:
+        example: 2022-12-13 12:46:16.0964549 +0300 MSK
+        type: string
+      modifyDate:
+        example: 2022-12-13 12:46:16.0964549 +0300 MSK
+        type: string
+      name:
+        example: 20221213125935.jpeg
+        type: string
+      path:
+        example: storage\files\categories\d0d3df2d-f6c8-4956-9d76-998ee1ec8a39\20221213125935.jpeg
+        type: string
+    type: object
+  item.AddFavItem:
+    properties:
+      itemId:
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        type: string
+      userId:
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        type: string
+    required:
+    - itemId
+    - userId
+    type: object
+  item.InItem:
+    properties:
+      category:
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        type: string
+      description:
+        example: Мощность всасывания 1.5 кВт
+        type: string
+      id:
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        type: string
+      image:
+        items:
+          type: string
+        type: array
+      price:
+        default: 10
+        example: 1990
+        minimum: 0
+        type: integer
+      title:
+        example: Пылесос
+        type: string
+      vendor:
+        example: Витязь
+        type: string
+    required:
+    - category
+    - description
+    - id
+    - price
+    - title
+    - vendor
+    type: object
+  item.ItemId:
+    properties:
+      id:
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        type: string
+    required:
+    - id
+    type: object
+  item.ItemsList:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/item.OutItem'
+        minItems: 0
+        type: array
+      quantity:
+        default: 0
+        example: 10
+        minimum: 0
+        type: integer
+    type: object
+  item.ItemsQuantity:
+    properties:
+      quantity:
+        default: 0
+        example: 10
+        minimum: 0
+        type: integer
+    type: object
+  item.OutItem:
+    properties:
+      category:
+        $ref: '#/definitions/category.Category'
+      description:
+        example: Мощность всасывания 1.5 кВт
+        type: string
+      id:
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        type: string
+      image:
+        items:
+          type: string
+        type: array
+      isFavourite:
+        example: false
+        type: boolean
+      price:
+        default: 10
+        example: 1990
+        minimum: 0
+        type: integer
+      title:
+        example: Пылесос
+        type: string
+      vendor:
+        example: Витязь
+        type: string
+    required:
+    - category
+    - description
+    - id
+    - price
+    - title
+    - vendor
+    type: object
+  item.ShortItem:
+    properties:
+      category:
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        type: string
+      description:
+        example: Мощность всасывания 1.5 кВт
+        type: string
+      image:
+        items:
+          type: string
+        type: array
+      price:
+        default: 10
+        example: 1990
+        minimum: 0
+        type: integer
+      title:
+        example: Пылесос
+        type: string
+      vendor:
+        example: Витязь
+        type: string
+    required:
+    - description
+    - price
+    - title
+    type: object
+  jwtauth.Token:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
+    type: object
+  order.AddressWithUserAndId:
+    properties:
+      address:
+        $ref: '#/definitions/order.OrderAddress'
+      order_id:
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        type: string
+      user:
+        $ref: '#/definitions/order.UserForCart'
+    required:
+    - order_id
+    type: object
+  order.CartAdressUser:
+    properties:
+      address:
+        $ref: '#/definitions/order.OrderAddress'
+      cart:
+        $ref: '#/definitions/cart.Cart'
+      user:
+        $ref: '#/definitions/order.UserForCart'
+    type: object
+  order.Order:
+    properties:
+      address:
+        $ref: '#/definitions/order.OrderAddress'
+      created_at:
+        type: string
+      id:
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/cart.CartItem'
+        minItems: 0
+        type: array
+      shipment_time:
+        type: string
+      status:
+        type: string
+      user_id:
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        type: string
+    required:
+    - address
+    - created_at
+    - id
+    - shipment_time
+    type: object
+  order.OrderAddress:
+    properties:
+      city:
+        type: string
+      country:
+        type: string
+      street:
+        type: string
+      zipcode:
+        type: string
+    required:
+    - city
+    - street
+    - zipcode
+    type: object
+  order.OrderId:
+    properties:
+      id:
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        type: string
+      newCartId:
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        type: string
+    required:
+    - id
+    - newCartId
+    type: object
+  order.StatusWithUserAndId:
+    properties:
+      order_id:
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        type: string
+      status:
+        type: string
+      user:
+        $ref: '#/definitions/order.UserForCart'
+    required:
+    - order_id
+    type: object
+  order.UserForCart:
+    properties:
+      email:
+        type: string
+      id:
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        type: string
+      role:
+        type: string
+    required:
+    - email
+    - id
+    type: object
+  password.Credentials:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  user.CreateUserData:
+    type: object
+  user.LoginResponseData:
+    properties:
+      cartId:
+        type: string
+      token:
+        $ref: '#/definitions/jwtauth.Token'
+    type: object
+  user.RightsId:
+    properties:
+      id:
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        type: string
+    required:
+    - id
+    type: object
+  user.ShortRights:
+    properties:
+      name:
+        example: admin
+        type: string
+      rules:
+        items:
+          type: string
+        type: array
+    required:
+    - name
+    type: object
+info:
+  contact:
+    url: https://github.com/GBteammates/OnlineShopBackend
+  description: Backend service for online store
+  license:
+    name: MIT
+  title: Online Shop Backend Service
+  version: "1.0"
+paths:
+  /cart/{cartID}:
+    get:
+      consumes:
+      - application/json
+      description: The method allows you to get the cart by id.
+      parameters:
+      - description: Id of cart
+        in: path
+        name: cartID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Cart structure
+          schema:
+            $ref: '#/definitions/cart.Cart'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Get cart by id
+      tags:
+      - carts
+  /cart/addItem:
+    put:
+      consumes:
+      - application/json
+      description: Method provides to add item to cart.
+      parameters:
+      - description: Data for add item to cart
+        in: body
+        name: cart
+        required: true
+        schema:
+          $ref: '#/definitions/cart.ShortCart'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Method provides to add item to cart
+      tags:
+      - carts
+  /cart/byUser/{userID}:
+    get:
+      consumes:
+      - application/json
+      description: The method allows you to get the cart by user id.
+      parameters:
+      - description: Id of user
+        in: path
+        name: userID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Cart structure
+          schema:
+            $ref: '#/definitions/cart.Cart'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Get cart by user id
+      tags:
+      - carts
+  /cart/create/{userID}:
+    post:
+      consumes:
+      - application/json
+      description: Method provides to create cart with items.
+      parameters:
+      - description: Id of user (if user autorized)
+        in: path
+        name: userID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/cart.CartId'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Method provides to create cart with items
+      tags:
+      - carts
+  /cart/delete/{cartID}:
+    delete:
+      consumes:
+      - application/json
+      description: Method provides to delete cart.
+      parameters:
+      - description: id of cart
+        in: path
+        name: cartID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Method provides to delete cart
+      tags:
+      - carts
+  /cart/delete/{cartID}/{itemID}:
+    delete:
+      consumes:
+      - application/json
+      description: Method provides to delete item from cart.
+      parameters:
+      - description: id of cart
+        in: path
+        name: cartID
+        required: true
+        type: string
+      - description: id of item
+        in: path
+        name: itemID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Method provides to delete item from cart
+      tags:
+      - carts
+  /categories/{categoryID}:
+    get:
+      consumes:
+      - application/json
+      description: The method allows you to get the category by id.
+      parameters:
+      - description: Id of category
+        in: path
+        name: categoryID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Category structure
+          schema:
+            $ref: '#/definitions/category.Category'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Get category by id
+      tags:
+      - categories
+  /categories/create:
+    post:
+      consumes:
+      - application/json
+      description: Method provides to create category of items.
+      parameters:
+      - description: Data for creating category
+        in: body
+        name: category
+        required: true
+        schema:
+          $ref: '#/definitions/category.ShortCategory'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/category.CategoryId'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Method provides to create category of items
+      tags:
+      - categories
+  /categories/delete/{categoryID}:
+    delete:
+      consumes:
+      - application/json
+      description: Method provides to delete category.
+      parameters:
+      - description: id of category
+        in: path
+        name: categoryID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Method provides to delete category
+      tags:
+      - categories
+  /categories/image/delete:
+    delete:
+      consumes:
+      - application/json
+      description: The method allows you to delete a category image by category id.
+      parameters:
+      - description: Category id
+        in: query
+        name: id
+        required: true
+        type: string
+      - description: Image name
+        in: query
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Delete a category image by category id
+      tags:
+      - categories
+  /categories/image/upload/:categoryID:
+    post:
+      consumes:
+      - application/json
+      description: Method provides to upload an image of category.
+      parameters:
+      - description: id of category
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: picture of category
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "415":
+          description: Unsupported Media Type
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "507":
+          description: Insufficient Storage
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Upload an image of category
+      tags:
+      - categories
+  /categories/list:
+    get:
+      consumes:
+      - application/json
+      description: Method provides to get list of categories
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of categories
+          schema:
+            items:
+              $ref: '#/definitions/category.Category'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Get list of categories
+      tags:
+      - categories
+  /categories/update:
+    put:
+      consumes:
+      - application/json
+      description: Method provides to update category.
+      parameters:
+      - description: id of category
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Data for updating category
+        in: body
+        name: category
+        required: true
+        schema:
+          $ref: '#/definitions/category.ShortCategory'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Method provides to update category
+      tags:
+      - categories
+  /images/list:
+    get:
+      consumes:
+      - application/json
+      description: Method provides to get list of files.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of files
+          schema:
+            $ref: '#/definitions/file.FileListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Get list of files
+      tags:
+      - files
+  /items:
+    get:
+      consumes:
+      - application/json
+      description: Method provides to get list of items by category name
+      parameters:
+      - description: Category name
+        in: query
+        name: param
+        type: string
+      - default: 0
+        description: Offset when receiving records
+        in: query
+        name: offset
+        type: integer
+      - default: 10
+        description: Quantity of recordings
+        in: query
+        minimum: 0
+        name: limit
+        type: integer
+      - default: '"name"'
+        description: Sort type (name or price)
+        in: query
+        name: sortType
+        type: string
+      - default: '"asc"'
+        description: Sort order (asc or desc)
+        in: query
+        name: sortOrder
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of items
+          schema:
+            $ref: '#/definitions/item.ItemsList'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Get list of items by category name
+      tags:
+      - items
+  /items/{itemID}:
+    get:
+      consumes:
+      - application/json
+      description: The method allows you to get the product by id.
+      parameters:
+      - description: id of item
+        in: path
+        name: itemID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Item structure
+          schema:
+            $ref: '#/definitions/item.OutItem'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Get item by id
+      tags:
+      - items
+  /items/addFavItem:
+    post:
+      consumes:
+      - application/json
+      description: Method provides add item in favourites.
+      parameters:
+      - description: Data for add item to favourite
+        in: body
+        name: item
+        required: true
+        schema:
+          $ref: '#/definitions/item.AddFavItem'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Method provides add item in favourites
+      tags:
+      - items
+  /items/create/:
+    post:
+      consumes:
+      - application/json
+      description: Method provides to create store item
+      parameters:
+      - description: Data for creating item
+        in: body
+        name: item
+        required: true
+        schema:
+          $ref: '#/definitions/item.ShortItem'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/item.ItemId'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Method provides to create store item
+      tags:
+      - items
+  /items/delete/{itemID}:
+    delete:
+      consumes:
+      - application/json
+      description: Method provides to delete item.
+      parameters:
+      - description: id of item
+        in: path
+        name: itemID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Method provides to delete item
+      tags:
+      - items
+  /items/deleteFav/{userID}/{itemID}:
+    delete:
+      consumes:
+      - application/json
+      description: Method provides delete item from favourites.
+      parameters:
+      - description: id of user
+        in: path
+        name: userID
+        required: true
+        type: string
+      - description: id of item
+        in: path
+        name: itemID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Method provides delete item from favourites
+      tags:
+      - items
+  /items/favList:
+    get:
+      consumes:
+      - application/json
+      description: Method provides to get list of favourite items
+      parameters:
+      - description: ID of user
+        in: query
+        name: param
+        type: string
+      - default: 10
+        description: Quantity of recordings
+        in: query
+        minimum: 0
+        name: limit
+        type: integer
+      - default: 0
+        description: Offset when receiving records
+        in: query
+        name: offset
+        type: integer
+      - description: Sort type (name or price)
+        in: query
+        name: sortType
+        type: string
+      - description: Sort order (asc or desc)
+        in: query
+        name: sortOrder
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of items
+          schema:
+            $ref: '#/definitions/item.ItemsList'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Get list of favourite items
+      tags:
+      - items
+  /items/image/delete:
+    delete:
+      consumes:
+      - application/json
+      description: The method allows you to delete an item image by item id.
+      parameters:
+      - description: Item id
+        in: query
+        name: id
+        required: true
+        type: string
+      - description: Image name
+        in: query
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Delete an item image by item id
+      tags:
+      - items
+  /items/image/upload/:itemID:
+    post:
+      consumes:
+      - application/json
+      description: Method provides to upload an image of item
+      parameters:
+      - description: id of item
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: picture of item
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "415":
+          description: Unsupported Media Type
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "507":
+          description: Insufficient Storage
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Upload an image of item
+      tags:
+      - items
+  /items/list:
+    get:
+      consumes:
+      - application/json
+      description: Method provides to get list of items
+      parameters:
+      - default: 0
+        description: Offset when receiving records
+        in: query
+        name: offset
+        type: integer
+      - default: 10
+        description: Quantity of recordings
+        in: query
+        minimum: 0
+        name: limit
+        type: integer
+      - default: '"name"'
+        description: Sort type (name or price)
+        in: query
+        name: sortType
+        type: string
+      - default: '"asc"'
+        description: Sort order (asc or desc)
+        in: query
+        name: sortOrder
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of items
+          schema:
+            $ref: '#/definitions/item.ItemsList'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Get list of items
+      tags:
+      - items
+  /items/quantity:
+    get:
+      consumes:
+      - application/json
+      description: Method provides to get quantity of items
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Quantity of items
+          schema:
+            $ref: '#/definitions/item.ItemsQuantity'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Get quantity of items
+      tags:
+      - items
+  /items/quantityCat/{categoryName}:
+    get:
+      consumes:
+      - application/json
+      description: Method provides to get quantity of items in category
+      parameters:
+      - description: Name of category
+        in: path
+        name: categoryName
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Quantity of items
+          schema:
+            $ref: '#/definitions/item.ItemsQuantity'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Get quantity of items in category
+      tags:
+      - items
+  /items/quantityFav/{userID}:
+    get:
+      consumes:
+      - application/json
+      description: Method provides to get quantity favourite items
+      parameters:
+      - description: id of user
+        in: path
+        name: userID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Quantity of items
+          schema:
+            $ref: '#/definitions/item.ItemsQuantity'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Get quantity of favourite items
+      tags:
+      - items
+  /items/quantitySearch/{searchRequest}:
+    get:
+      consumes:
+      - application/json
+      description: Method provides to get quantity of items in search request
+      parameters:
+      - description: Search request
+        in: path
+        name: searchRequest
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Quantity of items
+          schema:
+            $ref: '#/definitions/item.ItemsQuantity'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Get quantity of items in search request
+      tags:
+      - items
+  /items/search:
+    get:
+      consumes:
+      - application/json
+      description: Method provides to get list of items by search parameters
+      parameters:
+      - description: Search param
+        in: query
+        name: param
+        type: string
+      - default: 0
+        description: Offset when receiving records
+        in: query
+        name: offset
+        type: integer
+      - default: 10
+        description: Quantity of recordings
+        in: query
+        minimum: 0
+        name: limit
+        type: integer
+      - default: '"name"'
+        description: Sort type (name or price)
+        in: query
+        name: sortType
+        type: string
+      - default: '"asc"'
+        description: Sort order (asc or desc)
+        in: query
+        name: sortOrder
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of items
+          schema:
+            $ref: '#/definitions/item.ItemsList'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Get list of items by search parameters
+      tags:
+      - items
+  /items/update:
+    put:
+      consumes:
+      - application/json
+      description: Method provides to update store item
+      parameters:
+      - description: Data for updating item
+        in: body
+        name: item
+        required: true
+        schema:
+          $ref: '#/definitions/item.InItem'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Method provides to update store item
+      tags:
+      - items
+  /order/{orderID}:
+    get:
+      consumes:
+      - application/json
+      description: The method allows you to get the order by id.
+      parameters:
+      - description: Id of order
+        in: path
+        name: orderID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Order structure
+          schema:
+            $ref: '#/definitions/order.Order'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Get order by id
+      tags:
+      - order
+  /order/changeaddress/:
+    patch:
+      consumes:
+      - application/json
+      description: The method allows you to change address of an order by Id.
+      parameters:
+      - description: New address with orderID and user structure
+        in: body
+        name: AddressWithUserAndId
+        required: true
+        schema:
+          $ref: '#/definitions/order.AddressWithUserAndId'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Change address of a  specific order by Id
+      tags:
+      - order
+  /order/changestatus/:
+    patch:
+      consumes:
+      - application/json
+      description: The method allows you to change status of an order by Id.
+      parameters:
+      - description: New status with orderID and User structure
+        in: body
+        name: statusWithUserAndId
+        required: true
+        schema:
+          $ref: '#/definitions/order.StatusWithUserAndId'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Change status of a specific order by Id
+      tags:
+      - order
+  /order/create/:
+    post:
+      consumes:
+      - application/json
+      description: The method allows you to create an order out of cart and user info
+      parameters:
+      - description: Data for creating order
+        in: body
+        name: cartAddressUser
+        required: true
+        schema:
+          $ref: '#/definitions/order.CartAdressUser'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Order id and new cart id
+          schema:
+            $ref: '#/definitions/order.OrderId'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Create order
+      tags:
+      - order
+  /order/delete/{orderID}:
+    delete:
+      consumes:
+      - application/json
+      description: The method allows you to delete an order by id.
+      parameters:
+      - description: Id of the order to delete
+        in: path
+        name: orderID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Delete an order by id
+      tags:
+      - order
+  /order/list/{userID}:
+    get:
+      consumes:
+      - application/json
+      description: The method allows you to get all orders by UserId.
+      parameters:
+      - description: Id of the user
+        in: path
+        name: userID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of orders
+          schema:
+            items:
+              $ref: '#/definitions/order.Order'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Get all orders by UserId
+      tags:
+      - order
+  /user/callbackGoogle:
+    get:
+      consumes:
+      - application/json
+      description: Method provides to log in with Google
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "500":
+          description: Internal Server Error
+      summary: Callback Google provides logic for oauth google login
+      tags:
+      - user
+    put:
+      consumes:
+      - application/json
+      description: Method provides to Change User Role
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "500":
+          description: Internal Server Error
+      summary: Change User Role
+      tags:
+      - user
+  /user/create:
+    post:
+      consumes:
+      - application/json
+      description: Method provides to create a user
+      parameters:
+      - description: User data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/user.CreateUserData'
+      produces:
+      - application/json
+      responses:
+        "100":
+          description: Continue
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Create a new user
+      tags:
+      - user
+  /user/createRights/:
+    post:
+      consumes:
+      - application/json
+      description: Method provides to create rights.
+      parameters:
+      - description: Data for creating rights
+        in: body
+        name: rights
+        required: true
+        schema:
+          $ref: '#/definitions/user.ShortRights'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/user.RightsId'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "403":
+          description: Forbidden
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Method provides to create rights
+      tags:
+      - user
+  /user/login:
+    post:
+      consumes:
+      - application/json
+      description: Method provides to login a user
+      parameters:
+      - description: Login
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/password.Credentials'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user.LoginResponseData'
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Login user
+      tags:
+      - user
+  /user/login/google:
+    get:
+      consumes:
+      - application/json
+      description: Method provides to log in with Google
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "500":
+          description: Internal Server Error
+      summary: Login with Google oauth2
+      tags:
+      - user
+  /user/logout:
+    get:
+      consumes:
+      - application/json
+      description: Method provides to log out
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: Bad Request
+      summary: Logout
+      tags:
+      - user
+  /user/profile:
+    get:
+      consumes:
+      - application/json
+      description: Method provides to get profile info
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/user.CreateUserData'
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+        firebase: []
+      summary: User profile
+      tags:
+      - user
+  /user/profile/edit:
+    put:
+      consumes:
+      - application/json
+      description: Method provides to update profile info
+      parameters:
+      - description: User data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/user.CreateUserData'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/user.CreateUserData'
+        "404":
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+        firebase: []
+      summary: User profile update
+      tags:
+      - user
+  /user/rights/list:
+    get:
+      consumes:
+      - application/json
+      description: Method provides to Change User Role
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/delivery.ErrorResponse'
+      summary: Change User Role
+      tags:
+      - user
+swagger: "2.0"

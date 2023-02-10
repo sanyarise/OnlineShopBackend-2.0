@@ -1,0 +1,76 @@
+
+# настройки запуска
+run:
+# значение конкурентности устанавливаем по количеству CPU
+concurrency: 4
+
+# анализ не должен превышать
+timeout: 1m
+
+# выводить "exit-code" при наличии хотя бы одного сообщения
+issues-exit-code: 1
+
+# не включать анализ тестов
+tests: false
+
+# Пропускать папки вендора, сторонних зависимостей и т.д.
+#   vendor$, third_party$, testdata$, examples$, Godeps$, builtin$
+skip-dirs-use-default: true
+
+# Пропускать файлы, заканчивающиеся на .bad.go
+skip-files:
+  - ".*\\.bad\\.go$"
+  - ".*\\.bad\\.mock.go$"
+
+linters:
+  disable-all: true
+  enable:
+    - bodyclose
+    - deadcode
+    - depguard
+    - dogsled
+    - dupl
+    - errcheck
+    - exportloopref
+    - funlen
+    - gochecknoinits
+    - goconst
+    - gocritic
+    - gocyclo
+    - gofmt
+    - goimports
+    - gomnd
+    - goprintffuncname
+    - gosec
+    - gosimple
+    - govet
+    - ineffassign
+    - lll
+    - misspell
+    - nakedret
+    - noctx
+    - nolintlint
+    - staticcheck
+    - structcheck
+    - stylecheck
+    - typecheck
+    - unconvert
+    - unparam
+    - unused
+    - varcheck
+    - whitespace
+
+
+  linters-settings:
+  goimports:
+    local-prefixes: github.com/GBteammates/OnlineShopBackend
+  govet:
+    check-shadowing: true
+  goconst:
+    min-len: 2
+    min-occurrences: 2
+  funlen:
+    lines: 100
+    statements: 50
+  nakedret:
+    max-func-lines: 5

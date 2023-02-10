@@ -1,0 +1,7 @@
+datasources:
+-  name: Prometheus                        # name of the datasource
+   editable: true                        # whether it should be editable
+   is_default: true                      # whether this should be the default DS
+   type: prometheus                     # type of the data source
+   url: 'http://prometheus:9090'       # url of the prom instance
+   updateIntervalSeconds: 10
