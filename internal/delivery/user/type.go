@@ -15,11 +15,11 @@ type LoginResponseData struct {
 
 type CreateUserData struct {
 	ID        uuid.UUID          `json:"id,omitempty"`
-	Firstname string             `json:"firstname,omitempty"`
-	Lastname  string             `json:"lastname,omitempty"`
+	Firstname string             `json:"firstname,omitempty" binding:"required" example:"Jane"`
+	Lastname  string             `json:"lastname,omitempty" binding:"required" example:"Doe"`
 	Password  string             `json:"password,omitempty"`
 	Email     string             `json:"email,omitempty"`
-	Address   models.UserAddress `json:"address,omitempty"`
+	Address   models.UserAddress `json:"address,omitempty" binding:"required"`
 	Rights    models.Rights      `json:"rights,omitempty"`
 }
 

@@ -194,7 +194,7 @@ func (delivery *Delivery) UserProfile(c *gin.Context) {
 //	@Tags			user
 //	@Accept			json
 //	@Produce		json
-//	@Param			user	body	user.CreateUserData	true	"User data"
+//	@Param			user	body	user.CreateUserData	true	"New user data"
 //	@Security		ApiKeyAuth || firebase
 //	@Success		201	{object}	user.CreateUserData
 //	@Failure		404	{object}	ErrorResponse	"404 Not Found"
@@ -265,16 +265,6 @@ func (delivery *Delivery) LoginUserGoogle(c *gin.Context) {
 
 }
 
-// CallbackGoogle internal method
-//
-//	@Summary		Callback Google provides logic for oauth google login
-//	@Description	Method provides to log in with Google
-//	@Tags			user
-//	@Accept			json
-//	@Produce		json
-//	@Success		200
-//	@Failure		500
-//	@Router			/user/callbackGoogle [get]
 func (delivery *Delivery) CallbackGoogle(c *gin.Context) {
 	delivery.logger.Debug("Enter in delivery CallbackGoogle()")
 	cfg, err := googleOauth2.NewUserConfig()
