@@ -153,6 +153,51 @@ func (mr *MockItemStoreMockRecorder) GetItemsByCategory(ctx, categoryName interf
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetItemsByCategory", reflect.TypeOf((*MockItemStore)(nil).GetItemsByCategory), ctx, categoryName)
 }
 
+// ItemsByCategoryQuantity mocks base method.
+func (m *MockItemStore) ItemsByCategoryQuantity(ctx context.Context, categoryName string) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ItemsByCategoryQuantity", ctx, categoryName)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ItemsByCategoryQuantity indicates an expected call of ItemsByCategoryQuantity.
+func (mr *MockItemStoreMockRecorder) ItemsByCategoryQuantity(ctx, categoryName interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ItemsByCategoryQuantity", reflect.TypeOf((*MockItemStore)(nil).ItemsByCategoryQuantity), ctx, categoryName)
+}
+
+// ItemsInFavouriteQuantity mocks base method.
+func (m *MockItemStore) ItemsInFavouriteQuantity(ctx context.Context, userId uuid.UUID) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ItemsInFavouriteQuantity", ctx, userId)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ItemsInFavouriteQuantity indicates an expected call of ItemsInFavouriteQuantity.
+func (mr *MockItemStoreMockRecorder) ItemsInFavouriteQuantity(ctx, userId interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ItemsInFavouriteQuantity", reflect.TypeOf((*MockItemStore)(nil).ItemsInFavouriteQuantity), ctx, userId)
+}
+
+// ItemsInSearchQuantity mocks base method.
+func (m *MockItemStore) ItemsInSearchQuantity(ctx context.Context, searchRequest string) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ItemsInSearchQuantity", ctx, searchRequest)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ItemsInSearchQuantity indicates an expected call of ItemsInSearchQuantity.
+func (mr *MockItemStoreMockRecorder) ItemsInSearchQuantity(ctx, searchRequest interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ItemsInSearchQuantity", reflect.TypeOf((*MockItemStore)(nil).ItemsInSearchQuantity), ctx, searchRequest)
+}
+
 // ItemsList mocks base method.
 func (m *MockItemStore) ItemsList(ctx context.Context) (chan models.Item, error) {
 	m.ctrl.T.Helper()
@@ -166,6 +211,21 @@ func (m *MockItemStore) ItemsList(ctx context.Context) (chan models.Item, error)
 func (mr *MockItemStoreMockRecorder) ItemsList(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ItemsList", reflect.TypeOf((*MockItemStore)(nil).ItemsList), ctx)
+}
+
+// ItemsListQuantity mocks base method.
+func (m *MockItemStore) ItemsListQuantity(ctx context.Context) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ItemsListQuantity", ctx)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ItemsListQuantity indicates an expected call of ItemsListQuantity.
+func (mr *MockItemStoreMockRecorder) ItemsListQuantity(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ItemsListQuantity", reflect.TypeOf((*MockItemStore)(nil).ItemsListQuantity), ctx)
 }
 
 // SearchLine mocks base method.

@@ -28,7 +28,7 @@ func NewRedisCash(host, port string, ttl time.Duration, logger *zap.Logger) (*Re
 		return nil, fmt.Errorf("try to ping to redis: %w", err)
 	}
 	logger.Debug("Redis Client ping success")
-	cashTTL := ttl * time.Minute
+	cashTTL := ttl * time.Hour
 	c := &RedisCash{
 		Client: client,
 		TTL:    cashTTL,
@@ -38,7 +38,7 @@ func NewRedisCash(host, port string, ttl time.Duration, logger *zap.Logger) (*Re
 }
 
 // ShutDown is func for graceful shutdown redis connection
-func (cash *RedisCash) ShutDown(timeout int) error{
+func (cash *RedisCash) ShutDown(timeout int) error {
 	cash.logger.Sugar().Debugf("Enter in cash ShutDown() with args: timeout: %d", timeout)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeout)*time.Second)
 	defer cancel()

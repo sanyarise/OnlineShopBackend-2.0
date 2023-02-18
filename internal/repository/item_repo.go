@@ -30,7 +30,7 @@ var _ ItemStore = (*itemRepo)(nil)
 // CreateItem insert new item in database
 func (repo *itemRepo) CreateItem(ctx context.Context, item *models.Item) (uuid.UUID, error) {
 	repo.logger.Debugf("Enter in repository CreateItem() with args: ctx, item: %v", item)
-	
+
 	pool := repo.storage.GetPool()
 
 	// Recording operations need transaction
@@ -128,8 +128,25 @@ func (repo *itemRepo) GetItem(ctx context.Context, id uuid.UUID) (*models.Item, 
 	pool := repo.storage.GetPool()
 
 	item := models.Item{}
-	row := pool.QueryRow(ctx,
-		`SELECT items.id, items.name, category, categories.name, categories.description, categories.picture, items.description, price, vendor, pictures FROM items INNER JOIN categories ON category=categories.id and items.id = $1 WHERE items.deleted_at is null AND categories.deleted_at is null`, id)
+	row := pool.QueryRow(ctx,`
+	SELECT 
+	items.id, 
+	items.name, 
+	category, 
+	categories.name, 
+	categories.description, 
+	categories.picture, 
+	items.description, 
+	price, 
+	vendor, 
+	pictures 
+	FROM items 
+	INNER JOIN categories 
+	ON category=categories.id 
+	AND items.id = $1 
+	WHERE items.deleted_at is null 
+	AND categories.deleted_at is null
+	`, id)
 	err := row.Scan(
 		&item.Id,
 		&item.Title,
@@ -153,7 +170,7 @@ func (repo *itemRepo) GetItem(ctx context.Context, id uuid.UUID) (*models.Item, 
 	return &item, nil
 }
 
-// ItemsList reads all the items from the database and writes it to the 
+// ItemsList reads all the items from the database and writes it to the
 // output channel and returns this channel or error
 func (repo *itemRepo) ItemsList(ctx context.Context) (chan models.Item, error) {
 	repo.logger.Debug("Enter in repository ItemsList() with args: ctx")
@@ -164,7 +181,23 @@ func (repo *itemRepo) ItemsList(ctx context.Context) (chan models.Item, error) {
 
 		item := &models.Item{}
 		rows, err := pool.Query(ctx, `
-		SELECT items.id, items.name, category, categories.name, categories.description, categories.picture, items.description, price, vendor, pictures FROM items INNER JOIN categories ON category=categories.id WHERE items.deleted_at is null AND categories.deleted_at is null`)
+		SELECT
+		items.id,
+		items.name, 
+		category, 
+		categories.name, 
+		categories.description, 
+		categories.picture, 
+		items.description, 
+		price, 
+		vendor, 
+		pictures 
+		FROM items 
+		INNER JOIN categories 
+		ON category=categories.id 
+		WHERE items.deleted_at is null 
+		AND categories.deleted_at is null
+		`)
 		if err != nil {
 			msg := fmt.Errorf("error on items list query context: %w", err)
 			repo.logger.Error(msg.Error())
@@ -204,8 +237,27 @@ func (repo *itemRepo) SearchLine(ctx context.Context, param string) (chan models
 		item := &models.Item{}
 		pool := repo.storage.GetPool()
 		rows, err := pool.Query(ctx, `
-		SELECT items.id, items.name, category, categories.name, categories.description,categories.picture, items.description, price, vendor, pictures FROM items INNER JOIN categories ON category=categories.id WHERE items.deleted_at is null AND categories.deleted_at is null AND items.name ilike $1 OR items.description ilike $1 OR vendor ilike $1 OR categories.name ilike $1`,
-			"%"+param+"%")
+		SELECT 
+		items.id, 
+		items.name, 
+		category, 
+		categories.name, 
+		categories.description,
+		categories.picture, 
+		items.description, 
+		price, 
+		vendor, 
+		pictures 
+		FROM items 
+		INNER JOIN categories 
+		ON category=categories.id 
+		WHERE items.deleted_at is null 
+		AND categories.deleted_at is null
+		AND items.name ilike $1 
+		OR items.description ilike $1 
+		OR vendor ilike $1 
+		OR categories.name ilike $1
+		`, "%"+param+"%")
 		if err != nil {
 			msg := fmt.Errorf("error on search line query context: %w", err)
 			repo.logger.Error(msg.Error())
@@ -245,8 +297,21 @@ func (repo *itemRepo) GetItemsByCategory(ctx context.Context, categoryName strin
 		item := &models.Item{}
 		pool := repo.storage.GetPool()
 		rows, err := pool.Query(ctx, `
-		SELECT items.id, items.name, category, categories.name, categories.description,categories.picture, items.description, price, vendor, pictures FROM items INNER JOIN categories ON category=categories.id WHERE items.deleted_at is null AND categories.deleted_at is null AND categories.name=$1`,
-			categoryName)
+		SELECT items.id, 
+		items.name, 
+		category, 
+		categories.name, 
+		categories.description,
+		categories.picture, 
+		items.description, 
+		price, 
+		vendor, 
+		pictures FROM items 
+		INNER JOIN categories ON category=categories.id 
+		WHERE items.deleted_at is null 
+		AND categories.deleted_at is null 
+		AND categories.name=$1
+		`, categoryName)
 		if err != nil {
 			msg := fmt.Errorf("error on get items by category query context: %w", err)
 			repo.logger.Error(msg.Error())
@@ -357,9 +422,23 @@ func (repo *itemRepo) GetFavouriteItems(ctx context.Context, userId uuid.UUID) (
 		pool := repo.storage.GetPool()
 		item := models.Item{}
 		rows, err := pool.Query(ctx, `
-		SELECT 	i.id, i.name, i.description, i.category, cat.name, cat.description, cat.picture, i.price, i.vendor, i.pictures
+		SELECT 	
+		i.id, 
+		i.name, 
+		i.description, 
+		i.category, 
+		cat.name, 
+		cat.description, 
+		cat.picture, 
+		i.price, 
+		i.vendor, 
+		i.pictures
 		FROM favourite_items f, items i, categories cat
-		WHERE f.user_id=$1 and i.id = f.item_id and cat.id = i.category`, userId)
+		WHERE f.user_id=$1 
+		AND i.id = f.item_id 
+		AND cat.id = i.category
+		AND i.deleted_at IS NULL
+		`, userId)
 		if err != nil {
 			repo.logger.Errorf("can't select items from favourite_items: %s", err)
 			return
@@ -408,8 +487,8 @@ func (repo *itemRepo) GetFavouriteItemsId(ctx context.Context, userId uuid.UUID)
 	for rows.Next() {
 		err := rows.Scan(
 			&item.Id,
-		); 
-		if err != nil&&strings.Contains(err.Error(), "no rows in result set") {
+		)
+		if err != nil && strings.Contains(err.Error(), "no rows in result set") {
 			repo.logger.Info("this user don't have favourite items")
 			return nil, models.ErrorNotFound{}
 		}
@@ -420,4 +499,87 @@ func (repo *itemRepo) GetFavouriteItemsId(ctx context.Context, userId uuid.UUID)
 		result[item.Id] = userId
 	}
 	return &result, nil
+}
+
+// ItemsListQuantity returns quantity of all items or error
+func (repo *itemRepo) ItemsListQuantity(ctx context.Context) (int, error) {
+	repo.logger.Debug("Enter in repository ItemsListQuantity() with args: ctx")
+	pool := repo.storage.GetPool()
+	var quantity int
+	row := pool.QueryRow(ctx, `SELECT COUNT(1) FROM items WHERE deleted_at IS NULL`)
+	err := row.Scan(&quantity)
+	if err != nil {
+		repo.logger.Errorf("Error in row.Scan items list quantity: %s", err)
+		return -1, fmt.Errorf("error in row.Scan items list quantity: %w", err)
+	}
+	repo.logger.Info("Request for ItemsListQuantity success")
+	return quantity, nil
+}
+
+// ItemsByCategoryQuantity returns quntity of items in category or error
+func (repo *itemRepo) ItemsByCategoryQuantity(ctx context.Context, categoryName string) (int, error) {
+	repo.logger.Debug("Enter in repository ItemsByCategoryQuantity() with args: ctx, categoryName: %s", categoryName)
+	pool := repo.storage.GetPool()
+	var quantity int
+	row := pool.QueryRow(ctx, `
+	SELECT COUNT(1) FROM items 
+	INNER JOIN categories ON category=categories.id 
+	WHERE items.deleted_at is null 
+	AND categories.deleted_at is null 
+	AND categories.name=$1
+	`, categoryName)
+	err := row.Scan(&quantity)
+	if err != nil {
+		repo.logger.Errorf("Error in row.Scan items by category quantity: %s", err)
+		return -1, fmt.Errorf("error in row.Scan items by category quantity: %w", err)
+	}
+	repo.logger.Info("Request for ItemsByCategoryQuantity success")
+	return quantity, nil
+}
+
+// ItemsInSearchQuantity returns quantity of items in search results or error
+func (repo *itemRepo) ItemsInSearchQuantity(ctx context.Context, searchRequest string) (int, error) {
+	repo.logger.Debug("Enter in repository ItemsInSearchQuantity() with args: ctx, searchRequest: %s", searchRequest)
+	pool := repo.storage.GetPool()
+	var quantity int
+	row := pool.QueryRow(ctx, `
+		SELECT COUNT(1) 
+		FROM items 
+		INNER JOIN categories 
+		ON category=categories.id 
+		WHERE items.deleted_at is null 
+		AND categories.deleted_at is null
+		AND items.name ilike $1 
+		OR items.description ilike $1 
+		OR vendor ilike $1 
+		OR categories.name ilike $1
+		`, "%"+searchRequest+"%")
+	err := row.Scan(&quantity)
+	if err != nil {
+		repo.logger.Errorf("Error in row.Scan items in search quantity: %s", err)
+		return -1, fmt.Errorf("error in row.Scan items in search quantity: %w", err)
+	}
+	repo.logger.Info("Request for ItemsInSearchQuantity success")
+	return quantity, nil
+}
+
+// ItemsInFavouriteQuantity returns quantity or favourite items by user id or error
+func (repo *itemRepo) ItemsInFavouriteQuantity(ctx context.Context, userId uuid.UUID) (int, error) {
+	repo.logger.Debug("Enter in repository ItemsInFavouriteQuantity() with args: ctx, userId uuid.UUID: %v", userId)
+	pool := repo.storage.GetPool()
+	var quantity int
+	row := pool.QueryRow(ctx, `
+	SELECT COUNT(1) 
+	FROM favourite_items f, items i
+	WHERE f.user_id=$1 
+	AND i.id = f.item_id
+	AND i.deleted_at IS NULL
+	`, userId)
+	err := row.Scan(&quantity)
+	if err != nil {
+		repo.logger.Errorf("Error in row.Scan items in favourite quantity: %s", err)
+		return -1, fmt.Errorf("error in row.Scan items in favourite quantity: %w", err)
+	}
+	repo.logger.Info("Request for ItemsInFavouriteQuantity success")
+	return quantity, nil
 }

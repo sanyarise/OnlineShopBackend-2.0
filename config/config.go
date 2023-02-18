@@ -12,16 +12,16 @@ import (
 
 type Config struct {
 	IsProd            bool   `toml:"is_prod" env:"IS_PROD" envDefault:"false"`
-	DNS               string `toml:"dns" env:"DNS" envDefault:"postgres://shopteam:123@104.248.44.156:5432/shop?sslmode=disable"`
+	DNS               string `toml:"dns" env:"DNS" envDefault:"postgres://shopteam:123@localhost:5432/shop?sslmode=disable"`
 	AdminMail         string `toml:"admin_mail" env:"ADMIN_MAIL" envDefault:"admin@mail.ru"`
 	AdminPass         string `toml:"admin_pass" env:"ADMIN_PASS" envDefault:"12345678" json:"-"`
-	Port              string `toml:"port" env:"PORT" envDefault:":8080"`
+	Port              string `toml:"port" env:"PORT" envDefault:":8000"`
 	FsPath            string `toml:"fs_path" env:"FS_PATH" envDefault:"./static/files/"`
-	ServerURL         string `toml:"server_url" env:"SERVER_URL" envDefault:"http://104.248.44.156"`
+	ServerURL         string `toml:"server_url" env:"SERVER_URL" envDefault:"http://localhost:8000"`
 	Timeout           int    `toml:"timeout" env:"TIMEOUT" envDefault:"5"`
-	CashHost          string `toml:"cash_host" env:"CASH_HOST" envDefault:"104.248.44.156"`
+	CashHost          string `toml:"cash_host" env:"CASH_HOST" envDefault:"localhost"`
 	CashPort          string `toml:"cash_port" env:"CASH_PORT" envDefault:"6379"`
-	CashTTL           int    `toml:"cash_ttl" env:"CASH_TTL" envDefault:"30"`
+	CashTTL           int    `toml:"cash_ttl" env:"CASH_TTL" envDefault:"24"`
 	LogLevel          string `toml:"log_level" env:"LOG_LEVEL" envDefault:"debug"`
 	ReadTimeout       int    `toml:"read_timeout" env:"READ_TIMEOUT" envDefault:"30"`
 	WriteTimeout      int    `toml:"write_timeout" env:"WRITE_TIMEOUT" envDefault:"30"`
@@ -47,7 +47,9 @@ func NewConfig() (*Config, error) {
 			log.Fatalf("can't load configuration file: %s", err)
 		}
 	}
-
+	if cfg.IsProd {
+		cfg.LogLevel = "error"
+	}
 	configBytes, err := json.MarshalIndent(cfg, "", "  ")
 	if err != nil {
 		log.Fatal(err)
