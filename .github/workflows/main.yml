@@ -51,7 +51,7 @@ jobs:
             # Remove old container
             docker rm $(echo $CONTAINER_NAME)
             # Run a new container from a new image
-            docker run -e SERVER_URL -d \
+            docker run -e SERVER_URL=${{ secrets.SERVER_URL  }} -e PORT=${{ secrets.PORT }} -e DNS=${{ secrets.DNS }} -e CASH_HOST=${{ secrets.CASH_HOST}}  -d \
             --restart always \
             --publish 8080:8080 \
             --name $(echo $CONTAINER_NAME) \
