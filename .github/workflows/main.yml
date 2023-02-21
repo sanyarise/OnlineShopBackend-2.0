@@ -3,7 +3,7 @@ name: CI
 on:
   push:
     branches:
-      - main
+      - CI
 
 env:
   REGISTRY: "registry.digitalocean.com/cozy"
@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Build container image
-        run: docker build --build-arg SERVER_URL=${{ secrets.SERVER_URL  }} --build-arg DNS=${{ secrets.DNS }} --build-arg CASH_HOST=${{ secrets.CASH_HOST}} -t $(echo $REGISTRY)/$(echo $IMAGE_NAME):$(echo $GITHUB_SHA | head -c7) .
+        run: docker build -t $(echo $REGISTRY)/$(echo $IMAGE_NAME):$(echo $GITHUB_SHA | head -c7) .
 
       - name: Install doctl
         uses: digitalocean/action-doctl@v2
@@ -51,8 +51,13 @@ jobs:
             # Remove old container
             docker rm $(echo $CONTAINER_NAME)
             # Run a new container from a new image
-            docker run -d \
+            docker run \
+            -e PORT=${{ secrets.PORT }} \
+            -e SERVER_URL=${{ secrets.SERVER_URL  }} \
+            -e DNS=${{ secrets.DNS }}
+            -e CASH_HOST=${{ secrets.CASH_HOST}}
             --restart always \
-            --publish 8080:8080 \
+            --publish 8080:${{ secrets.PORT }} \
+            -d \
             --name $(echo $CONTAINER_NAME) \
             $(echo $REGISTRY)/$(echo $IMAGE_NAME):$(echo $GITHUB_SHA | head -c7)
