@@ -4,13 +4,13 @@ import (
 	"OnlineShopBackend/config"
 	"OnlineShopBackend/internal/app/logger"
 	"OnlineShopBackend/internal/app/router"
-	"OnlineShopBackend/internal/app/server"
 	"OnlineShopBackend/internal/delivery"
 	"OnlineShopBackend/internal/delivery/user/password"
 	"OnlineShopBackend/internal/filestorage"
 	"OnlineShopBackend/internal/models"
 	"OnlineShopBackend/internal/repository"
 	"OnlineShopBackend/internal/repository/cash"
+	"OnlineShopBackend/internal/server"
 	"OnlineShopBackend/internal/usecase"
 	"context"
 	"fmt"
@@ -226,7 +226,7 @@ func setCustomerRights(userStore repository.UserStore, logger *zap.Logger) {
 		return
 	}
 	customerRights := models.Rights{
-		Name: "Customer",
+		Name:  "Customer",
 		Rules: []string{"Customer"},
 	}
 	rightsId, err := userStore.CreateRights(ctx, &customerRights)
