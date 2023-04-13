@@ -2,9 +2,8 @@ package main
 
 import (
 	"OnlineShopBackend/config"
-	"OnlineShopBackend/internal/app/logger"
-	"OnlineShopBackend/internal/app/router"
 	"OnlineShopBackend/internal/delivery"
+	"OnlineShopBackend/internal/delivery/router"
 	"OnlineShopBackend/internal/delivery/user/password"
 	"OnlineShopBackend/internal/filestorage"
 	"OnlineShopBackend/internal/models"
@@ -12,6 +11,7 @@ import (
 	"OnlineShopBackend/internal/repository/cash"
 	"OnlineShopBackend/internal/server"
 	"OnlineShopBackend/internal/usecase"
+	"OnlineShopBackend/logger"
 	"context"
 	"fmt"
 	"log"
